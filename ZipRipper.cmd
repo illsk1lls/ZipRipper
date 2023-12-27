@@ -9,7 +9,7 @@ IF "%~1"=="" (ECHO Drop a password protected ZIP file onto the script to begin..
 CD /D %~dp0
 IF NOT "%~f0" EQU "%ProgramData%\%~nx0" (
 >nul 2>&1 COPY /Y "%~f0" "%ProgramData%"
-START "" "^""%ProgramData%\%~nx0"^"" "%_%">nul
+START "" ""%ProgramData%\%~nx0"" "%_%">nul
 EXIT /b
 )
 ::Center CMD window
