@@ -1,13 +1,15 @@
-@ECHO OFF
+@ECHO OFF&SET "TitleName=ZipRipper"
+TASKLIST /V /NH /FI "imagename eq cmd.exe"|FIND /I /C "%TitleName%">nul
+IF NOT %errorlevel%==1 (ECHO ERROR:&ECHO ZipRipper is already running!) |MSG * & EXIT /b
+TITLE %TitleName%&CALL :CHECKCOMPAT&IF NOT "%~2"=="" ECHO Multiple files are not supported, Please drop one file at a time.&ECHO.&PAUSE&EXIT
+IF "%~1"=="" (ECHO Drop a password protected ZIP file onto the script to begin...&ECHO.&PAUSE&EXIT) ELSE (IF /I NOT "%~x1"==".zip" ECHO Only ZIP archives are supported...&ECHO.&PAUSE&EXIT)
 >nul 2>&1 reg add hkcu\software\classes\.ZipRipper\shell\runas\command /f /ve /d "cmd /x /d /r set \"f0=%%2\"& call \"%%2\" %%3"& set _= %*
 >nul 2>&1 fltmc|| if "%f0%" neq "%~f0" (cd.>"%ProgramData%\elevate.ZipRipper" & start "%~n0" /high "%ProgramData%\elevate.ZipRipper" "%~f0" "%_:"=""%" & exit /b)
 >nul 2>&1 reg delete hkcu\software\classes\.ZipRipper\ /f &>nul 2>&1 del %ProgramData%\elevate.ZipRipper /f /q
-CALL :CHECKCOMPAT&IF NOT "%~2"=="" ECHO Multiple files are not supported, Please drop one file at a time.&ECHO.&PAUSE&EXIT
-IF "%~1"=="" (ECHO Drop a password protected ZIP file onto the script to begin...&ECHO.&PAUSE&EXIT) ELSE (IF /I NOT "%~x1"==".zip" ECHO Only ZIP archives are supported...&ECHO.&PAUSE&EXIT)
 CD /D %~dp0
 IF NOT "%~f0" EQU "%ProgramData%\%~nx0" (
 >nul 2>&1 COPY /Y "%~f0" "%ProgramData%"
-START "" "%ProgramData%\%~nx0" "%_%">nul
+START "" "^""%ProgramData%\%~nx0"^"" "%_%">nul
 EXIT /b
 )
 ::Center CMD window
