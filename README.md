@@ -1,4 +1,4 @@
-# ZipRipper - A frontend script to crack password protected ZIP files using JohnTheRipper
+# ZipRipper - A CMD script to crack password protected ZIP files using JohnTheRipper
 
 Credit To: <br>
 
