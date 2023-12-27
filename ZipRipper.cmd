@@ -1,7 +1,7 @@
-@ECHO OFF&SET "TitleName=ZipRipper"&CALL :CHECKCOMPAT
+@ECHO OFF&SET "TitleName=ZipRipper"
 TASKLIST /V /NH /FI "imagename eq cmd.exe"|FIND /I /C "%TitleName%">nul
 IF NOT %errorlevel%==1 (ECHO ERROR:&ECHO ZipRipper is already running!) |MSG * & EXIT /b
-TITLE %TitleName%
+TITLE %TitleName%&CALL :CHECKCOMPAT
 IF NOT "%~2"=="" ECHO Multiple files are not supported, Please drop one ZIP at a time.&ECHO.&PAUSE&EXIT
 IF "%~1"=="" (ECHO Drop a password protected ZIP file onto the script to begin...&ECHO.&PAUSE&EXIT) ELSE (IF /I NOT "%~x1"==".zip" ECHO Only ZIP archives are supported...&ECHO.&PAUSE&EXIT)
 >nul 2>&1 reg add hkcu\software\classes\.ZipRipper\shell\runas\command /f /ve /d "cmd /x /d /r set \"f0=%%2\"& call \"%%2\" %%3"& set _= %*
