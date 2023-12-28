@@ -1,4 +1,4 @@
-@ECHO OFF&TITLE Please Wait...&SET/A GPU=0&CALL :CHECKCOMPAT&IF NOT "%~2"=="" ECHO Multiple files are not supported, Please drop one file at a time.&ECHO.&PAUSE&EXIT
+@ECHO OFF&TITLE Please Wait...&SET/A GPU=0&SET/A GO=0&CALL :CHECKCOMPAT&IF NOT "%~2"=="" ECHO Multiple files are not supported, Please drop one file at a time.&ECHO.&PAUSE&EXIT
 SET "SUPPORTED=ZIP,RAR,7z"
 IF "%~1"=="" (ECHO Drop a password protected %SUPPORTED% file onto the script to begin...&ECHO.&PAUSE&EXIT) ELSE (FOR %%# IN (%SUPPORTED%) DO IF /I "%~x1"==".%%#" SET/a GO=1)
 (IF %GO% NEQ 1 ECHO Unsupported file extension. Supported extensions are: %SUPPORTED%&ECHO.&PAUSE&EXIT)&SET "FILETYPE=%~x1"
