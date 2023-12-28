@@ -49,7 +49,6 @@ zip2john "%~1">"%ProgramData%\JtR\run\pwhash" 2>nul
 SET "FLAG="
 IF %GPU% EQU 1 (
 FOR /F "tokens=2 delims=$" %%# IN (pwhash) DO (
-IF "%%#"=="pkzip" SET "FLAG=--format=PKZIP"
 IF "%%#"=="zip2" SET "FLAG=--format=ZIP-opencl"
 )
 )
