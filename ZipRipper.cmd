@@ -20,10 +20,8 @@ CALL :GETJTRREADY
 PUSHD "%ProgramData%\JtR\run"
 CLS&SET "FLAG="&IF %~z1 GEQ 200000000 (ECHO Creating Password Hash - This can take a few minutes on large files...) ELSE (ECHO Creating Password Hash...)
 CALL :GO%FILETYPE% %1
-SETLOCAL ENABLEDELAYEDEXPANSION
 CLS&ECHO Running JohnTheRipper...&ECHO.
-john pwhash !FLAG!
-ENDLOCAL
+SETLOCAL ENABLEDELAYEDEXPANSION&john pwhash !FLAG!&ENDLOCAL
 ECHO.&PAUSE
 POPD&RD "%ProgramData%\JtR" /S /Q>nul&(GOTO) 2>nul&DEL "%~f0"/F /Q>nul&EXIT
 :GETJTRREADY
@@ -47,22 +45,16 @@ EXIT/b
 :GO.ZIP
 zip2john "%~1">"%ProgramData%\JtR\run\pwhash" 2>nul
 IF %GPU% EQU 1 (
-FOR /F "tokens=2 delims=$" %%# IN (pwhash) DO (
-IF "%%#"=="zip2" SET "FLAG=--format=ZIP-opencl"
-)
+FOR /F "tokens=2 delims=$" %%# IN (pwhash) DO IF "%%#"=="zip2" SET "FLAG=--format=ZIP-opencl"
 )
 EXIT/b
 :GO.RAR
 rar2john "%~1">"%ProgramData%\JtR\run\pwhash" 2>nul
 IF %GPU% EQU 1 (
-FOR /F "tokens=2 delims=$" %%# IN (pwhash) DO (
-IF "%%#"=="rar" SET "FLAG=--format=rar-opencl"
-IF "%%#"=="rar5" SET "FLAG=--format=RAR5-opencl"
-)
+FOR /F "tokens=2 delims=$" %%# IN (pwhash) DO (IF "%%#"=="rar" SET "FLAG=--format=rar-opencl")&(IF "%%#"=="rar5" SET "FLAG=--format=RAR5-opencl")
 )
 EXIT/b
 :GO.7z
 CALL portableshell.bat 7z2john.pl "%~1">"%ProgramData%\JtR\run\pwhash"
-SET "FLAG="
 IF %GPU% EQU 1 SET "FLAG=--format=7z-opencl"
 EXIT/b
