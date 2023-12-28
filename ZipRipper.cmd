@@ -41,10 +41,10 @@ POWERSHELL -nop -c "Start-BitsTransfer -Priority Foreground -Source https://gith
 IF %GPU% EQU 1 >nul 2>&1 COPY /Y "%WinDir%\System32\OpenCL.dll" "%ProgramData%\JtR\run\cygOpenCL-1.dll"
 EXIT/b
 :CHECKCOMPAT
-FOR /F "usebackq skip=2 tokens=3-4" %%# IN (`REG QUERY "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v ProductName 2^>nul`) DO SET "ProductName=%%# %%$"
+FOR /F "usebackq skip=2 tokens=3,4" %%# IN (`REG QUERY "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v ProductName 2^>nul`) DO SET "ProductName=%%# %%$"
 IF "%ProductName%"=="Windows 7" ECHO.&ECHO Windows 7 detected.&ECHO.&ECHO SYSTEM NOT SUPPORTED!&ECHO.&PAUSE&EXIT
 POWERSHELL -nop -c "Get-WmiObject -Class Win32_OperatingSystem | Format-List -Property Caption" | find "Windows 11">nul
 ::IF %errorlevel% == 0 Win 11 Stuff here...
-FOR /F "tokens=2,3 skip=1" %%# in ('WMIC path Win32_VideoController get Name ^| findstr "."') DO (IF /I "%%#"=="GeForce" SET/A GPU=1)&(IF /I "%%#"=="Quadro" SET/A GPU=1)&(IF /I "%%# %%$"=="Radeon RX" SET/A GPU=1)&(IF /I "%%# %%$"=="Radeon Pro" SET/A GPU=1)
+FOR /F "usebackq skip=1 tokens=2,3" %%# in (`WMIC path Win32_VideoController get Name ^| findstr "."`) DO (IF /I "%%#"=="GeForce" SET/A GPU=1)&(IF /I "%%#"=="Quadro" SET/A GPU=1)&(IF /I "%%# %%$"=="Radeon RX" SET/A GPU=1)&(IF /I "%%# %%$"=="Radeon Pro" SET/A GPU=1)
 IF NOT EXIST "%WinDir%\System32\OpenCL.dll" SET/A GPU=0
 EXIT/b
