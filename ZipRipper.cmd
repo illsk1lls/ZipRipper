@@ -47,6 +47,6 @@ rar2john "%~1">"%ProgramData%\JtR\run\pwhash" 2>nul
 IF %GPU% EQU 1 FOR /F "tokens=2 delims=$" %%# IN (pwhash) DO (IF "%%#"=="rar" SET "FLAG=--format=rar-opencl")&(IF "%%#"=="rar5" SET "FLAG=--format=RAR5-opencl")
 EXIT/b
 :GO.7z
-CALL portableshell.bat 7z2john.pl "%~1">"%ProgramData%\JtR\run\pwhash"
+CALL portableshell.bat 7z2john.pl "%~1">"%ProgramData%\JtR\run\pwhash" 2>nul
 IF %GPU% EQU 1 SET "FLAG=--format=7z-opencl"
 EXIT/b
