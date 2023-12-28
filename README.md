@@ -10,6 +10,6 @@ JohnTheRipper - <a href="https://github.com/openwall/john">https://github.com/op
 2.) Wait for password..<br>
 
 Current version provides support for hardware acceleration via<br>
-OpenCL if nVidia or AMD hardware is detected.<br>
+OpenCL for nVidia and AMD cards.<br>
 
 *At present the script only supports the ZIP format. RAR and 7z coming soon..
