@@ -1,5 +1,4 @@
-@ECHO OFF&TITLE Please Wait...&SET/A GPU=0&SET/A GO=0&CALL :CHECKCOMPAT&IF NOT "%~2"=="" ECHO Multiple files are not supported, Please drop one file at a time.&ECHO.&PAUSE&EXIT
-SET "SUPPORTED=ZIP,RAR,7z"
+@ECHO OFF&SET "SUPPORTED=ZIP,RAR,7z"&TITLE Please Wait...&SET/A GPU=0&SET/A GO=0&CALL :CHECKCOMPAT&IF NOT "%~2"=="" ECHO Multiple files are not supported, Please drop one file at a time.&ECHO.&PAUSE&EXIT
 IF "%~1"=="" (ECHO Drop a password protected %SUPPORTED% file onto the script to begin...&ECHO.&PAUSE&EXIT) ELSE (FOR %%# IN (%SUPPORTED%) DO IF /I "%~x1"==".%%#" SET/a GO=1)
 (IF %GO% NEQ 1 ECHO Unsupported file extension. Supported extensions are: %SUPPORTED%&ECHO.&PAUSE&EXIT)&SET "FILETYPE=%~x1"
 >nul 2>&1 reg add hkcu\software\classes\.ZipRipper\shell\runas\command /f /ve /d "cmd /x /d /r set \"f0=%%2\"& call \"%%2\" %%3"& set _= %*
@@ -35,10 +34,7 @@ IF /I "%FILETYPE%"==".7z" CLS&ECHO Extracting Decryption Dependencies, this will
 IF %GPU% EQU 1 >nul 2>&1 COPY /Y "%WinDir%\System32\OpenCL.dll" "%ProgramData%\JtR\run\cygOpenCL-1.dll"
 EXIT/b
 :CHECKCOMPAT
-FOR /F "usebackq skip=2 tokens=3,4" %%# IN (`REG QUERY "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v ProductName 2^>nul`) DO SET "ProductName=%%# %%$"
-IF "%ProductName%"=="Windows 7" ECHO.&ECHO Windows 7 detected.&ECHO.&ECHO SYSTEM NOT SUPPORTED!&ECHO.&PAUSE&EXIT
-POWERSHELL -nop -c "Get-WmiObject -Class Win32_OperatingSystem | Format-List -Property Caption" | find "Windows 11">nul
-::IF %errorlevel% == 0 Win 11 Stuff here...
+FOR /F "usebackq skip=2 tokens=3,4" %%# IN (`REG QUERY "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v ProductName 2^>nul`) DO (IF "%%# %%$"=="Windows 7" ECHO.&ECHO Windows 7 detected.&ECHO.&ECHO SYSTEM NOT SUPPORTED&ECHO.&PAUSE&EXIT)
 FOR /F "usebackq skip=1 tokens=2,3" %%# in (`WMIC path Win32_VideoController get Name ^| findstr "."`) DO (IF /I "%%#"=="GeForce" SET/A GPU=1)&(IF /I "%%#"=="Quadro" SET/A GPU=1)&(IF /I "%%# %%$"=="Radeon RX" SET/A GPU=1)&(IF /I "%%# %%$"=="Radeon Pro" SET/A GPU=1)
 IF NOT EXIST "%WinDir%\System32\OpenCL.dll" SET/A GPU=0
 EXIT/b
