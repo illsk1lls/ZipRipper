@@ -18,6 +18,7 @@ IF NOT %errorlevel%==0 ECHO.&ECHO Internet connection not detected, the latest J
 IF EXIST "%ProgramData%\JtR" >nul 2>&1 RD "%ProgramData%\JtR" /S /Q
 CALL :GETJTRREADY
 PUSHD "%ProgramData%\JtR\run"
+CLS&SET "FLAG="&IF %~z1 GEQ 200000000 (ECHO Creating Password Hash - This can take a few minutes on large files...) ELSE (ECHO Creating Password Hash...)
 CALL :GO%FILETYPE% %1
 SETLOCAL ENABLEDELAYEDEXPANSION
 CLS&ECHO Running JohnTheRipper...&ECHO.
@@ -44,9 +45,7 @@ FOR /F "usebackq skip=1 tokens=2,3" %%# in (`WMIC path Win32_VideoController get
 IF NOT EXIST "%WinDir%\System32\OpenCL.dll" SET/A GPU=0
 EXIT/b
 :GO.ZIP
-CLS&IF %~z1 GEQ 200000000 (ECHO Creating Password Hash - This can take a few minutes on large files...) ELSE (ECHO Creating Password Hash...)
 zip2john "%~1">"%ProgramData%\JtR\run\pwhash" 2>nul
-SET "FLAG="
 IF %GPU% EQU 1 (
 FOR /F "tokens=2 delims=$" %%# IN (pwhash) DO (
 IF "%%#"=="zip2" SET "FLAG=--format=ZIP-opencl"
@@ -54,9 +53,7 @@ IF "%%#"=="zip2" SET "FLAG=--format=ZIP-opencl"
 )
 EXIT/b
 :GO.RAR
-CLS&IF %~z1 GEQ 200000000 (ECHO Creating Password Hash - This can take a few minutes on large files...) ELSE (ECHO Creating Password Hash...)
 rar2john "%~1">"%ProgramData%\JtR\run\pwhash" 2>nul
-SET "FLAG="
 IF %GPU% EQU 1 (
 FOR /F "tokens=2 delims=$" %%# IN (pwhash) DO (
 IF "%%#"=="rar" SET "FLAG=--format=rar-opencl"
@@ -65,7 +62,6 @@ IF "%%#"=="rar5" SET "FLAG=--format=RAR5-opencl"
 )
 EXIT/b
 :GO.7z
-CLS&IF %~z1 GEQ 200000000 (ECHO Creating Password Hash - This can take a few minutes on large files...) ELSE (ECHO Creating Password Hash...)
 CALL portableshell.bat 7z2john.pl "%~1">"%ProgramData%\JtR\run\pwhash"
 SET "FLAG="
 IF %GPU% EQU 1 SET "FLAG=--format=7z-opencl"
