@@ -11,6 +11,6 @@ StarwberryPerl(Portable) - <a href="https://strawberryperl.com/releases.html">ht
 2.) Wait for password..<br>
 
 Current version provides support for hardware acceleration via<br>
-OpenCL for nVidia "GeForce" and AMD "Radeon RX" cards.<br>
+OpenCL for nVidia "GeForce", "Quadro", and AMD "Radeon RX", "Radeon Pro" cards.<br>
 
 *ZIP, RAR, and 7z filetypes are supported
