@@ -4,7 +4,7 @@ IF "%~1"=="" (ECHO Drop a password protected %SUPPORTED% file onto the script to
 >nul 2>&1 reg add hkcu\software\classes\.ZipRipper\shell\runas\command /f /ve /d "cmd /x /d /r set \"f0=%%2\"& call \"%%2\" %%3"& set _= %*
 >nul 2>&1 fltmc|| if "%f0%" neq "%~f0" (cd.>"%ProgramData%\elevate.ZipRipper" & start "%~n0" /high "%ProgramData%\elevate.ZipRipper" "%~f0" "%_:"=""%" & EXIT/b)
 >nul 2>&1 reg delete hkcu\software\classes\.ZipRipper\ /f &>nul 2>&1 del %ProgramData%\elevate.ZipRipper /f /q
-CD /D %~dp0&IF NOT "%~f0" EQU "%ProgramData%\%~nx0" >nul 2>&1 COPY /Y "%~f0" "%ProgramData%"&START "" ""%ProgramData%\%~nx0"" "%_%">nul&EXIT /b
+CD /D %~dp0&IF NOT "%~f0" EQU "%ProgramData%\%~nx0" >nul 2>&1 COPY /Y "%~f0" "%ProgramData%"&START "" ""%ProgramData%\%~nx0"" "%_%">nul&EXIT/b
 SET "TitleName=ZipRipper - CPU Enabled"
 IF %GPU% EQU 1 SET TitleName=%TitleName:CPU=CPU/GPU%
 TASKLIST /V /NH /FI "imagename eq cmd.exe"|FIND /I /C "%TitleName%">nul
