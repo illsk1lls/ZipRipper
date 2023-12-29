@@ -1,4 +1,6 @@
-@ECHO OFF&SET "SUPPORTED=ZIP,RAR,7z"&TITLE Please Wait...&SET/A GPU=0&SET/A GO=0&CALL :CHECKCOMPAT&IF NOT "%~2"=="" ECHO Multiple files are not supported, Please drop one file at a time.&ECHO.&PAUSE&EXIT
+@ECHO OFF&IF NOT "%PROCESSOR_ARCHITECTURE%"=="AMD64" ECHO FOR USE WITH x64 SYSTEMS ONLY&ECHO.&PAUSE&EXIT
+SET "SUPPORTED=ZIP,RAR,7z"&TITLE Please Wait...&SET/A GPU=0&SET/A GO=0&CALL :CHECKCOMPAT
+IF NOT "%~2"=="" ECHO Multiple files are not supported, Please drop one file at a time.&ECHO.&PAUSE&EXIT
 IF "%~1"=="" (ECHO Drop a password protected %SUPPORTED% file onto the script to begin...&ECHO.&PAUSE&EXIT) ELSE (FOR %%# IN (%SUPPORTED%) DO IF /I "%~x1"==".%%#" SET/A GO=1)
 (IF %GO% NEQ 1 ECHO Unsupported file extension. Supported extensions are: %SUPPORTED%&ECHO.&PAUSE&EXIT)&SET "FILETYPE=%~x1"
 >nul 2>&1 REG ADD HKCU\Software\classes\.ZipRipper\shell\runas\command /f /ve /d "CMD /x /d /r SET \"f0=%%2\"& CALL \"%%2\" %%3"&SET "_= %*"
