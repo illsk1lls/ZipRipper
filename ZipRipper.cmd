@@ -1,9 +1,9 @@
 @ECHO OFF&SET "SUPPORTED=ZIP,RAR,7z"&TITLE Please Wait...&SET/A GPU=0&SET/A GO=0&CALL :CHECKCOMPAT&IF NOT "%~2"=="" ECHO Multiple files are not supported, Please drop one file at a time.&ECHO.&PAUSE&EXIT
-IF "%~1"=="" (ECHO Drop a password protected %SUPPORTED% file onto the script to begin...&ECHO.&PAUSE&EXIT) ELSE (FOR %%# IN (%SUPPORTED%) DO IF /I "%~x1"==".%%#" SET/a GO=1)
+IF "%~1"=="" (ECHO Drop a password protected %SUPPORTED% file onto the script to begin...&ECHO.&PAUSE&EXIT) ELSE (FOR %%# IN (%SUPPORTED%) DO IF /I "%~x1"==".%%#" SET/A GO=1)
 (IF %GO% NEQ 1 ECHO Unsupported file extension. Supported extensions are: %SUPPORTED%&ECHO.&PAUSE&EXIT)&SET "FILETYPE=%~x1"
->nul 2>&1 REG ADD HKCU\Software\classes\.ZipRipper\shell\runas\command /f /ve /d "cmd /x /d /r set \"f0=%%2\"& call \"%%2\" %%3"&SET "_= %*"
+>nul 2>&1 REG ADD HKCU\Software\classes\.ZipRipper\shell\runas\command /f /ve /d "CMD /x /d /r SET \"f0=%%2\"& CALL \"%%2\" %%3"&SET "_= %*"
 >nul 2>&1 FLTMC|| IF "%f0%" neq "%~f0" (cd.>"%ProgramData%\elevate.ZipRipper"&START "%~n0" /high "%ProgramData%\elevate.ZipRipper" "%~f0" "%_:"=""%"&EXIT/b)
->nul 2>&1 REG DELETE HKCU\Software\classes\.ZipRipper\ /f &>nul 2>&1 del %ProgramData%\elevate.ZipRipper /f /q
+>nul 2>&1 REG DELETE HKCU\Software\classes\.ZipRipper\ /F &>nul 2>&1 del %ProgramData%\elevate.ZipRipper /F /Q
 CD /D %~dp0&IF NOT "%~f0" EQU "%ProgramData%\%~nx0" >nul 2>&1 COPY /Y "%~f0" "%ProgramData%"&START "" ""%ProgramData%\%~nx0"" "%_%">nul&EXIT/b
 SET "TitleName=ZipRipper - CPU Enabled"
 IF %GPU% EQU 1 SET TitleName=%TitleName:CPU=CPU/GPU%
