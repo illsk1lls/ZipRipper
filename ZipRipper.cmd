@@ -14,13 +14,13 @@ IF NOT %errorlevel%==1 (ECHO ERROR:&ECHO ZipRipper is already running!) |MSG *&E
 TITLE %TitleName%
 ::Center CMD window
 >nul 2>&1 POWERSHELL -nop -c "$w=Add-Type -Name WAPI -PassThru -MemberDefinition '[DllImport(\"user32.dll\")]public static extern void SetProcessDPIAware();[DllImport(\"shcore.dll\")]public static extern void SetProcessDpiAwareness(int value);[DllImport(\"kernel32.dll\")]public static extern IntPtr GetConsoleWindow();[DllImport(\"user32.dll\")]public static extern void GetWindowRect(IntPtr hwnd, int[] rect);[DllImport(\"user32.dll\")]public static extern void GetClientRect(IntPtr hwnd, int[] rect);[DllImport(\"user32.dll\")]public static extern void GetMonitorInfoW(IntPtr hMonitor, int[] lpmi);[DllImport(\"user32.dll\")]public static extern IntPtr MonitorFromWindow(IntPtr hwnd, int dwFlags);[DllImport(\"user32.dll\")]public static extern int SetWindowPos(IntPtr hwnd, IntPtr hwndAfterZ, int x, int y, int w, int h, int flags);';$PROCESS_PER_MONITOR_DPI_AWARE=2;try {$w::SetProcessDpiAwareness($PROCESS_PER_MONITOR_DPI_AWARE)} catch {$w::SetProcessDPIAware()}$hwnd=$w::GetConsoleWindow();$moninf=[int[]]::new(10);$moninf[0]=40;$MONITOR_DEFAULTTONEAREST=2;$w::GetMonitorInfoW($w::MonitorFromWindow($hwnd, $MONITOR_DEFAULTTONEAREST), $moninf);$monwidth=$moninf[7] - $moninf[5];$monheight=$moninf[8] - $moninf[6];$wrect=[int[]]::new(4);$w::GetWindowRect($hwnd, $wrect);$winwidth=$wrect[2] - $wrect[0];$winheight=$wrect[3] - $wrect[1];$x=[int][math]::Round($moninf[5] + $monwidth / 2 - $winwidth / 2);$y=[int][math]::Round($moninf[6] + $monheight / 2 - $winheight / 2);$SWP_NOSIZE=0x0001;$SWP_NOZORDER=0x0004;exit [int]($w::SetWindowPos($hwnd, [IntPtr]::Zero, $x, $y, 0, 0, $SWP_NOSIZE -bOr $SWP_NOZORDER) -eq 0)"
-PING -n 1 "google.com" | findstr /r /c:"[0-9] *ms">nul
+PING -n 1 "google.com" | FINDSTR /r /c:"[0-9] *ms">nul
 IF NOT %errorlevel%==0 ECHO.&ECHO Internet connection not detected, the latest JtR is needed to proceed...&ECHO.&PAUSE&(GOTO) 2>nul&del "%~f0" /F /Q>nul&EXIT
 IF EXIST "%ProgramData%\JtR" >nul 2>&1 RD "%ProgramData%\JtR" /S /Q
 CALL :GETJTRREADY
 PUSHD "%ProgramData%\JtR\run"
 CLS&SET "FLAG="&IF %~z1 GEQ 200000000 (ECHO Creating Password Hash - This can take a few minutes on large files...) ELSE (ECHO Creating Password Hash...)
-CALL :GO%FILETYPE% %1
+CALL :HASH%FILETYPE% %1
 CLS&ECHO Running JohnTheRipper...&ECHO.
 SETLOCAL ENABLEDELAYEDEXPANSION&john pwhash !FLAG!&ENDLOCAL
 ECHO.&PAUSE
@@ -40,15 +40,15 @@ FOR /F "usebackq skip=2 tokens=3,4" %%# IN (`REG QUERY "HKLM\SOFTWARE\Microsoft\
 FOR /F "usebackq skip=1 tokens=2,3" %%# IN (`WMIC path Win32_VideoController get Name ^| findstr "."`) DO (IF /I "%%#"=="GeForce" SET/A GPU=1)&(IF /I "%%#"=="Quadro" SET/A GPU=1)&(IF /I "%%# %%$"=="Radeon RX" SET/A GPU=1)&(IF /I "%%# %%$"=="Radeon Pro" SET/A GPU=1)
 IF NOT EXIST "%WinDir%\System32\OpenCL.dll" SET/A GPU=0
 EXIT/b
-:GO.ZIP
+:HASH.ZIP
 zip2john "%~1">"%ProgramData%\JtR\run\pwhash" 2>nul
 IF %GPU% EQU 1 FOR /F "tokens=2 delims=$" %%# IN (pwhash) DO IF "%%#"=="zip2" SET "FLAG=--format=ZIP-opencl"
 EXIT/b
-:GO.RAR
+:HASH.RAR
 rar2john "%~1">"%ProgramData%\JtR\run\pwhash" 2>nul
 IF %GPU% EQU 1 FOR /F "tokens=2 delims=$" %%# IN (pwhash) DO (IF "%%#"=="rar" SET "FLAG=--format=rar-opencl")&(IF "%%#"=="rar5" SET "FLAG=--format=RAR5-opencl")
 EXIT/b
-:GO.7z
+:HASH.7z
 CALL portableshell.bat 7z2john.pl "%~1">"%ProgramData%\JtR\run\pwhash" 2>nul
 IF %GPU% EQU 1 SET "FLAG=--format=7z-opencl"
 EXIT/b
