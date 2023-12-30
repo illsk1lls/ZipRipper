@@ -7,8 +7,8 @@ IF "%~1"=="" (ECHO Drop a password protected %NATIVE%,%PERL% file onto the scrip
 >nul 2>&1 FLTMC|| IF "%f0%" neq "%~f0" (cd.>"%ProgramData%\elevate.ZipRipper"&START "%~n0" /high "%ProgramData%\elevate.ZipRipper" "%~f0" "%_:"=""%"&EXIT/b)
 >nul 2>&1 REG DELETE HKCU\Software\classes\.ZipRipper\ /F &>nul 2>&1 del %ProgramData%\elevate.ZipRipper /F /Q
 CD /D %~dp0&IF NOT "%~f0" EQU "%ProgramData%\%~nx0" >nul 2>&1 COPY /Y "%~f0" "%ProgramData%"&START "" ""%ProgramData%\%~nx0"" "%_%">nul&EXIT/b
-SET "TitleName=ZipRipper - CPU Enabled"
-IF %GPU% EQU 1 SET TitleName=%TitleName:CPU=CPU/GPU%
+SET "TitleName=^[ZipRipper^]  -  ^[CPU Mode^]  ^[OpenCL DISABLED^]"
+IF %GPU% EQU 1 SET TitleName=%TitleName:^[CPU Mode^]  ^[OpenCL DISABLED^]=^[CPU/GPU Mode^]  ^[OpenCL ENABLED^]%
 TASKLIST /V /NH /FI "imagename eq cmd.exe"|FIND /I /C "%TitleName%">nul
 IF NOT %errorlevel%==1 (ECHO ERROR:&ECHO ZipRipper is already running!) |MSG *&EXIT
 TITLE %TitleName%
