@@ -54,5 +54,5 @@ IF %GPU% EQU 1 SET "FLAG=--format=7z-opencl"
 EXIT/b
 :HASH.PDF
 CALL portableshell.bat pdf2john.pl "%~1">"%ProgramData%\JtR\run\pwhash" 2>nul
-POWERSHELL -nop -c "$f=gc pwhash; $m=[regex]::Matches($f,'^(.+\/)(?i)(.*\.pdf)(.+$)') | %% {$_.Groups[2].Value+$_.Groups[3].Value} | sc pwhash"
+POWERSHELL -nop -c "$^=[regex]::Match((gc pwhash),'^(.+\/)(?i)(.*\.pdf)(.+$)');$^.Groups[2].value+$^.Groups[3].value|sc pwhash"
 EXIT/b
