@@ -19,7 +19,7 @@ IF NOT %errorlevel%==0 ECHO.&ECHO Internet connection not detected, the latest J
 (IF EXIST "%ProgramData%\JtR" >nul 2>&1 RD "%ProgramData%\JtR" /S /Q)&ATTRIB -h "%ProgramData%\BIT*.tmp"&(IF EXIST "%ProgramData%\BIT*.tmp" >nul 2>&1 DEL "%ProgramData%\BIT*.tmp" /F /Q)
 CALL :GETJTRREADY
 PUSHD "%ProgramData%\JtR\run"&REN john.conf john.confx
-POWERSHELL -nop -c "$^=GC john.confx | ForEach-Object {$_.Replace('SingleMaxBufferAvailMem = N', 'SingleMaxBufferAvailMem = Y').Replace('MaxKPCWarnings = 10','MaxKPCWarnings = 0')} | sc john.conf"&>nul 2>&1 DEL john.confx /F /Q
+POWERSHELL -nop -c "$^=GC john.confx|%%{$_.Replace('SingleMaxBufferAvailMem = N','SingleMaxBufferAvailMem = Y').Replace('MaxKPCWarnings = 10','MaxKPCWarnings = 0')}|sc john.conf"&>nul 2>&1 DEL john.confx /F /Q
 CLS&SET "FLAG="&IF %~z1 GEQ 200000000 (ECHO Creating password hash - This can take a few minutes on large files...) ELSE (ECHO Creating password hash...)
 SET/A ZIP2=0&CALL :HASH%FILETYPE% %1
 CLS&ECHO Running JohnTheRipper...&ECHO.
@@ -39,7 +39,7 @@ ECHO.&ECHO Passwords saved to: %USERPROFILE%\Desktop\ZipRipper-Passwords.txt
 ECHO.&PAUSE&POPD&RD "%ProgramData%\JtR" /S /Q>nul&(GOTO) 2>nul&DEL "%~f0"/F /Q>nul&EXIT
 :GETJTRREADY
 CLS&ECHO Retrieving tools...
-POWERSHELL -nop -c "Invoke-WebRequest -Uri https://www.7-zip.org/a/7zr.exe -o '%~dp07zr.exe'"; "Invoke-WebRequest -Uri https://www.7-zip.org/a/7z2300-extra.7z -o '%~dp07zExtra.7z'"
+POWERSHELL -nop -c "Invoke-WebRequest -Uri https://www.7-zip.org/a/7zr.exe -o '%~dp07zr.exe'";"Invoke-WebRequest -Uri https://www.7-zip.org/a/7z2300-extra.7z -o '%~dp07zExtra.7z'"
 IF %ISPERL% EQU 1 (CLS&ECHO Retrieving required dependencies, please wait...&SET "EXTRA=;Start-BitsTransfer -Priority Foreground -Source https://github.com/StrawberryPerl/Perl-Dist-Strawberry/releases/download/SP_5380_5361/strawberry-perl-5.38.0.1-64bit-portable.zip -Destination '%~dp0\perlportable.zip'") ELSE (CLS&ECHO Retrieving required dependencies...&SET "EXTRA=")
 POWERSHELL -nop -c "Start-BitsTransfer -Priority Foreground -Source https://github.com/openwall/john-packages/releases/download/jumbo-dev/winX64_1_JtR.7z -Destination '%~dp0winX64_1_JtR.7z'%EXTRA%"
 >nul 2>&1 "%~dp07zr.exe" x -y "%~dp0winX64_1_JtR.7z"&>nul 2>&1 "%~dp07zr.exe" x -y "%~dp07zExtra.7z" -o"%~dp0JtR\"
@@ -77,7 +77,7 @@ EXIT/b
 :MULTI
 FOR /F "usebackq tokens=1,5 delims=*" %%# IN (pwhash) DO (ECHO %%#%%$>>pwhash.x1)
 FOR /F "usebackq tokens=1,3 delims=$" %%# IN (pwhash.x1) DO (ECHO %%#%%$>>pwhash.x2)
-POWERSHELL -nop -c "$^=GC john.pot | ForEach-Object {$_ -Replace '^.+?\*.\*([a-z\d]{32})\*.+:(.*)$', "^""`$1:`$2"^""} | sc pwhash.x3"
+POWERSHELL -nop -c "$^=GC john.pot|%%{$_ -Replace '^.+?\*.\*([a-z\d]{32})\*.+:(.*)$',"^""`$1:`$2"^""}|sc pwhash.x3"
 FOR /F "usebackq tokens=1,2 delims=:" %%# IN (pwhash.x2) DO (
 FOR /F "usebackq tokens=1,2 delims=:" %%X IN (pwhash.x3) DO (IF "%%$"=="%%X" ECHO %%Y - ^[%%#^]>>"%USERPROFILE%\Desktop\ZipRipper-Passwords.txt")
 )
