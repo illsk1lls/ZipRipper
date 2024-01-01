@@ -17,3 +17,6 @@ Current version provides support for hardware acceleration via OpenCL for:<br>
 nVidia "GeForce" & "Quadro" and AMD "Radeon RX" & "Radeon Pro" cards.<br>
 
 *ZIP, RAR, 7z, and PDF filetypes are supported
+
+*Offline Mode can be enabled by putting offline.dat (in the .resources folder) in the same folder<br>
+*as the script. 
