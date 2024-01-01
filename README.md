@@ -10,7 +10,7 @@ StarwberryPerl(Portable) - <a href="https://strawberryperl.com/releases.html">ht
 
 2.) Wait for password..<br>
 
-When a password is found an alert window will display and the password(s) will be<br>
+When a password is found an alert window will appear, and the password(s) will be<br>
 saved to the users desktop as: ZipRipper-Passwords.txt
 
 Current version provides support for hardware acceleration via OpenCL for:<br>
