@@ -6,7 +6,7 @@ IF "%~1"=="" (ECHO Drop a password protected %NATIVE%,%PERL% file onto the scrip
 >nul 2>&1 REG ADD HKCU\Software\classes\.ZipRipper\shell\runas\command /f /ve /d "CMD /x /d /r SET \"f0=%%2\"& CALL \"%%2\" %%3"&SET "_= %*"
 >nul 2>&1 FLTMC|| IF "%f0%" neq "%~f0" (cd.>"%ProgramData%\elevate.ZipRipper"&START "%~n0" /high "%ProgramData%\elevate.ZipRipper" "%~f0" "%_:"=""%"&EXIT/b)
 >nul 2>&1 REG DELETE HKCU\Software\classes\.ZipRipper\ /F &>nul 2>&1 del %ProgramData%\elevate.ZipRipper /F /Q
-CD /D %~dp0&IF NOT "%~f0" EQU "%ProgramData%\%~nx0" >nul 2>&1 COPY /Y "%~f0" "%ProgramData%"&(IF EXIST "%~dp0offline.txt" >nul 2>&1 COPY /Y "%~dp0offline.txt" "%ProgramData%")&START "" ""%ProgramData%\%~nx0"" "%_%">nul&EXIT/b
+CD /D %~dp0&IF NOT "%~f0" EQU "%ProgramData%\%~nx0" >nul 2>&1 COPY /Y "%~f0" "%ProgramData%"&IF EXIST "%~dp0offline.*" ((IF EXIST "%~dp0offline.txt" >nul 2>&1 COPY /Y "%~dp0offline.txt" "%ProgramData%"&SET/A OFFLINE=1)&(IF EXIST "%~dp0offline.dat" >nul 2>&1 COPY /Y "%~dp0offline.dat" "%ProgramData%"&SET/A OFFLINE=1)) ELSE (SET/A OFFLINE=0)&START "" ""%ProgramData%\%~nx0"" "%_%">nul&EXIT/b
 SET "TitleName=^[ZIP-Ripper^]  -  ^[CPU Mode^]  -  ^[OpenCL DISABLED^]"
 IF %GPU% EQU 1 SET TitleName=%TitleName:^[CPU Mode^]  -  ^[OpenCL DISABLED^]=^[CPU/GPU Mode^]  -  ^[OpenCL ENABLED^]%
 TASKLIST /V /NH /FI "imagename eq cmd.exe"|FIND /I /C "%TitleName%">nul
@@ -38,7 +38,7 @@ ECHO.&ECHO Passwords saved to: %USERPROFILE%\Desktop\ZipRipper-Passwords.txt
 ) ELSE (ENDLOCAL&ECHO.&ECHO Password not found :^()
 ECHO.&PAUSE&POPD&RD "%ProgramData%\JtR" /S /Q>nul&(GOTO) 2>nul&DEL "%~f0"/F /Q>nul&EXIT
 :GETJTRREADY
-CLS&IF NOT EXIST "%~dp0offline.txt" (
+CLS&IF %OFFLINE% EQU 0 (
 ECHO Retrieving tools...
 POWERSHELL -nop -c "Invoke-WebRequest -Uri https://www.7-zip.org/a/7zr.exe -o '%~dp07zr.exe'";"Invoke-WebRequest -Uri https://www.7-zip.org/a/7z2300-extra.7z -o '%~dp07zExtra.7z'"
 IF %ISPERL% EQU 1 (CLS&ECHO Retrieving required dependencies, please wait...&SET "EXTRA=;Start-BitsTransfer -Priority Foreground -Source https://github.com/StrawberryPerl/Perl-Dist-Strawberry/releases/download/SP_5380_5361/strawberry-perl-5.38.0.1-64bit-portable.zip -Destination '%~dp0\perlportable.zip'") ELSE (CLS&ECHO Retrieving required dependencies...&SET "EXTRA=")
