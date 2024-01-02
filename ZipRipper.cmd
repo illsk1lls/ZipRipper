@@ -6,7 +6,7 @@ IF "%~1"=="" (ECHO Drop a password protected %NATIVE%,%PERL% file onto the scrip
 >nul 2>&1 REG ADD HKCU\Software\classes\.ZipRipper\shell\runas\command /f /ve /d "CMD /x /d /r SET \"f0=%%2\"& CALL \"%%2\" %%3"&SET "_= %*"
 >nul 2>&1 FLTMC|| IF "%f0%" neq "%~f0" (cd.>"%ProgramData%\elevate.ZipRipper"&START "%~n0" /high "%ProgramData%\elevate.ZipRipper" "%~f0" "%_:"=""%"&EXIT/b)
 >nul 2>&1 REG DELETE HKCU\Software\classes\.ZipRipper\ /F &>nul 2>&1 del %ProgramData%\elevate.ZipRipper /F /Q
-CD /D %~dp0&IF NOT "%~f0" EQU "%ProgramData%\%~nx0" >nul 2>&1 COPY /Y "%~f0" "%ProgramData%"&(IF EXIST "%~dp0offline.dat" >nul 2>&1 COPY /Y "%~dp0offline.dat" "%ProgramData%")&START "" ""%ProgramData%\%~nx0"" "%_%">nul&EXIT/b
+CD /D %~dp0&IF NOT "%~f0" EQU "%ProgramData%\%~nx0" >nul 2>&1 COPY /Y "%~f0" "%ProgramData%"&(IF EXIST "%~dp0offline.*" >nul 2>&1 COPY /Y "%~dp0offline.*" "%ProgramData%")&START "" ""%ProgramData%\%~nx0"" "%_%">nul&EXIT/b
 SET "TitleName=^[ZIP-Ripper^]  -  ^[CPU Mode^]  -  ^[OpenCL DISABLED^]"
 IF %GPU% EQU 1 SET TitleName=%TitleName:^[CPU Mode^]  -  ^[OpenCL DISABLED^]=^[CPU/GPU Mode^]  -  ^[OpenCL ENABLED^]%
 TASKLIST /V /NH /FI "imagename eq cmd.exe"|FIND /I /C "%TitleName%">nul
@@ -15,7 +15,7 @@ TITLE %TitleName%
 ::Center CMD window
 >nul 2>&1 POWERSHELL -nop -c "$w=Add-Type -Name WAPI -PassThru -MemberDefinition '[DllImport(\"user32.dll\")]public static extern void SetProcessDPIAware();[DllImport(\"shcore.dll\")]public static extern void SetProcessDpiAwareness(int value);[DllImport(\"kernel32.dll\")]public static extern IntPtr GetConsoleWindow();[DllImport(\"user32.dll\")]public static extern void GetWindowRect(IntPtr hwnd, int[] rect);[DllImport(\"user32.dll\")]public static extern void GetClientRect(IntPtr hwnd, int[] rect);[DllImport(\"user32.dll\")]public static extern void GetMonitorInfoW(IntPtr hMonitor, int[] lpmi);[DllImport(\"user32.dll\")]public static extern IntPtr MonitorFromWindow(IntPtr hwnd, int dwFlags);[DllImport(\"user32.dll\")]public static extern int SetWindowPos(IntPtr hwnd, IntPtr hwndAfterZ, int x, int y, int w, int h, int flags);';$PROCESS_PER_MONITOR_DPI_AWARE=2;try {$w::SetProcessDpiAwareness($PROCESS_PER_MONITOR_DPI_AWARE)} catch {$w::SetProcessDPIAware()}$hwnd=$w::GetConsoleWindow();$moninf=[int[]]::new(10);$moninf[0]=40;$MONITOR_DEFAULTTONEAREST=2;$w::GetMonitorInfoW($w::MonitorFromWindow($hwnd, $MONITOR_DEFAULTTONEAREST), $moninf);$monwidth=$moninf[7] - $moninf[5];$monheight=$moninf[8] - $moninf[6];$wrect=[int[]]::new(4);$w::GetWindowRect($hwnd, $wrect);$winwidth=$wrect[2] - $wrect[0];$winheight=$wrect[3] - $wrect[1];$x=[int][math]::Round($moninf[5] + $monwidth / 2 - $winwidth / 2);$y=[int][math]::Round($moninf[6] + $monheight / 2 - $winheight / 2);$SWP_NOSIZE=0x0001;$SWP_NOZORDER=0x0004;exit [int]($w::SetWindowPos($hwnd, [IntPtr]::Zero, $x, $y, 0, 0, $SWP_NOSIZE -bOr $SWP_NOZORDER) -eq 0)"
 PING -n 1 "google.com" | FINDSTR /r /c:"[0-9] *ms">nul
-IF NOT %errorlevel%==0 (IF NOT EXIST "%~dp0offline.dat" (ECHO.&ECHO Internet connection not detected, offline.dat is missing...&ECHO.&PAUSE&(GOTO) 2>nul&del "%~f0" /F /Q>nul&EXIT))
+IF NOT %errorlevel%==0 (IF NOT EXIST "%~dp0offline.*" (ECHO.&ECHO Internet connection not detected, offline.^[dat/txt^] is missing...&ECHO.&PAUSE&(GOTO) 2>nul&del "%~f0" /F /Q>nul&EXIT))
 (IF EXIST "%ProgramData%\JtR" >nul 2>&1 RD "%ProgramData%\JtR" /S /Q)&ATTRIB -h "%ProgramData%\BIT*.tmp"&(IF EXIST "%ProgramData%\BIT*.tmp" >nul 2>&1 DEL "%ProgramData%\BIT*.tmp" /F /Q)
 CALL :GETJTRREADY
 PUSHD "%ProgramData%\JtR\run"&REN john.conf john.confx
@@ -38,12 +38,12 @@ ECHO.&ECHO Passwords saved to: %USERPROFILE%\Desktop\ZipRipper-Passwords.txt
 ) ELSE (ENDLOCAL&ECHO.&ECHO Password not found :^()
 ECHO.&PAUSE&POPD&RD "%ProgramData%\JtR" /S /Q>nul&(GOTO) 2>nul&DEL "%~f0"/F /Q>nul&EXIT
 :GETJTRREADY
-CLS&IF NOT EXIST "%~dp0offline.dat" (
+CLS&IF NOT EXIST "%~dp0offline.*" (
 ECHO Retrieving tools...
 POWERSHELL -nop -c "Invoke-WebRequest -Uri https://www.7-zip.org/a/7zr.exe -o '%~dp07zr.exe'";"Invoke-WebRequest -Uri https://www.7-zip.org/a/7z2300-extra.7z -o '%~dp07zExtra.7z'"
 IF %ISPERL% EQU 1 (CLS&ECHO Retrieving required dependencies, please wait...&SET "EXTRA=;Start-BitsTransfer -Priority Foreground -Source https://github.com/StrawberryPerl/Perl-Dist-Strawberry/releases/download/SP_5380_5361/strawberry-perl-5.38.0.1-64bit-portable.zip -Destination '%~dp0\perlportable.zip'") ELSE (CLS&ECHO Retrieving required dependencies...&SET "EXTRA=")
 POWERSHELL -nop -c "Start-BitsTransfer -Priority Foreground -Source https://github.com/openwall/john-packages/releases/download/jumbo-dev/winX64_1_JtR.7z -Destination '%~dp0winX64_1_JtR.7z'%EXTRA%"
-) ELSE (ECHO Offline Mode, standby...&REN "%~dp0offline.dat" .resources.exe&.resources -y -pDependencies>nul&>nul 2>&1 DEL .resources.exe /F /Q)
+) ELSE (ECHO Offline Mode, standby...&(IF EXIST "%~dp0offline.dat" REN "%~dp0offline.dat" .resources.exe)&(IF EXIST "%~dp0offline.txt" REN "%~dp0offline.txt" .resources.exe)&.resources -y -pDependencies>nul&>nul 2>&1 DEL .resources.exe /F /Q)
 >nul 2>&1 "%~dp07zr.exe" x -y "%~dp0winX64_1_JtR.7z"&>nul 2>&1 "%~dp07zr.exe" x -y "%~dp07zExtra.7z" -o"%~dp0JtR\"
 IF %ISPERL% EQU 1 CLS&ECHO Extracting required dependencies, this will take a moment...&"%~dp0JtR\7za.exe" x -y "%~dp0perlportable.zip" -o"%~dp0JtR\run">nul
 (IF EXIST "%~dp0perlportable.zip" >nul 2>&1 DEL "%~dp0perlportable.zip" /F /Q)&>nul 2>&1 DEL "%~dp0winX64_1_JtR.7z" /F /Q&>nul 2>&1 DEL "%~dp07zr.exe" /F /Q&>nul 2>&1 DEL "%~dp07zExtra.7z" /F /Q
