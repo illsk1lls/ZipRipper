@@ -6,7 +6,7 @@ IF "%~1"=="" (ECHO Drop a password protected %NATIVE%,%PERL% file onto the scrip
 >nul 2>&1 REG ADD HKCU\Software\classes\.ZipRipper\shell\runas\command /f /ve /d "CMD /x /d /r SET \"f0=%%2\"& CALL \"%%2\" %%3"&SET "_= %*"
 >nul 2>&1 FLTMC|| IF "%f0%" neq "%~f0" (cd.>"%ProgramData%\elevate.ZipRipper"&START "%~n0" /high "%ProgramData%\elevate.ZipRipper" "%~f0" "%_:"=""%"&EXIT/b)
 >nul 2>&1 REG DELETE HKCU\Software\classes\.ZipRipper\ /F &>nul 2>&1 del %ProgramData%\elevate.ZipRipper /F /Q
-CD /D %~dp0&IF NOT "%~f0" EQU "%ProgramData%\%~nx0" >nul 2>&1 COPY /Y "%~f0" "%ProgramData%"&IF EXIST "%~dp0offline.*" ((IF EXIST "%~dp0offline.txt" >nul 2>&1 COPY /Y "%~dp0offline.txt" "%ProgramData%"&SET/A OFFLINE=1)&(IF EXIST "%~dp0offline.dat" >nul 2>&1 COPY /Y "%~dp0offline.dat" "%ProgramData%"&SET/A OFFLINE=1)) ELSE (SET/A OFFLINE=0)&START "" ""%ProgramData%\%~nx0"" "%_%">nul&EXIT/b
+CD /D %~dp0&IF NOT "%~f0" EQU "%ProgramData%\%~nx0" >nul 2>&1 COPY /Y "%~f0" "%ProgramData%"&(IF EXIST "%~dp0offline.*" ((IF EXIST "%~dp0offline.txt" >nul 2>&1 COPY /Y "%~dp0offline.txt" "%ProgramData%"&SET/A OFFLINE=1)&(IF EXIST "%~dp0offline.dat" >nul 2>&1 COPY /Y "%~dp0offline.dat" "%ProgramData%"&SET/A OFFLINE=1)) ELSE (SET/A OFFLINE=0))&START "" ""%ProgramData%\%~nx0"" "%_%">nul&EXIT/b
 SET "TitleName=^[ZIP-Ripper^]  -  ^[CPU Mode^]  -  ^[OpenCL DISABLED^]"
 IF %GPU% EQU 1 SET TitleName=%TitleName:^[CPU Mode^]  -  ^[OpenCL DISABLED^]=^[CPU/GPU Mode^]  -  ^[OpenCL ENABLED^]%
 TASKLIST /V /NH /FI "imagename eq cmd.exe"|FIND /I /C "%TitleName%">nul
