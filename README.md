@@ -18,5 +18,5 @@ nVidia "GeForce" & "Quadro" and AMD "Radeon RX" & "Radeon Pro" cards.<br>
 
 *ZIP, RAR, 7z, and PDF filetypes are supported
 
-*Offline Mode can be enabled by putting .zr-offline.txt (from the .resources folder) in the same folder<br>
+*Offline Mode can be enabled by putting zr-offline.txt (from the .resources folder) in the same folder<br>
 as the script.
