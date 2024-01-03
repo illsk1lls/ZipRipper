@@ -94,7 +94,10 @@ CALL :GETSIZE john.pot POTSIZE
 SETLOCAL ENABLEDELAYEDEXPANSION
 IF !POTSIZE! GEQ 1 (
 	ENDLOCAL
-	IF EXIST "%USERPROFILE%\Desktop\ZipRipper-Passwords.txt" SET/A R=0&CALL :RENAMEOLD
+	IF EXIST "%USERPROFILE%\Desktop\ZipRipper-Passwords.txt" (
+		SET/A R=0
+		CALL :RENAMEOLD
+	)
 	(
 		ECHO ^[ZIP-Ripper^] - FOUND PASSWORDS
 		ECHO  %DATE% + %TIME%
@@ -114,7 +117,12 @@ IF !POTSIZE! GEQ 1 (
 	SETLOCAL ENABLEDELAYEDEXPANSION
 	IF !PWSIZE! LEQ 1600 (
 		ENDLOCAL
-		(TYPE "%USERPROFILE%\Desktop\ZipRipper-Passwords.txt"&ECHO Save Location:&ECHO "%USERPROFILE%\Desktop\ZipRipper-Passwords.txt"&ECHO.) |MSG * /time:999999
+		(
+			TYPE "%USERPROFILE%\Desktop\ZipRipper-Passwords.txt"
+			ECHO Save Location:
+			ECHO "%USERPROFILE%\Desktop\ZipRipper-Passwords.txt"
+			ECHO.
+		) |MSG * /time:999999
 	) ELSE (
 		ECHO ^[ZIP-Ripper^] - FOUND PASSWORDS
 		ECHO  %DATE% + %TIME%
@@ -124,10 +132,13 @@ IF !POTSIZE! GEQ 1 (
 		ECHO.
 		ECHO ==============================
 		ECHO Save Location:
-		ECHO ("%USERPROFILE%\Desktop\ZipRipper-Passwords.txt"&ECHO.) |MSG * /time:999999
-		ECHO.
-		ECHO Passwords saved to: "%USERPROFILE%\Desktop\ZipRipper-Passwords.txt"
+		(
+			ECHO "%USERPROFILE%\Desktop\ZipRipper-Passwords.txt"
+			ECHO.
+		) |MSG * /time:999999
 	)
+	ECHO.
+	ECHO Passwords saved to: "%USERPROFILE%\Desktop\ZipRipper-Passwords.txt"
 ) ELSE (
 	ENDLOCAL
 	ECHO.
@@ -197,8 +208,10 @@ EXIT/b
 :HASH.ZIP
 zip2john "%~1">"%ProgramData%\JtR\run\pwhash" 2>nul
 IF %GPU% EQU 1 FOR /F "tokens=2 delims=$" %%# IN (pwhash) DO (
-	IF "%%#"=="zip2" SET "FLAG=--format=ZIP-opencl"
-	SET/A ZIP2=1
+	IF "%%#"=="zip2" (
+		SET "FLAG=--format=ZIP-opencl"
+		SET/A ZIP2=1
+	)
 )
 EXIT/b
 
