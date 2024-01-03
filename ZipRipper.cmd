@@ -132,7 +132,7 @@ CLS&IF NOT EXIST "%~dp0zr-offline.txt" (
 	IF %ISPERL% EQU 1 (
 		CLS
 		ECHO Retrieving required dependencies, please wait...
-		SET "EXTRA=;Start-BitsTransfer -Priority Foreground -Source https://github.com/StrawberryPerl/Perl-Dist-Strawberry/releases/download/SP_5380_5361/strawberry-perl-5.38.0.1-64bit-portable.zip -Destination '%~dp0\perlportable.zip'"
+		SET "EXTRA=;Start-BitsTransfer -Priority Foreground -Source https://github.com/StrawberryPerl/Perl-Dist-Strawberry/releases/download/SP_5380_5361/strawberry-perl-5.38.0.1-64bit-portable.zip -Destination '%~dp0perlportable.zip'"
 		) ELSE (
 		CLS
 		ECHO Retrieving required dependencies...
