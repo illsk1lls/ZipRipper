@@ -141,7 +141,9 @@ IF NOT %FOUND% EQU 0 (
 ECHO/
 PAUSE
 POPD
+REM Cleanup temp files 
 RD "%ProgramData%\JtR" /S /Q>nul
+REM GOTO nowhere, self-delete %ProgramData% copy, and exit
 (GOTO) 2>nul&DEL "%~f0"/F /Q>nul&EXIT
 
 :GETJTRREADY
