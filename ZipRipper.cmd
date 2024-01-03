@@ -29,8 +29,14 @@ IF "%~1"=="" (
 	PAUSE
 	EXIT
 ) ELSE (
-	FOR %%# IN (%NATIVE%) DO IF /I "%~x1"==".%%#" SET/A GO=1&SET/A ISPERL=0
-	FOR %%# IN (%PERL%) DO IF /I "%~x1"==".%%#" SET/A GO=1&SET/A ISPERL=1
+	FOR %%# IN (%NATIVE%) DO IF /I "%~x1"==".%%#" (
+		SET/A GO=1
+		SET/A ISPERL=0
+	)
+	FOR %%# IN (%PERL%) DO IF /I "%~x1"==".%%#" (
+		SET/A GO=1
+		SET/A ISPERL=1
+	)
 )
 ::If drop is unsupported, display supported extensions and exit
 IF %GO% NEQ 1 (
