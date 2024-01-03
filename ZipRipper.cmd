@@ -2,17 +2,26 @@
 REM Tabs must not be present in front of powershell commands
 REM Check architecture - x64 only
 IF NOT "%PROCESSOR_ARCHITECTURE%"=="AMD64" (
-	ECHO FOR USE WITH x64 SYSTEMS ONLY
-	ECHO/
-	PAUSE
-	EXIT/b
+	IF NOT "%PROCESSOR_ARCHITEW6432%"=="AMD64" (
+		ECHO FOR USE WITH x64 SYSTEMS ONLY
+		ECHO/
+		PAUSE
+		EXIT/b
+	) ELSE (
+		ECHO UNABLE TO LAUNCH IN x86 MODE
+		ECHO/
+		ECHO DRAG AND DROP A FILE DIRECTLY ON TO THE SCRIPT VIA GUI, OR USE CLI FROM A x64 SESSION
+		ECHO/
+		PAUSE
+		EXIT/b
+	)
 )
 REM Supported extensions and dependencies
 SET "NATIVE=ZIP,RAR"
 SET "PERL=7z,PDF"
 REM Init vars
 SET/A GPU=0
-SET/A GO=0
+SET/A ALLOWSTART=0
 TITLE Please Wait...
 CALL :CHECKCOMPAT
 REM Check if more than one file was dropped
@@ -30,16 +39,16 @@ IF "%~1"=="" (
 	EXIT/b
 ) ELSE (
 	FOR %%# IN (%NATIVE%) DO IF /I "%~x1"==".%%#" (
-		SET/A GO=1
+		SET/A ALLOWSTART=1
 		SET/A ISPERL=0
 	)
 	FOR %%# IN (%PERL%) DO IF /I "%~x1"==".%%#" (
-		SET/A GO=1
+		SET/A ALLOWSTART=1
 		SET/A ISPERL=1
 	)
 )
 REM If drop is unsupported, display supported extensions and exit
-IF %GO% NEQ 1 (
+IF %ALLOWSTART% NEQ 1 (
 	ECHO Unsupported file extension. Supported extensions are: %NATIVE%,%PERL%
 	ECHO/
 	PAUSE
@@ -120,7 +129,7 @@ IF !POTSIZE! GEQ 1 (
 	SET/A FOUND=1
 	CALL :SAVEFILE %1
 	ECHO/
-	ECHO Passwords saved to: "%USERPROFILE%\Desktop\ZipRipper-Passwords.txt"
+	ECHO Passwords saved to: "%UserProfile%\Desktop\ZipRipper-Passwords.txt"
 ) ELSE (
 	ENDLOCAL
 	SET/A FOUND=0
@@ -128,7 +137,7 @@ IF !POTSIZE! GEQ 1 (
 	ECHO Password not found :^(
 	
 )
-CALL :GETSIZE "%USERPROFILE%\Desktop\ZipRipper-Passwords.txt" PWSIZE
+CALL :GETSIZE "%UserProfile%\Desktop\ZipRipper-Passwords.txt" PWSIZE
 SETLOCAL ENABLEDELAYEDEXPANSION
 IF NOT %FOUND% EQU 0 (
 	IF !PWSIZE! LEQ 1600 (
@@ -246,7 +255,7 @@ SET/A "%2=%~z1"
 EXIT/b
 
 :SINGLE
-FOR /F "usebackq tokens=2 delims=:" %%# IN (john.pot) DO ECHO %%# - ^[%~nx1^] >>"%USERPROFILE%\Desktop\ZipRipper-Passwords.txt"
+FOR /F "usebackq tokens=2 delims=:" %%# IN (john.pot) DO ECHO %%# - ^[%~nx1^] >>"%UserProfile%\Desktop\ZipRipper-Passwords.txt"
 EXIT/b
 
 :MULTI
@@ -256,7 +265,7 @@ FOR /F "usebackq tokens=1,3 delims=$" %%# IN (pwhash.x1) DO ECHO %%#%%$>>pwhash.
 POWERSHELL -nop -c "$^=gc john.pot|%%{$_ -Replace '^.+?\*.\*([a-z\d]{32})\*.+:(.*)$',"^""`$1:`$2"^""}|sc pwhash.x3">nul 2>&1
 FOR /F "usebackq tokens=1,2 delims=:" %%# IN (pwhash.x2) DO (
 	FOR /F "usebackq tokens=1,2 delims=:" %%X IN (pwhash.x3) DO (
-		IF "%%$"=="%%X" ECHO %%Y - ^[%%#^]>>"%USERPROFILE%\Desktop\ZipRipper-Passwords.txt"
+		IF "%%$"=="%%X" ECHO %%Y - ^[%%#^]>>"%UserProfile%\Desktop\ZipRipper-Passwords.txt"
 	)
 )
 DEL /f /q pwhash.x*
@@ -264,16 +273,16 @@ EXIT/b
 
 :RENAMEOLD
 REM Increment filename if exist
-IF EXIST "%USERPROFILE%\Desktop\ZipRipper-Passwords.%R%.txt" (
+IF EXIST "%UserProfile%\Desktop\ZipRipper-Passwords.%R%.txt" (
 	SET/A R+=1
 	GOTO :RENAMEOLD
 ) ELSE (
-	REN "%USERPROFILE%\Desktop\ZipRipper-Passwords.txt" "ZipRipper-Passwords.%R%.txt"
+	REN "%UserProfile%\Desktop\ZipRipper-Passwords.txt" "ZipRipper-Passwords.%R%.txt"
 )
 EXIT/b
 
 :SAVEFILE
-IF EXIST "%USERPROFILE%\Desktop\ZipRipper-Passwords.txt" (
+IF EXIST "%UserProfile%\Desktop\ZipRipper-Passwords.txt" (
 	SET/A R=0
 	CALL :RENAMEOLD
 )
@@ -282,7 +291,7 @@ IF EXIST "%USERPROFILE%\Desktop\ZipRipper-Passwords.txt" (
 	ECHO  %DATE% + %TIME%
 	ECHO ==============================
 	ECHO/
-)>"%USERPROFILE%\Desktop\ZipRipper-Passwords.txt"
+)>"%UserProfile%\Desktop\ZipRipper-Passwords.txt"
 IF %ZIP2% EQU 1 (
 	CALL :MULTI
 ) ELSE (
@@ -291,15 +300,15 @@ IF %ZIP2% EQU 1 (
 (
 	ECHO/
 	ECHO ==============================
-)>>"%USERPROFILE%\Desktop\ZipRipper-Passwords.txt"
+)>>"%UserProfile%\Desktop\ZipRipper-Passwords.txt"
 EXIT/b
 
 :DISPLAYINFOA
 ENDLOCAL
 (
-	TYPE "%USERPROFILE%\Desktop\ZipRipper-Passwords.txt"
+	TYPE "%UserProfile%\Desktop\ZipRipper-Passwords.txt"
 	ECHO Save Location:
-	ECHO "%USERPROFILE%\Desktop\ZipRipper-Passwords.txt"
+	ECHO "%UserProfile%\Desktop\ZipRipper-Passwords.txt"
 ) |MSG * /time:999999
 EXIT/b
 
@@ -313,6 +322,6 @@ EXIT/b
 	ECHO/
 	ECHO ==============================
 	ECHO Save Location:
-	ECHO "%USERPROFILE%\Desktop\ZipRipper-Passwords.txt"
+	ECHO "%UserProfile%\Desktop\ZipRipper-Passwords.txt"
 ) |MSG * /time:999999
 EXIT/b
