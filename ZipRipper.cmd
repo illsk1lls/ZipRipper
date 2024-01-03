@@ -128,7 +128,7 @@ RD "%ProgramData%\JtR" /S /Q>nul
 :GETJTRREADY
 CLS&IF NOT EXIST "%~dp0zr-offline.txt" (
 	ECHO Retrieving tools...
-	POWERSHELL -nop -c "Invoke-WebRequest -Uri https://www.7-zip.org/a/7zr.exe -o '%~dp07zr.exe'";"Invoke-WebRequest -Uri https://www.7-zip.org/a/7z2300-extra.7z -o '%~dp07zExtra.7z'"
+POWERSHELL -nop -c "Invoke-WebRequest -Uri https://www.7-zip.org/a/7zr.exe -o '%~dp07zr.exe'";"Invoke-WebRequest -Uri https://www.7-zip.org/a/7z2300-extra.7z -o '%~dp07zExtra.7z'"
 	IF %ISPERL% EQU 1 (
 		CLS
 		ECHO Retrieving required dependencies, please wait...
@@ -138,7 +138,7 @@ CLS&IF NOT EXIST "%~dp0zr-offline.txt" (
 		ECHO Retrieving required dependencies...
 		SET "EXTRA="
 	)
-	POWERSHELL -nop -c "Start-BitsTransfer -Priority Foreground -Source https://github.com/openwall/john-packages/releases/download/jumbo-dev/winX64_1_JtR.7z -Destination '%~dp0winX64_1_JtR.7z'%EXTRA%"
+POWERSHELL -nop -c "Start-BitsTransfer -Priority Foreground -Source https://github.com/openwall/john-packages/releases/download/jumbo-dev/winX64_1_JtR.7z -Destination '%~dp0winX64_1_JtR.7z'%EXTRA%"
 	) ELSE (
 	ECHO Offline mode enabled, preparing resources...
 	REN "%~dp0zr-offline.txt" .resources.exe
