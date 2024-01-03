@@ -79,7 +79,7 @@ CLS
 SET "FLAG="
 IF %~z1 GEQ 200000000 (
 	ECHO Creating password hash - This can take a few minutes on large files...
-	) ELSE (
+) ELSE (
 	ECHO Creating password hash...
 )
 SET/A ZIP2=0
@@ -93,7 +93,8 @@ ENDLOCAL
 CALL :GETSIZE john.pot POTSIZE
 SETLOCAL ENABLEDELAYEDEXPANSION
 IF !POTSIZE! GEQ 1 (
-	ENDLOCAL&IF EXIST "%USERPROFILE%\Desktop\ZipRipper-Passwords.txt" SET/A R=0&CALL :RENAMEOLD
+	ENDLOCAL
+	IF EXIST "%USERPROFILE%\Desktop\ZipRipper-Passwords.txt" SET/A R=0&CALL :RENAMEOLD
 	(
 		ECHO ^[ZIP-Ripper^] - FOUND PASSWORDS
 		ECHO  %DATE% + %TIME%
@@ -102,7 +103,7 @@ IF !POTSIZE! GEQ 1 (
 	)>"%USERPROFILE%\Desktop\ZipRipper-Passwords.txt"
 	IF %ZIP2% EQU 1 (
 		CALL :MULTI
-		) ELSE (
+	) ELSE (
 		CALL :SINGLE %1
 	)
 	(
@@ -111,10 +112,23 @@ IF !POTSIZE! GEQ 1 (
 	)>>"%USERPROFILE%\Desktop\ZipRipper-Passwords.txt"
 	CALL :GETSIZE "%USERPROFILE%\Desktop\ZipRipper-Passwords.txt" PWSIZE
 	SETLOCAL ENABLEDELAYEDEXPANSION
-	IF !PWSIZE! LEQ 1600 ((ENDLOCAL&TYPE "%USERPROFILE%\Desktop\ZipRipper-Passwords.txt"&ECHO Save Location:&ECHO %USERPROFILE%\Desktop\ZipRipper-Passwords.txt&ECHO.) |MSG * /time:999999) ELSE (ECHO ^[ZIP-Ripper^] - FOUND PASSWORDS&ECHO  %DATE% + %TIME%&ECHO ==============================&ECHO.&ECHO TOO MANY TO LIST&ECHO.&ECHO ==============================&ECHO Save Location:&ECHO %USERPROFILE%\Desktop\ZipRipper-Passwords.txt&ECHO.) |MSG * /time:999999
-	ECHO.
-	ECHO Passwords saved to: %USERPROFILE%\Desktop\ZipRipper-Passwords.txt
+	IF !PWSIZE! LEQ 1600 (
+		ENDLOCAL
+		(TYPE "%USERPROFILE%\Desktop\ZipRipper-Passwords.txt"&ECHO Save Location:&ECHO "%USERPROFILE%\Desktop\ZipRipper-Passwords.txt"&ECHO.) |MSG * /time:999999
 	) ELSE (
+		ECHO ^[ZIP-Ripper^] - FOUND PASSWORDS
+		ECHO  %DATE% + %TIME%
+		ECHO ==============================
+		ECHO.
+		ECHO TOO MANY TO LIST
+		ECHO.
+		ECHO ==============================
+		ECHO Save Location:
+		ECHO ("%USERPROFILE%\Desktop\ZipRipper-Passwords.txt"&ECHO.) |MSG * /time:999999
+		ECHO.
+		ECHO Passwords saved to: "%USERPROFILE%\Desktop\ZipRipper-Passwords.txt"
+	)
+) ELSE (
 	ENDLOCAL
 	ECHO.
 	ECHO Password not found :^(
@@ -126,14 +140,15 @@ RD "%ProgramData%\JtR" /S /Q>nul
 (GOTO) 2>nul&DEL "%~f0"/F /Q>nul&EXIT
 
 :GETJTRREADY
-CLS&IF NOT EXIST "%~dp0zr-offline.txt" (
+CLS
+IF NOT EXIST "%~dp0zr-offline.txt" (
 	ECHO Retrieving tools...
 POWERSHELL -nop -c "Invoke-WebRequest -Uri https://www.7-zip.org/a/7zr.exe -o '%~dp07zr.exe'";"Invoke-WebRequest -Uri https://www.7-zip.org/a/7z2300-extra.7z -o '%~dp07zExtra.7z'"
 	IF %ISPERL% EQU 1 (
 		CLS
 		ECHO Retrieving required dependencies, please wait...
 POWERSHELL -nop -c "Start-BitsTransfer -Priority Foreground -Source https://github.com/openwall/john-packages/releases/download/jumbo-dev/winX64_1_JtR.7z -Destination '%~dp0winX64_1_JtR.7z'";"Start-BitsTransfer -Priority Foreground -Source https://github.com/StrawberryPerl/Perl-Dist-Strawberry/releases/download/SP_5380_5361/strawberry-perl-5.38.0.1-64bit-portable.zip -Destination '%~dp0perlportable.zip'"
-		) ELSE (
+	) ELSE (
 		CLS
 		ECHO Retrieving required dependencies...
 POWERSHELL -nop -c "Start-BitsTransfer -Priority Foreground -Source https://github.com/openwall/john-packages/releases/download/jumbo-dev/winX64_1_JtR.7z -Destination '%~dp0winX64_1_JtR.7z'"
@@ -154,24 +169,45 @@ IF %ISPERL% EQU 1 (
 )
 >nul 2>&1 DEL "%~dp0winX64_1_JtR.7z" /F /Q
 >nul 2>&1 DEL "%~dp07zr.exe" /F /Q
->nul 2>1 DEL "%~dp07zExtra.7z" /F /Q
+>nul 2>&1 DEL "%~dp07zExtra.7z" /F /Q
 IF %GPU% EQU 1 >nul 2>&1 COPY /Y "%WinDir%\System32\OpenCL.dll" "%ProgramData%\JtR\run\cygOpenCL-1.dll"
 EXIT/b
 
 :CHECKCOMPAT
-FOR /F "usebackq skip=2 tokens=3,4" %%# IN (`REG QUERY "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v ProductName 2^>nul`) DO (IF "%%# %%$"=="Windows 7" ECHO.&ECHO Windows 7 detected.&ECHO.&ECHO SYSTEM NOT SUPPORTED&ECHO.&PAUSE&EXIT)
-FOR /F "usebackq skip=1 tokens=2,3" %%# IN (`WMIC path Win32_VideoController get Name ^| findstr "."`) DO (IF /I "%%#"=="GeForce" SET/A GPU=1)&(IF /I "%%#"=="Quadro" SET/A GPU=1)&(IF /I "%%# %%$"=="Radeon RX" SET/A GPU=1)&(IF /I "%%# %%$"=="Radeon Pro" SET/A GPU=1)
-IF NOT EXIST "%WinDir%\System32\OpenCL.dll" SET/A GPU=0
+FOR /F "usebackq skip=2 tokens=3,4" %%# IN (`REG QUERY "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v ProductName 2^>nul`) DO (
+	IF "%%# %%$"=="Windows 7" (
+		ECHO.
+		ECHO Windows 7 detected.
+		ECHO.
+		ECHO SYSTEM NOT SUPPORTED
+		ECHO.
+		PAUSE
+		EXIT
+	)
+)
+FOR /F "usebackq skip=1 tokens=2,3" %%# IN (`WMIC path Win32_VideoController get Name ^| findstr "."`) DO (
+	IF /I "%%#"=="GeForce" SET/A GPU=1
+	IF /I "%%#"=="Quadro" SET/A GPU=1
+	IF /I "%%# %%$"=="Radeon RX" SET/A GPU=1
+	IF /I "%%# %%$"=="Radeon Pro" SET/A GPU=1
+	IF NOT EXIST "%WinDir%\System32\OpenCL.dll" SET/A GPU=0
+)
 EXIT/b
 
 :HASH.ZIP
 zip2john "%~1">"%ProgramData%\JtR\run\pwhash" 2>nul
-IF %GPU% EQU 1 FOR /F "tokens=2 delims=$" %%# IN (pwhash) DO IF "%%#"=="zip2" SET "FLAG=--format=ZIP-opencl"&SET/A ZIP2=1
+IF %GPU% EQU 1 FOR /F "tokens=2 delims=$" %%# IN (pwhash) DO (
+	IF "%%#"=="zip2" SET "FLAG=--format=ZIP-opencl"
+	SET/A ZIP2=1
+)
 EXIT/b
 
 :HASH.RAR
 rar2john "%~1">"%ProgramData%\JtR\run\pwhash" 2>nul
-IF %GPU% EQU 1 FOR /F "tokens=2 delims=$" %%# IN (pwhash) DO (IF "%%#"=="rar" SET "FLAG=--format=rar-opencl")&(IF "%%#"=="rar5" SET "FLAG=--format=RAR5-opencl")
+IF %GPU% EQU 1 FOR /F "tokens=2 delims=$" %%# IN (pwhash) DO (
+	IF "%%#"=="rar" SET "FLAG=--format=rar-opencl"
+	IF "%%#"=="rar5" SET "FLAG=--format=RAR5-opencl"
+)
 EXIT/b
 
 :HASH.7z
@@ -181,7 +217,7 @@ EXIT/b
 
 :HASH.PDF
 CALL portableshell.bat pdf2john.pl "%~1">"%ProgramData%\JtR\run\pwhash" 2>nul
->nul 2>&1 POWERSHELL -nop -c "$^=[regex]::Match((gc pwhash),'^(.+\/)(?i)(.*\.pdf)(.+$)');$^.Groups[2].value+$^.Groups[3].value|sc pwhash"
+POWERSHELL -nop -c "$^=[regex]::Match((gc pwhash),'^(.+\/)(?i)(.*\.pdf)(.+$)');$^.Groups[2].value+$^.Groups[3].value|sc pwhash">nul 2>&1
 EXIT/b
 
 :GETSIZE
@@ -193,9 +229,9 @@ FOR /F "usebackq tokens=2 delims=:" %%# IN (john.pot) DO ECHO %%# - ^[%~nx1^] >>
 EXIT/b
 
 :MULTI
-FOR /F "usebackq tokens=1,5 delims=*" %%# IN (pwhash) DO (ECHO %%#%%$>>pwhash.x1)
-FOR /F "usebackq tokens=1,3 delims=$" %%# IN (pwhash.x1) DO (ECHO %%#%%$>>pwhash.x2)
-POWERSHELL -nop -c "$^=GC john.pot|%%{$_ -Replace '^.+?\*.\*([a-z\d]{32})\*.+:(.*)$',"^""`$1:`$2"^""}|sc pwhash.x3"
+FOR /F "usebackq tokens=1,5 delims=*" %%# IN (pwhash) DO ECHO %%#%%$>>pwhash.x1
+FOR /F "usebackq tokens=1,3 delims=$" %%# IN (pwhash.x1) DO ECHO %%#%%$>>pwhash.x2
+POWERSHELL -nop -c "$^=GC john.pot|%%{$_ -Replace '^.+?\*.\*([a-z\d]{32})\*.+:(.*)$',"^""`$1:`$2"^""}|sc pwhash.x3">nul 2>&1
 FOR /F "usebackq tokens=1,2 delims=:" %%# IN (pwhash.x2) DO (
 	FOR /F "usebackq tokens=1,2 delims=:" %%X IN (pwhash.x3) DO (
 		IF "%%$"=="%%X" ECHO %%Y - ^[%%#^]>>"%USERPROFILE%\Desktop\ZipRipper-Passwords.txt"
@@ -208,7 +244,7 @@ EXIT/b
 IF EXIST "%USERPROFILE%\Desktop\ZipRipper-Passwords.%R%.txt" (
 	SET/A R+=1
 	GOTO :RENAMEOLD
-	) ELSE (
+) ELSE (
 	REN "%USERPROFILE%\Desktop\ZipRipper-Passwords.txt" "ZipRipper-Passwords.%R%.txt"
 )
 EXIT/b
