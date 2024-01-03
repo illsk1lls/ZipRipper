@@ -5,7 +5,7 @@ IF NOT "%PROCESSOR_ARCHITECTURE%"=="AMD64" (
 	ECHO FOR USE WITH x64 SYSTEMS ONLY
 	ECHO/
 	PAUSE
-	EXIT
+	EXIT/b
 )
 REM Supported extensions and dependencies
 SET "NATIVE=ZIP,RAR"
@@ -20,14 +20,14 @@ IF NOT "%~2"=="" (
 	ECHO Multiple files are not supported, Please drop one file at a time.
 	ECHO/
 	PAUSE
-	EXIT
+	EXIT/b
 )
 REM Check if a supported extension was dropped and flag for dependencies
 IF "%~1"=="" (
 	ECHO Drop a password protected %NATIVE%,%PERL% file onto the script to begin...
 	ECHO/
 	PAUSE
-	EXIT
+	EXIT/b
 ) ELSE (
 	FOR %%# IN (%NATIVE%) DO IF /I "%~x1"==".%%#" (
 		SET/A GO=1
@@ -43,7 +43,7 @@ IF %GO% NEQ 1 (
 	ECHO Unsupported file extension. Supported extensions are: %NATIVE%,%PERL%
 	ECHO/
 	PAUSE
-	EXIT
+	EXIT/b
 )
 SET "FILETYPE=%~x1"
 REM Request Admin if not
@@ -80,7 +80,8 @@ IF NOT %errorlevel%==0 (
 		ECHO https://github.com/illsk1lls/ZipRipper/raw/main/.resources/zr-offline.txt?download=
 		ECHO/
 		PAUSE
-		(GOTO) 2>nul&del "%~f0" /F /Q>nul&EXIT
+		REM GOTO nowhere, self-delete %ProgramData% copy, and exit
+		(GOTO) 2>nul&del "%~f0" /F /Q>nul&EXIT/b
 	)
 )
 IF EXIST "%ProgramData%\JtR" >nul 2>&1 RD "%ProgramData%\JtR" /S /Q
@@ -144,7 +145,7 @@ POPD
 REM Cleanup temp files 
 RD "%ProgramData%\JtR" /S /Q>nul
 REM GOTO nowhere, self-delete %ProgramData% copy, and exit
-(GOTO) 2>nul&DEL "%~f0"/F /Q>nul&EXIT
+(GOTO) 2>nul&DEL "%~f0"/F /Q>nul&EXIT/b
 
 :GETJTRREADY
 CLS
@@ -197,7 +198,7 @@ FOR /F "usebackq skip=2 tokens=3,4" %%# IN (`REG QUERY "HKLM\SOFTWARE\Microsoft\
 		ECHO SYSTEM NOT SUPPORTED
 		ECHO/
 		PAUSE
-		EXIT
+		EXIT/b
 	)
 )
 REM Detect GPU lineup and OpenCL availability
@@ -292,6 +293,7 @@ IF %ZIP2% EQU 1 (
 	ECHO ==============================
 )>>"%USERPROFILE%\Desktop\ZipRipper-Passwords.txt"
 EXIT/b
+
 :DISPLAYINFOA
 ENDLOCAL
 (
@@ -300,6 +302,7 @@ ENDLOCAL
 	ECHO "%USERPROFILE%\Desktop\ZipRipper-Passwords.txt"
 ) |MSG * /time:999999
 EXIT/b
+
 :DISPLAYINFOB
 (
 	ECHO ^[ZIP-Ripper^] - FOUND PASSWORDS
