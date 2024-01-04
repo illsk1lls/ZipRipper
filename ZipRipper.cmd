@@ -35,7 +35,7 @@ IF NOT %errorlevel%==0 (
 	SETLOCAL ENABLEDELAYEDEXPANSION
 	SET "CHECKFILE=!CHECKFILE::=!"
 	IF "!CHECKFILE!"=="%~1" (
-	ECHO ERROR: Full file path required
+	ECHO ERROR: Absolute path required
 	EXIT /b
 	)
 	ENDLOCAL
@@ -86,7 +86,7 @@ REM Request Admin if not
 >nul 2>&1 REG ADD HKCU\Software\classes\.ZipRipper\shell\runas\command /f /ve /d "CMD /x /d /r SET \"f0=%%2\"& CALL \"%%2\" %%3"&SET "_= %*"
 >nul 2>&1 FLTMC|| IF NOT "%f0%"=="%~f0" (cd.>"%ProgramData%\elevate.ZipRipper"&START "%~n0" /high "%ProgramData%\elevate.ZipRipper" "%~f0" "%_:"=""%"&EXIT /b)
 >nul 2>&1 REG DELETE HKCU\Software\classes\.ZipRipper\ /F &>nul 2>&1 del %ProgramData%\elevate.ZipRipper /F /Q
-CD /D %~dp0
+CD /D "%~dp0"
 REM Copy to and run from %ProgramData% if not - include zr-offline.txt if present
 IF NOT "%~f0"=="%ProgramData%\%~nx0" (
 	>nul 2>&1 COPY /Y "%~f0" "%ProgramData%"
@@ -126,9 +126,9 @@ REM Remove old incomplete BITS downloads from previous interrupted sessions, if 
 IF EXIST "%ProgramData%\BIT*.tmp" >nul 2>&1 DEL "%ProgramData%\BIT*.tmp" /F /Q
 CALL :GETJTRREADY
 REM Input JtR settings
-PUSHD "%ProgramData%\JtR\run"&REN john.conf john.confx
-POWERSHELL -nop -c "$^=gc john.confx|%%{$_.Replace('SingleMaxBufferAvailMem = N','SingleMaxBufferAvailMem = Y').Replace('MaxKPCWarnings = 10','MaxKPCWarnings = 0')}|sc john.conf">nul 2>&1
->nul 2>&1 DEL john.confx /F /Q
+PUSHD "%ProgramData%\JtR\run"
+REN john.conf john.defaultconf
+POWERSHELL -nop -c "$^=gc john.defaultconf|%%{$_.Replace('SingleMaxBufferAvailMem = N','SingleMaxBufferAvailMem = Y').Replace('MaxKPCWarnings = 10','MaxKPCWarnings = 0')}|sc john.conf">nul 2>&1
 CLS
 SET "FLAG="
 REM If filesize is large hash will take a while
