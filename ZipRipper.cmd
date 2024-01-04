@@ -127,7 +127,7 @@ IF EXIST "%ProgramData%\BIT*.tmp" >nul 2>&1 DEL "%ProgramData%\BIT*.tmp" /F /Q
 CALL :GETJTRREADY
 REM Input JtR settings
 PUSHD "%ProgramData%\JtR\run"&REN john.conf john.confx
-POWERSHELL -nop -c "$^=GC john.confx|%%{$_.Replace('SingleMaxBufferAvailMem = N','SingleMaxBufferAvailMem = Y').Replace('MaxKPCWarnings = 10','MaxKPCWarnings = 0')}|sc john.conf">nul 2>&1
+POWERSHELL -nop -c "$^=gc john.confx|%%{$_.Replace('SingleMaxBufferAvailMem = N','SingleMaxBufferAvailMem = Y').Replace('MaxKPCWarnings = 10','MaxKPCWarnings = 0')}|sc john.conf">nul 2>&1
 >nul 2>&1 DEL john.confx /F /Q
 CLS
 SET "FLAG="
@@ -291,7 +291,7 @@ FOR /F "usebackq tokens=1,5 delims=*" %%# IN (pwhash) DO ECHO %%#%%$>>pwhash.x1
 FOR /F "usebackq tokens=1,3 delims=$" %%# IN (pwhash.x1) DO ECHO %%#%%$>>pwhash.x2
 POWERSHELL -nop -c "$^=gc john.pot|%%{$_ -Replace '^.+?\*.\*([a-z\d]{32})\*.+:(.*)$',"^""`$1:`$2"^""}|sc pwhash.x3">nul 2>&1
 FOR /F "usebackq tokens=1,2 delims=:" %%# IN (pwhash.x2) DO (
-	FOR /F "usebackq tokens=1,2 delims=:" %%X IN (pwhash.x3) DO (
+	FOR /F "usebackq tokens=1* delims=:" %%X IN (pwhash.x3) DO (
 		IF "%%$"=="%%X" ECHO %%Y - ^[%%#^]>>"%UserProfile%\Desktop\ZipRipper-Passwords.txt"
 	)
 )
