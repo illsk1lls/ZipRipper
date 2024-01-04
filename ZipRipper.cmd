@@ -1,42 +1,52 @@
 @ECHO OFF
-REM Tabs must not be present in front of powershell commands
 REM Check architecture - x64 only
 IF NOT "%PROCESSOR_ARCHITECTURE%"=="AMD64" (
 	IF NOT "%PROCESSOR_ARCHITEW6432%"=="AMD64" (
 		ECHO FOR USE WITH x64 SYSTEMS ONLY
 		ECHO/
 		PAUSE
-		EXIT/b
+		EXIT /b
 	) ELSE (
 		ECHO UNABLE TO LAUNCH IN x86 MODE
 		ECHO/
 		ECHO DRAG AND DROP A FILE DIRECTLY ON TO THE SCRIPT VIA GUI, OR USE CLI FROM A x64 SESSION
 		ECHO/
 		PAUSE
-		EXIT/b
+		EXIT /b
 	)
 )
 REM Check if run from file drop or CLI
-ECHO %cmdcmdline:"=-% | FIND /i "cmd.exe /c --%~dpf0-">nul
+ECHO "%CMDCMDLINE:"=-%" | FIND /i "cmd.exe /c --%~dpf0-">nul
 IF NOT %errorlevel%==0 (
-	SET/A CLI=1
+	SET CLI=1
 	IF NOT "%~2"=="" (
 		CALL :CLI-INFO
-		EXIT/b
+		EXIT /b
 	)
 	IF "%~1"=="" (
 		CALL :CLI-INFO
-		EXIT/b
+		EXIT /b
 	)
+	IF NOT EXIST "%~1" (
+		ECHO File not found: "%~1" 
+		EXIT /b
+	)
+	SET "CHECKFILE=%~1"
+	SETLOCAL ENABLEDELAYEDEXPANSION
+	SET "CHECKFILE=!CHECKFILE::=!"
+	IF "!CHECKFILE!"=="%~1" (
+	ECHO ERROR: Full file path required
+	EXIT /b
+	)
+	ENDLOCAL
 ) ELSE (
-SET/A CLI=0
+	SET CLI=0
 )
-REM Supported extensions and dependencies
+REM Supported extensions and dependencies, declare init vars
 SET "NATIVE=ZIP,RAR"
 SET "PERL=7z,PDF"
-REM Init vars
-SET/A GPU=0
-SET/A ALLOWSTART=0
+SET GPU=0
+SET ALLOWSTART=0
 TITLE Please Wait...
 CALL :CHECKCOMPAT
 REM Check if more than one file was dropped
@@ -44,22 +54,22 @@ IF NOT "%~2"=="" (
 	ECHO Multiple files are not supported, Please drop one file at a time.
 	ECHO/
 	PAUSE
-	EXIT/b
+	EXIT /b
 )
 REM Check if a supported extension was dropped and flag for dependencies
 IF "%~1"=="" (
 	ECHO Drop a password protected %NATIVE%,%PERL% file onto the script to begin...
 	ECHO/
 	PAUSE
-	EXIT/b
+	EXIT /b
 ) ELSE (
 	FOR %%# IN (%NATIVE%) DO IF /I "%~x1"==".%%#" (
-		SET/A ALLOWSTART=1
-		SET/A ISPERL=0
+		SET ALLOWSTART=1
+		SET ISPERL=0
 	)
 	FOR %%# IN (%PERL%) DO IF /I "%~x1"==".%%#" (
-		SET/A ALLOWSTART=1
-		SET/A ISPERL=1
+		SET ALLOWSTART=1
+		SET ISPERL=1
 	)
 )
 REM If drop is unsupported, display supported extensions and exit
@@ -69,12 +79,12 @@ IF %ALLOWSTART% NEQ 1 (
 		ECHO/
 		PAUSE
 	)
-	EXIT/b
+	EXIT /b
 )
 SET "FILETYPE=%~x1"
 REM Request Admin if not
 >nul 2>&1 REG ADD HKCU\Software\classes\.ZipRipper\shell\runas\command /f /ve /d "CMD /x /d /r SET \"f0=%%2\"& CALL \"%%2\" %%3"&SET "_= %*"
->nul 2>&1 FLTMC|| IF "%f0%" neq "%~f0" (cd.>"%ProgramData%\elevate.ZipRipper"&START "%~n0" /high "%ProgramData%\elevate.ZipRipper" "%~f0" "%_:"=""%"&EXIT/b)
+>nul 2>&1 FLTMC|| IF "%f0%" neq "%~f0" (cd.>"%ProgramData%\elevate.ZipRipper"&START "%~n0" /high "%ProgramData%\elevate.ZipRipper" "%~f0" "%_:"=""%"&EXIT /b)
 >nul 2>&1 REG DELETE HKCU\Software\classes\.ZipRipper\ /F &>nul 2>&1 del %ProgramData%\elevate.ZipRipper /F /Q
 CD /D %~dp0
 REM Copy to and run from %ProgramData% if not - include zr-offline.txt if present
@@ -82,7 +92,7 @@ IF NOT "%~f0" EQU "%ProgramData%\%~nx0" (
 	>nul 2>&1 COPY /Y "%~f0" "%ProgramData%"
 	IF EXIST "%~dp0zr-offline.txt" >nul 2>&1 COPY /Y "%~dp0zr-offline.txt" "%ProgramData%"
 	START "" ""%ProgramData%\%~nx0"" "%_%">nul
-	EXIT/b
+	EXIT /b
 )
 REM Only allow one instance at a time
 SET "TitleName=^[ZIP-Ripper^]  -  ^[CPU Mode^]  -  ^[OpenCL DISABLED^]"
@@ -107,7 +117,7 @@ IF NOT %errorlevel%==0 (
 		ECHO/
 		PAUSE
 		REM GOTO nowhere, self-delete %ProgramData% copy, and exit
-		(GOTO) 2>nul&del "%~f0" /F /Q>nul&EXIT/b
+		(GOTO) 2>nul&del "%~f0" /F /Q>nul&EXIT /b
 	)
 )
 IF EXIST "%ProgramData%\JtR" >nul 2>&1 RD "%ProgramData%\JtR" /S /Q
@@ -127,7 +137,7 @@ IF %~z1 GEQ 200000000 (
 ) ELSE (
 	ECHO Creating password hash...
 )
-SET/A ZIP2=0
+SET ZIP2=0
 REM Get pwhash
 CALL :HASH%FILETYPE% %1
 CLS
@@ -143,13 +153,13 @@ REM Build password list if found
 SETLOCAL ENABLEDELAYEDEXPANSION
 IF !POTSIZE! GEQ 1 (
 	ENDLOCAL
-	SET/A FOUND=1
+	SET FOUND=1
 	CALL :SAVEFILE %1
 	ECHO/
 	ECHO Passwords saved to: "%UserProfile%\Desktop\ZipRipper-Passwords.txt"
 ) ELSE (
 	ENDLOCAL
-	SET/A FOUND=0
+	SET FOUND=0
 	ECHO/
 	ECHO Password not found :^(
 	
@@ -171,7 +181,7 @@ POPD
 REM Cleanup temp files 
 RD "%ProgramData%\JtR" /S /Q>nul
 REM GOTO nowhere, self-delete %ProgramData% copy, and exit
-(GOTO) 2>nul&DEL "%~f0"/F /Q>nul&EXIT/b
+(GOTO) 2>nul&DEL "%~f0"/F /Q>nul&EXIT /b
 
 :GETJTRREADY
 CLS
@@ -212,7 +222,7 @@ REM Cleanup temp files
 >nul 2>&1 DEL "%~dp07zExtra.7z" /F /Q
 REM Enable OpenCL
 IF %GPU% EQU 1 >nul 2>&1 COPY /Y "%WinDir%\System32\OpenCL.dll" "%ProgramData%\JtR\run\cygOpenCL-1.dll"
-EXIT/b
+EXIT /b
 
 :CHECKCOMPAT
 REM Check Windows version
@@ -224,29 +234,29 @@ FOR /F "usebackq skip=2 tokens=3,4" %%# IN (`REG QUERY "HKLM\SOFTWARE\Microsoft\
 		ECHO SYSTEM NOT SUPPORTED
 		ECHO/
 		PAUSE
-		EXIT/b
+		EXIT /b
 	)
 )
 REM Detect GPU lineup and OpenCL availability
 FOR /F "usebackq skip=1 tokens=2,3" %%# IN (`WMIC path Win32_VideoController get Name ^| findstr "."`) DO (
-	IF /I "%%#"=="GeForce" SET/A GPU=1
-	IF /I "%%#"=="Quadro" SET/A GPU=1
-	IF /I "%%# %%$"=="Radeon RX" SET/A GPU=1
-	IF /I "%%# %%$"=="Radeon Pro" SET/A GPU=1
+	IF /I "%%#"=="GeForce" SET GPU=1
+	IF /I "%%#"=="Quadro" SET GPU=1
+	IF /I "%%# %%$"=="Radeon RX" SET GPU=1
+	IF /I "%%# %%$"=="Radeon Pro" SET GPU=1
 REM Check if OpenCL is available
-	IF NOT EXIST "%WinDir%\System32\OpenCL.dll" SET/A GPU=0
+	IF NOT EXIST "%WinDir%\System32\OpenCL.dll" SET GPU=0
 )
-EXIT/b
+EXIT /b
 
 :HASH.ZIP
 zip2john "%~1">"%ProgramData%\JtR\run\pwhash" 2>nul
 IF %GPU% EQU 1 FOR /F "tokens=2 delims=$" %%# IN (pwhash) DO (
 	IF "%%#"=="zip2" (
 		SET "FLAG=--format=ZIP-opencl"
-		SET/A ZIP2=1
+		SET ZIP2=1
 	)
 )
-EXIT/b
+EXIT /b
 
 :HASH.RAR
 rar2john "%~1">"%ProgramData%\JtR\run\pwhash" 2>nul
@@ -254,26 +264,26 @@ IF %GPU% EQU 1 FOR /F "tokens=2 delims=$" %%# IN (pwhash) DO (
 	IF "%%#"=="rar" SET "FLAG=--format=rar-opencl"
 	IF "%%#"=="rar5" SET "FLAG=--format=RAR5-opencl"
 )
-EXIT/b
+EXIT /b
 
 :HASH.7z
 CALL portableshell.bat 7z2john.pl "%~1">"%ProgramData%\JtR\run\pwhash" 2>nul
 IF %GPU% EQU 1 SET "FLAG=--format=7z-opencl"
-EXIT/b
+EXIT /b
 
 :HASH.PDF
 CALL portableshell.bat pdf2john.pl "%~1">"%ProgramData%\JtR\run\pwhash" 2>nul
 POWERSHELL -nop -c "$^=[regex]::Match((gc pwhash),'^(.+\/)(?i)(.*\.pdf)(.+$)');$^.Groups[2].value+$^.Groups[3].value|sc pwhash">nul 2>&1
-EXIT/b
+EXIT /b
 
 :GETSIZE
 REM Delayed expansion required to retrieve returnvar value
-SET/A "%2=%~z1"
-EXIT/b
+SET "%2=%~z1"
+EXIT /b
 
 :SINGLE
 FOR /F "usebackq tokens=2 delims=:" %%# IN (john.pot) DO ECHO %%# - ^[%~nx1^] >>"%UserProfile%\Desktop\ZipRipper-Passwords.txt"
-EXIT/b
+EXIT /b
 
 :MULTI
 REM Show multiple found passwords via hash matches between initial 'pwhash' and 'john.pot'
@@ -286,21 +296,21 @@ FOR /F "usebackq tokens=1,2 delims=:" %%# IN (pwhash.x2) DO (
 	)
 )
 DEL /f /q pwhash.x*
-EXIT/b
+EXIT /b
 
 :RENAMEOLD
 REM Increment filename if exist
 IF EXIST "%UserProfile%\Desktop\ZipRipper-Passwords.%R%.txt" (
-	SET/A R+=1
+	SET /A R+=1
 	GOTO :RENAMEOLD
 ) ELSE (
 	REN "%UserProfile%\Desktop\ZipRipper-Passwords.txt" "ZipRipper-Passwords.%R%.txt"
 )
-EXIT/b
+EXIT /b
 
 :SAVEFILE
 IF EXIST "%UserProfile%\Desktop\ZipRipper-Passwords.txt" (
-	SET/A R=0
+	SET /A R=0
 	CALL :RENAMEOLD
 )
 (
@@ -318,7 +328,7 @@ IF %ZIP2% EQU 1 (
 	ECHO/
 	ECHO ==============================
 )>>"%UserProfile%\Desktop\ZipRipper-Passwords.txt"
-EXIT/b
+EXIT /b
 
 :DISPLAYINFOA
 ENDLOCAL
@@ -327,7 +337,7 @@ ENDLOCAL
 	ECHO Save Location:
 	ECHO "%UserProfile%\Desktop\ZipRipper-Passwords.txt"
 ) |MSG * /time:999999
-EXIT/b
+EXIT /b
 
 :DISPLAYINFOB
 (
@@ -341,8 +351,8 @@ EXIT/b
 	ECHO Save Location:
 	ECHO "%UserProfile%\Desktop\ZipRipper-Passwords.txt"
 ) |MSG * /time:999999
-EXIT/b
+EXIT /b
+
 :CLI-INFO
 ECHO USAGE: ZipRipper.cmd "<C:\FullPathTo\protectedfile.zip>"
-ECHO/
-EXIT/b
+EXIT /b
