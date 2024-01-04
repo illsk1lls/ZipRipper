@@ -73,9 +73,9 @@ IF "%~1"=="" (
 	)
 )
 REM If drop is unsupported, display supported extensions and exit
-IF %ALLOWSTART% NEQ 1 (
+IF NOT "%ALLOWSTART%"=="1" (
 	ECHO Unsupported file extension. Supported extensions are: %NATIVE%,%PERL%
-	IF %CLI% EQU 0 (
+	IF "%CLI%"=="0" (
 		ECHO/
 		PAUSE
 	)
@@ -84,11 +84,11 @@ IF %ALLOWSTART% NEQ 1 (
 SET "FILETYPE=%~x1"
 REM Request Admin if not
 >nul 2>&1 REG ADD HKCU\Software\classes\.ZipRipper\shell\runas\command /f /ve /d "CMD /x /d /r SET \"f0=%%2\"& CALL \"%%2\" %%3"&SET "_= %*"
->nul 2>&1 FLTMC|| IF "%f0%" neq "%~f0" (cd.>"%ProgramData%\elevate.ZipRipper"&START "%~n0" /high "%ProgramData%\elevate.ZipRipper" "%~f0" "%_:"=""%"&EXIT /b)
+>nul 2>&1 FLTMC|| IF NOT "%f0%"=="%~f0" (cd.>"%ProgramData%\elevate.ZipRipper"&START "%~n0" /high "%ProgramData%\elevate.ZipRipper" "%~f0" "%_:"=""%"&EXIT /b)
 >nul 2>&1 REG DELETE HKCU\Software\classes\.ZipRipper\ /F &>nul 2>&1 del %ProgramData%\elevate.ZipRipper /F /Q
 CD /D %~dp0
 REM Copy to and run from %ProgramData% if not - include zr-offline.txt if present
-IF NOT "%~f0" EQU "%ProgramData%\%~nx0" (
+IF NOT "%~f0"=="%ProgramData%\%~nx0" (
 	>nul 2>&1 COPY /Y "%~f0" "%ProgramData%"
 	IF EXIST "%~dp0zr-offline.txt" >nul 2>&1 COPY /Y "%~dp0zr-offline.txt" "%ProgramData%"
 	START "" ""%ProgramData%\%~nx0"" "%_%">nul
@@ -96,7 +96,7 @@ IF NOT "%~f0" EQU "%ProgramData%\%~nx0" (
 )
 REM Only allow one instance at a time
 SET "TitleName=^[ZIP-Ripper^]  -  ^[CPU Mode^]  -  ^[OpenCL DISABLED^]"
-IF %GPU% EQU 1 SET TitleName=%TitleName:^[CPU Mode^]  -  ^[OpenCL DISABLED^]=^[CPU/GPU Mode^]  -  ^[OpenCL ENABLED^]%
+IF "%GPU%"=="1" SET TitleName=%TitleName:^[CPU Mode^]  -  ^[OpenCL DISABLED^]=^[CPU/GPU Mode^]  -  ^[OpenCL ENABLED^]%
 TASKLIST /V /NH /FI "imagename eq cmd.exe"|FIND /I /C "%TitleName%">nul
 IF NOT %errorlevel%==1 (ECHO ERROR:&ECHO ZIP-Ripper is already running!) |MSG *&EXIT
 TITLE %TitleName%
@@ -166,7 +166,7 @@ IF !POTSIZE! GEQ 1 (
 )
 CALL :GETSIZE "%UserProfile%\Desktop\ZipRipper-Passwords.txt" PWSIZE
 SETLOCAL ENABLEDELAYEDEXPANSION
-IF NOT %FOUND% EQU 0 (
+IF NOT "%FOUND%"=="0" (
 	IF !PWSIZE! LEQ 1600 (
 		ENDLOCAL
 		CALL :DISPLAYINFOA
@@ -190,17 +190,17 @@ IF NOT EXIST "%~dp0zr-offline.txt" (
 	ECHO Retrieving tools...
 POWERSHELL -nop -c "Invoke-WebRequest -Uri https://www.7-zip.org/a/7zr.exe -o '%~dp07zr.exe'";"Invoke-WebRequest -Uri https://www.7-zip.org/a/7z2300-extra.7z -o '%~dp07zExtra.7z'"
 	CLS
-	IF %ISPERL% EQU 1 (
-REM Download JtR, and perl portable
+	IF "%ISPERL%"=="1" (
+		REM Download JtR, and perl portable
 		ECHO Retrieving required dependencies, please wait...
 POWERSHELL -nop -c "Start-BitsTransfer -Priority Foreground -Source https://github.com/openwall/john-packages/releases/download/jumbo-dev/winX64_1_JtR.7z -Destination '%~dp0winX64_1_JtR.7z'";"Start-BitsTransfer -Priority Foreground -Source https://github.com/StrawberryPerl/Perl-Dist-Strawberry/releases/download/SP_5380_5361/strawberry-perl-5.38.0.1-64bit-portable.zip -Destination '%~dp0perlportable.zip'"
 	) ELSE (
-REM Download JtR only
+		REM Download JtR only
 		ECHO Retrieving required dependencies...
 POWERSHELL -nop -c "Start-BitsTransfer -Priority Foreground -Source https://github.com/openwall/john-packages/releases/download/jumbo-dev/winX64_1_JtR.7z -Destination '%~dp0winX64_1_JtR.7z'"
 	)
 ) ELSE (
-REM Offline mode, use local file
+	REM Offline mode, use local file
 	ECHO Offline mode enabled, preparing resources...
 	REN "%~dp0zr-offline.txt" .resources.exe
 	.resources -y -pDependencies>nul
@@ -210,7 +210,7 @@ REM Extract JtR
 >nul 2>&1 "%~dp07zr.exe" x -y "%~dp0winX64_1_JtR.7z"
 >nul 2>&1 "%~dp07zr.exe" x -y "%~dp07zExtra.7z" -o"%~dp0JtR\"
 REM Extract perl portable if needed
-IF %ISPERL% EQU 1 (
+IF "%ISPERL%"=="1" (
 	CLS
 	ECHO Extracting required dependencies, this will take a moment...
 	"%~dp0JtR\7za.exe" x -y "%~dp0perlportable.zip" -o"%~dp0JtR\run">nul
@@ -221,7 +221,7 @@ REM Cleanup temp files
 >nul 2>&1 DEL "%~dp07zr.exe" /F /Q
 >nul 2>&1 DEL "%~dp07zExtra.7z" /F /Q
 REM Enable OpenCL
-IF %GPU% EQU 1 >nul 2>&1 COPY /Y "%WinDir%\System32\OpenCL.dll" "%ProgramData%\JtR\run\cygOpenCL-1.dll"
+IF "%GPU%"=="1" >nul 2>&1 COPY /Y "%WinDir%\System32\OpenCL.dll" "%ProgramData%\JtR\run\cygOpenCL-1.dll"
 EXIT /b
 
 :CHECKCOMPAT
@@ -250,7 +250,7 @@ EXIT /b
 
 :HASH.ZIP
 zip2john "%~1">"%ProgramData%\JtR\run\pwhash" 2>nul
-IF %GPU% EQU 1 FOR /F "tokens=2 delims=$" %%# IN (pwhash) DO (
+IF "%GPU%"=="1" FOR /F "tokens=2 delims=$" %%# IN (pwhash) DO (
 	IF "%%#"=="zip2" (
 		SET "FLAG=--format=ZIP-opencl"
 		SET ZIP2=1
@@ -260,7 +260,7 @@ EXIT /b
 
 :HASH.RAR
 rar2john "%~1">"%ProgramData%\JtR\run\pwhash" 2>nul
-IF %GPU% EQU 1 FOR /F "tokens=2 delims=$" %%# IN (pwhash) DO (
+IF "%GPU%"=="1" FOR /F "tokens=2 delims=$" %%# IN (pwhash) DO (
 	IF "%%#"=="rar" SET "FLAG=--format=rar-opencl"
 	IF "%%#"=="rar5" SET "FLAG=--format=RAR5-opencl"
 )
@@ -268,7 +268,7 @@ EXIT /b
 
 :HASH.7z
 CALL portableshell.bat 7z2john.pl "%~1">"%ProgramData%\JtR\run\pwhash" 2>nul
-IF %GPU% EQU 1 SET "FLAG=--format=7z-opencl"
+IF "%GPU%"=="1" SET "FLAG=--format=7z-opencl"
 EXIT /b
 
 :HASH.PDF
@@ -278,11 +278,11 @@ EXIT /b
 
 :GETSIZE
 REM Delayed expansion required to retrieve returnvar value
-SET "%2=%~z1"
+SET /A "%2=%~z1"
 EXIT /b
 
 :SINGLE
-FOR /F "usebackq tokens=2 delims=:" %%# IN (john.pot) DO ECHO %%# - ^[%~nx1^] >>"%UserProfile%\Desktop\ZipRipper-Passwords.txt"
+FOR /F "usebackq tokens=2 delims=:" %%# IN (john.pot) DO ECHO|(SET /p="%%# - [%~nx1]"&ECHO/)>>"%UserProfile%\Desktop\ZipRipper-Passwords.txt"
 EXIT /b
 
 :MULTI
@@ -292,7 +292,7 @@ FOR /F "usebackq tokens=1,3 delims=$" %%# IN (pwhash.x1) DO ECHO %%#%%$>>pwhash.
 POWERSHELL -nop -c "$^=gc john.pot|%%{$_ -Replace '^.+?\*.\*([a-z\d]{32})\*.+:(.*)$',"^""`$1:`$2"^""}|sc pwhash.x3">nul 2>&1
 FOR /F "usebackq tokens=1,2 delims=:" %%# IN (pwhash.x2) DO (
 	FOR /F "usebackq tokens=1* delims=:" %%X IN (pwhash.x3) DO (
-		IF "%%$"=="%%X" ECHO %%Y - ^[%%#^]>>"%UserProfile%\Desktop\ZipRipper-Passwords.txt"
+		IF "%%$"=="%%X" ECHO|(SET /p="%%Y - [%%#]"&ECHO/)>>"%UserProfile%\Desktop\ZipRipper-Passwords.txt"
 	)
 )
 DEL /f /q pwhash.x*
@@ -319,7 +319,7 @@ IF EXIST "%UserProfile%\Desktop\ZipRipper-Passwords.txt" (
 	ECHO ==============================
 	ECHO/
 )>"%UserProfile%\Desktop\ZipRipper-Passwords.txt"
-IF %ZIP2% EQU 1 (
+IF "%ZIP2%"=="1" (
 	CALL :MULTI
 ) ELSE (
 	CALL :SINGLE %1
