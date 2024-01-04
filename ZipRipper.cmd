@@ -16,6 +16,21 @@ IF NOT "%PROCESSOR_ARCHITECTURE%"=="AMD64" (
 		EXIT/b
 	)
 )
+REM Check if run from file drop or CLI
+ECHO %cmdcmdline:"=-% | FIND /i "cmd.exe /c --%~dpf0-">nul
+IF NOT %errorlevel%==0 (
+	SET/A CLI=1
+	IF NOT "%~2"=="" (
+		CALL :CLI-INFO
+		EXIT/b
+	)
+	IF "%~1"=="" (
+		CALL :CLI-INFO
+		EXIT/b
+	)
+) ELSE (
+SET/A CLI=0
+)
 REM Supported extensions and dependencies
 SET "NATIVE=ZIP,RAR"
 SET "PERL=7z,PDF"
@@ -50,8 +65,10 @@ IF "%~1"=="" (
 REM If drop is unsupported, display supported extensions and exit
 IF %ALLOWSTART% NEQ 1 (
 	ECHO Unsupported file extension. Supported extensions are: %NATIVE%,%PERL%
-	ECHO/
-	PAUSE
+	IF %CLI% EQU 0 (
+		ECHO/
+		PAUSE
+	)
 	EXIT/b
 )
 SET "FILETYPE=%~x1"
@@ -249,7 +266,7 @@ CALL portableshell.bat pdf2john.pl "%~1">"%ProgramData%\JtR\run\pwhash" 2>nul
 POWERSHELL -nop -c "$^=[regex]::Match((gc pwhash),'^(.+\/)(?i)(.*\.pdf)(.+$)');$^.Groups[2].value+$^.Groups[3].value|sc pwhash">nul 2>&1
 EXIT/b
 
-:GETSIZE <filename> <returnvar> 
+:GETSIZE
 REM Delayed expansion required to retrieve returnvar value
 SET/A "%2=%~z1"
 EXIT/b
@@ -324,4 +341,8 @@ EXIT/b
 	ECHO Save Location:
 	ECHO "%UserProfile%\Desktop\ZipRipper-Passwords.txt"
 ) |MSG * /time:999999
+EXIT/b
+:CLI-INFO
+ECHO USAGE: ZipRipper.cmd "<C:\FullPathTo\protectedfile.zip>"
+ECHO/
 EXIT/b
