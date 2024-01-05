@@ -9,9 +9,38 @@ IF NOT "%PROCESSOR_ARCHITECTURE%"=="AMD64" (
 	) ELSE (
 		ECHO UNABLE TO LAUNCH IN x86 MODE
 		ECHO/
+		ECHO DRAG AND DROP A FILE DIRECTLY ON TO THE SCRIPT VIA GUI, OR USE CLI FROM A x64 SESSION
+		ECHO/
 		PAUSE
 		EXIT /b
 	)
+)
+REM Check if run from file drop or CLI
+ECHO "%CMDCMDLINE:"=-%" | FIND /i "cmd.exe /c --%~dpf0-">nul
+IF NOT %errorlevel%==0 (
+	SET CLI=1
+	IF NOT "%~2"=="" (
+		CALL :CLI-INFO
+		EXIT /b
+	)
+	IF "%~1"=="" (
+		CALL :CLI-INFO
+		EXIT /b
+	)
+	IF NOT EXIST "%~1" (
+		ECHO File not found: "%~1" 
+		EXIT /b
+	)
+	SET "CHECKFILE=%~1"
+	SETLOCAL ENABLEDELAYEDEXPANSION
+	SET "CHECKFILE=!CHECKFILE::=!"
+	IF "!CHECKFILE!"=="%~1" (
+	ECHO ERROR: Full file path required
+	EXIT /b
+	)
+	ENDLOCAL
+) ELSE (
+	SET CLI=0
 )
 REM Supported extensions and dependencies, declare init vars
 SET "NATIVE=ZIP,RAR"
@@ -27,25 +56,13 @@ IF NOT "%~2"=="" (
 	PAUSE
 	EXIT /b
 )
+REM Check if a supported extension was dropped and flag for dependencies
 IF "%~1"=="" (
-	REM If no file was dropped via GUI, use file picker and relaunch, causes extra relaunch to assign %1
-	CALL :GETFILE FILENAME
-	SET "SELF=%~dpnx0"
-	SETLOCAL ENABLEDELAYEDEXPANSION
-	IF "!FILENAME!"=="" (
-	ECHO ERROR: No file was selected.
-	ECHO/
-	ECHO Drop a password protected %NATIVE%,%PERL% file onto the script, or relaunch
-	ECHO the script and select a file with the GUI
+	ECHO Drop a password protected %NATIVE%,%PERL% file onto the script to begin...
 	ECHO/
 	PAUSE
 	EXIT /b
-	)
-	START "" "!SELF:"=!" !FILENAME!>nul
-	ENDLOCAL
-	EXIT /b
 ) ELSE (
-	REM Flag supported filetypes to allow start and dependencies
 	FOR %%# IN (%NATIVE%) DO IF /I "%~x1"==".%%#" (
 		SET ALLOWSTART=1
 		SET ISPERL=0
@@ -58,17 +75,25 @@ IF "%~1"=="" (
 REM If drop is unsupported, display supported extensions and exit
 IF NOT "%ALLOWSTART%"=="1" (
 	ECHO Unsupported file extension. Supported extensions are: %NATIVE%,%PERL%
-	ECHO/
-	PAUSE
+	IF "%CLI%"=="0" (
+		ECHO/
+		PAUSE
+	)
 	EXIT /b
 )
 SET "FILETYPE=%~x1"
-REM Request Admin if not, Generates UAC prompt
+REM Request Admin if not
 >nul 2>&1 REG ADD HKCU\Software\classes\.ZipRipper\shell\runas\command /f /ve /d "CMD /x /d /r SET \"f0=%%2\"& CALL \"%%2\" %%3"&SET "_= %*"
->nul 2>&1 FLTMC|| IF NOT "%f0%"=="%~f0" (cd.>"%ProgramData%\elevate.ZipRipper"&START "%~n0" /high "%ProgramData%\elevate.ZipRipper" "%~f0" "%_:"=""%"&EXIT)
+>nul 2>&1 FLTMC|| IF NOT "%f0%"=="%~f0" (cd.>"%ProgramData%\elevate.ZipRipper"&START "%~n0" /high "%ProgramData%\elevate.ZipRipper" "%~f0" "%_:"=""%"&EXIT /b)
 >nul 2>&1 REG DELETE HKCU\Software\classes\.ZipRipper\ /F &>nul 2>&1 del %ProgramData%\elevate.ZipRipper /F /Q
-REM Copy offline resources to %ProgramData% if present
-IF EXIST "%~dp0zr-offline.txt" >nul 2>&1 COPY /Y "%~dp0zr-offline.txt" "%ProgramData%"
+CD /D %~dp0
+REM Copy to and run from %ProgramData% if not - include zr-offline.txt if present
+IF NOT "%~f0"=="%ProgramData%\%~nx0" (
+	>nul 2>&1 COPY /Y "%~f0" "%ProgramData%"
+	IF EXIST "%~dp0zr-offline.txt" >nul 2>&1 COPY /Y "%~dp0zr-offline.txt" "%ProgramData%"
+	START "" ""%ProgramData%\%~nx0"" "%_%">nul
+	EXIT /b
+)
 REM Only allow one instance at a time
 SET "TitleName=^[ZIP-Ripper^]  -  ^[CPU Mode^]  -  ^[OpenCL DISABLED^]"
 IF "%GPU%"=="1" SET TitleName=%TitleName:^[CPU Mode^]  -  ^[OpenCL DISABLED^]=^[CPU/GPU Mode^]  -  ^[OpenCL ENABLED^]%
@@ -80,7 +105,7 @@ REM Center CMD window with powershell, doesnt work with new terminal
 REM Test internet connection, if FALSE exit if zr-offline.txt is not present
 PING -n 1 "google.com" | FINDSTR /r /c:"[0-9] *ms">nul
 IF NOT %errorlevel%==0 (
-	IF NOT EXIST "%ProgramData%\zr-offline.txt" (
+	IF NOT EXIST "%~dp0zr-offline.txt" (
 		ECHO/
 		ECHO Internet connection not detected...
 		ECHO/
@@ -92,7 +117,7 @@ IF NOT %errorlevel%==0 (
 		ECHO/
 		PAUSE
 		REM GOTO nowhere, self-delete %ProgramData% copy, and exit
-		EXIT /b
+		(GOTO) 2>nul&del "%~f0" /F /Q>nul&EXIT /b
 	)
 )
 IF EXIST "%ProgramData%\JtR" >nul 2>&1 RD "%ProgramData%\JtR" /S /Q
@@ -101,9 +126,9 @@ REM Remove old incomplete BITS downloads from previous interrupted sessions, if 
 IF EXIST "%ProgramData%\BIT*.tmp" >nul 2>&1 DEL "%ProgramData%\BIT*.tmp" /F /Q
 CALL :GETJTRREADY
 REM Input JtR settings
-PUSHD "%ProgramData%\JtR\run"
-REN john.conf john.defaultconf
-POWERSHELL -nop -c "$^=gc john.defaultconf|%%{$_.Replace('SingleMaxBufferAvailMem = N','SingleMaxBufferAvailMem = Y').Replace('MaxKPCWarnings = 10','MaxKPCWarnings = 0')}|sc john.conf">nul 2>&1
+PUSHD "%ProgramData%\JtR\run"&REN john.conf john.confx
+POWERSHELL -nop -c "$^=gc john.confx|%%{$_.Replace('SingleMaxBufferAvailMem = N','SingleMaxBufferAvailMem = Y').Replace('MaxKPCWarnings = 10','MaxKPCWarnings = 0')}|sc john.conf">nul 2>&1
+>nul 2>&1 DEL john.confx /F /Q
 CLS
 SET "FLAG="
 REM If filesize is large hash will take a while
@@ -153,50 +178,48 @@ IF NOT "%FOUND%"=="0" (
 ECHO/
 PAUSE
 POPD
-REM Cleanup temp files and exit
+REM Cleanup temp files 
 RD "%ProgramData%\JtR" /S /Q>nul
-EXIT /b
-
-:ELEVATE
-EXIT /b
+REM GOTO nowhere, self-delete %ProgramData% copy, and exit
+(GOTO) 2>nul&DEL "%~f0"/F /Q>nul&EXIT /b
 
 :GETJTRREADY
 CLS
 REM Check if zr-offline.txt is present, if not, run in online mode
-IF NOT EXIST "%ProgramData%\zr-offline.txt" (
+IF NOT EXIST "%~dp0zr-offline.txt" (
 	ECHO Retrieving tools...
-POWERSHELL -nop -c "Invoke-WebRequest -Uri https://www.7-zip.org/a/7zr.exe -o '%ProgramData%\7zr.exe'";"Invoke-WebRequest -Uri https://www.7-zip.org/a/7z2300-extra.7z -o '%ProgramData%\7zExtra.7z'"
+POWERSHELL -nop -c "Invoke-WebRequest -Uri https://www.7-zip.org/a/7zr.exe -o '%~dp07zr.exe'";"Invoke-WebRequest -Uri https://www.7-zip.org/a/7z2300-extra.7z -o '%~dp07zExtra.7z'"
 	CLS
 	IF "%ISPERL%"=="1" (
 		REM Download JtR, and perl portable
 		ECHO Retrieving required dependencies, please wait...
-POWERSHELL -nop -c "Start-BitsTransfer -Priority Foreground -Source https://github.com/openwall/john-packages/releases/download/jumbo-dev/winX64_1_JtR.7z -Destination '%ProgramData%\winX64_1_JtR.7z'";"Start-BitsTransfer -Priority Foreground -Source https://github.com/StrawberryPerl/Perl-Dist-Strawberry/releases/download/SP_5380_5361/strawberry-perl-5.38.0.1-64bit-portable.zip -Destination '%ProgramData%\perlportable.zip'"
+POWERSHELL -nop -c "Start-BitsTransfer -Priority Foreground -Source https://github.com/openwall/john-packages/releases/download/jumbo-dev/winX64_1_JtR.7z -Destination '%~dp0winX64_1_JtR.7z'";"Start-BitsTransfer -Priority Foreground -Source https://github.com/StrawberryPerl/Perl-Dist-Strawberry/releases/download/SP_5380_5361/strawberry-perl-5.38.0.1-64bit-portable.zip -Destination '%~dp0perlportable.zip'"
 	) ELSE (
 		REM Download JtR only
 		ECHO Retrieving required dependencies...
-POWERSHELL -nop -c "Start-BitsTransfer -Priority Foreground -Source https://github.com/openwall/john-packages/releases/download/jumbo-dev/winX64_1_JtR.7z -Destination '%ProgramData%\winX64_1_JtR.7z'"
+POWERSHELL -nop -c "Start-BitsTransfer -Priority Foreground -Source https://github.com/openwall/john-packages/releases/download/jumbo-dev/winX64_1_JtR.7z -Destination '%~dp0winX64_1_JtR.7z'"
 	)
 ) ELSE (
 	REM Offline mode, use local file
 	ECHO Offline mode enabled, preparing resources...
-	REN "%ProgramData%\zr-offline.txt" .resources.exe
-	"%ProgramData%\.resources" -y -pDependencies">nul
-	>nul 2>&1 DEL "%ProgramData%\.resources.exe" /F /Q
+	REN "%~dp0zr-offline.txt" .resources.exe
+	.resources -y -pDependencies>nul
+	>nul 2>&1 DEL .resources.exe /F /Q
 )
 REM Extract JtR
->nul 2>&1 "%ProgramData%\7zr.exe" x -y "%ProgramData%\winX64_1_JtR.7z" -o"%ProgramData%\"
->nul 2>&1 "%ProgramData%\7zr.exe" x -y "%ProgramData%\7zExtra.7z" -o"%ProgramData%\JtR\"
+>nul 2>&1 "%~dp07zr.exe" x -y "%~dp0winX64_1_JtR.7z"
+>nul 2>&1 "%~dp07zr.exe" x -y "%~dp07zExtra.7z" -o"%~dp0JtR\"
 REM Extract perl portable if needed
 IF "%ISPERL%"=="1" (
 	CLS
 	ECHO Extracting required dependencies, this will take a moment...
-	"%ProgramData%\JtR\7za.exe" x -y "%ProgramData%\perlportable.zip" -o"%ProgramData%\JtR\run">nul
-	>nul 2>&1 DEL "%ProgramData%\perlportable.zip" /F /Q
+	"%~dp0JtR\7za.exe" x -y "%~dp0perlportable.zip" -o"%~dp0JtR\run">nul
+	>nul 2>&1 DEL "%~dp0perlportable.zip" /F /Q
 )
 REM Cleanup temp files
->nul 2>&1 DEL "%ProgramData%\winX64_1_JtR.7z" /F /Q
->nul 2>&1 DEL "%ProgramData%\7zr.exe" /F /Q
->nul 2>&1 DEL "%ProgramData%\7zExtra.7z" /F /Q
+>nul 2>&1 DEL "%~dp0winX64_1_JtR.7z" /F /Q
+>nul 2>&1 DEL "%~dp07zr.exe" /F /Q
+>nul 2>&1 DEL "%~dp07zExtra.7z" /F /Q
 REM Enable OpenCL
 IF "%GPU%"=="1" >nul 2>&1 COPY /Y "%WinDir%\System32\OpenCL.dll" "%ProgramData%\JtR\run\cygOpenCL-1.dll"
 EXIT /b
@@ -254,7 +277,7 @@ POWERSHELL -nop -c "$^=[regex]::Match((gc pwhash),'^(.+\/)(?i)(.*\.pdf)(.+$)');$
 EXIT /b
 
 :GETSIZE
-REM Delayed expansion required to retrieve return value
+REM Delayed expansion required to retrieve returnvar value
 SET /A "%2=%~z1"
 EXIT /b
 
@@ -330,7 +353,6 @@ EXIT /b
 ) |MSG * /time:999999
 EXIT /b
 
-:GETFILE
-REM Open file picker to select a file, Delayed expansion required to retrieve return value
-FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "Add-Type -AssemblyName System.Windows.Forms;$^=New-Object System.Windows.Forms.OpenFileDialog -Property @{InitialDirectory='%~dp0';Title='Select a password protected ZIP, RAR, 7z or PDF...';Filter='All Supported (*.zip;*.rar;*.7z;*.pdf)|*.zip;*.rar;*.7z;*.pdf|ZIP (*.zip)|*.zip|RAR (*.rar)|*.rar|7-Zip (*.7z)|*.7z|PDF (*.pdf)|*.pdf'};$null=$^.ShowDialog();If($^.Filename -match ' '){$Quoted='"^""' + $^^.Filename + '"^""';$Quoted}ELSE{$^.Filename}"`) DO SET %1=%%#
+:CLI-INFO
+ECHO USAGE: ZipRipper.cmd "<C:\FullPathTo\protectedfile.zip>"
 EXIT /b
