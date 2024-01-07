@@ -360,7 +360,7 @@ EXIT /b
 :SPLASHSCREEN
 SET "SPLASH=%ProgramData%\zipripper.png"
 IF "%OFFLINE%"=="0" POWERSHELL -nop -c "Invoke-WebRequest -Uri https://raw.githubusercontent.com/illsk1lls/ZipRipper/main/.resources/zipripper.png -o '%SPLASH%'"
-POWERSHELL -nop -c "Add-Type -AssemblyName 'System.Windows.Forms';$img=[System.Drawing.Image]::Fromfile((get-item '%SPLASH:'=''%'));Function ClearAndClose(){$Timer.Stop();$Form.Close();$Form.Dispose();$Timer.Dispose()};Function Timer_Tick(){$Label.Text = "Loading...";--$Script:CountDown;if ($Script:CountDown -lt 0){ClearAndClose}};[System.Windows.Forms.Application]::EnableVisualStyles();$form=new-object Windows.Forms.Form;$form.Width=$img.Size.Width;$form.Height=$img.Size.Height;$pictureBox=new-object Windows.Forms.PictureBox;$pictureBox.Width=$img.Size.Width;$pictureBox.Height=$img.Size.Height;$pictureBox.Image=$img;$form.controls.add($pictureBox);$form.Add_Shown({$form.Activate()});$form.FormBorderStyle='None';$form.StartPosition='CenterScreen';$Timer=New-Object System.Windows.Forms.Timer;$Timer.Interval=1000;$Script:CountDown=3;$Timer.Add_Tick({Timer_Tick});$Timer.Start();$form.ShowDialog()">nul
+POWERSHELL -nop -c "Add-Type -AssemblyName System.Windows.Forms;[System.Windows.Forms.Application]::EnableVisualStyles();$i=[System.Drawing.Image]::Fromfile('%SPLASH:'=''%');$^=New-Object system.Windows.Forms.Form;$^.Width=$i.Width;$^.Height=$i.Height;$^.TopMost=$true;$^.BackgroundImage=$i;$^.AllowTransparency=$true;$^.TransparencyKey=$^.BackColor;$^.StartPosition=1;$^.FormBorderStyle=0;$^.Show();Start-Sleep -Seconds 3;$^.Close();$^.Dispose()"
 >nul 2>&1 DEL "%SPLASH%" /F /Q
 EXIT /b
 
