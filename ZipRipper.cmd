@@ -5,14 +5,35 @@ IF NOT "%~2"=="" (
 	PAUSE
 	EXIT
 )
+REM Test internet connection, if FALSE exit if zr-offline.txt is not present
+SET OFFLINE=1
+IF NOT EXIST "%~dp0zr-offline.txt" (
+SET OFFLINE=0
+PING -n 1 "google.com" | FINDSTR /r /c:"[0-9] *ms">nul
+IF NOT %errorlevel%==0 (
+		ECHO/
+		ECHO Internet connection not detected...
+		ECHO/
+		ECHO ^[zr-offline.txt^] must be in the same folder as ZIP-Ripper for offline mode.
+		ECHO/
+		ECHO It can be downloaded using the below address:
+		ECHO/
+		ECHO https://github.com/illsk1lls/ZipRipper/raw/main/.resources/zr-offline.txt?download=
+		ECHO/
+		PAUSE
+		REM GOTO nowhere, self-delete %ProgramData% copy, and exit
+		EXIT
+	)
+)
 SET _= %*
+REM Request Admin if not, Generates UAC prompt
 CALL :ELEVATE %_%
 IF NOT "%~f0"=="%ProgramData%\%~nx0" (
 	>nul 2>&1 COPY /Y "%~f0" "%ProgramData%"
 	IF EXIST "%~dp0zr-offline.txt" (
 	>nul 2>&1 COPY /Y "%~dp0zr-offline.txt" "%ProgramData%"
 	) ELSE (
-	IF EXIST "%ProgramData%\zr-offline.txt" >nul 2>&1 DEL "%ProgramData%\zr-offline.txt" 
+	>nul 2>&1 DEL "%ProgramData%\zr-offline.txt" /F /Q
 	)
 	START /MIN "LoadScreen" ""%ProgramData%\%~nx0"" "%_:"=""%">nul
 	EXIT /b
@@ -40,6 +61,14 @@ SET GPU=0
 SET ALLOWSTART=0
 TITLE Please Wait...
 CALL :CHECKCOMPAT
+REM Cleanup previous sessions
+IF EXIST "%ProgramData%\JtR" >nul 2>&1 RD "%ProgramData%\JtR" /S /Q
+>nul 2>&1 ATTRIB -h "%ProgramData%\BIT*.tmp"
+IF EXIST "%ProgramData%\BIT*.tmp" >nul 2>&1 DEL "%ProgramData%\BIT*.tmp" /F /Q
+REM Center CMD window with powershell, doesnt work with new terminal
+>nul 2>&1 POWERSHELL -nop -c "$w=Add-Type -Name WAPI -PassThru -MemberDefinition '[DllImport(\"user32.dll\")]public static extern void SetProcessDPIAware();[DllImport(\"shcore.dll\")]public static extern void SetProcessDpiAwareness(int value);[DllImport(\"kernel32.dll\")]public static extern IntPtr GetConsoleWindow();[DllImport(\"user32.dll\")]public static extern void GetWindowRect(IntPtr hwnd, int[] rect);[DllImport(\"user32.dll\")]public static extern void GetClientRect(IntPtr hwnd, int[] rect);[DllImport(\"user32.dll\")]public static extern void GetMonitorInfoW(IntPtr hMonitor, int[] lpmi);[DllImport(\"user32.dll\")]public static extern IntPtr MonitorFromWindow(IntPtr hwnd, int dwFlags);[DllImport(\"user32.dll\")]public static extern int SetWindowPos(IntPtr hwnd, IntPtr hwndAfterZ, int x, int y, int w, int h, int flags);';$PROCESS_PER_MONITOR_DPI_AWARE=2;try {$w::SetProcessDpiAwareness($PROCESS_PER_MONITOR_DPI_AWARE)} catch {$w::SetProcessDPIAware()}$hwnd=$w::GetConsoleWindow();$moninf=[int[]]::new(10);$moninf[0]=40;$MONITOR_DEFAULTTONEAREST=2;$w::GetMonitorInfoW($w::MonitorFromWindow($hwnd, $MONITOR_DEFAULTTONEAREST), $moninf);$monwidth=$moninf[7] - $moninf[5];$monheight=$moninf[8] - $moninf[6];$wrect=[int[]]::new(4);$w::GetWindowRect($hwnd, $wrect);$winwidth=$wrect[2] - $wrect[0];$winheight=$wrect[3] - $wrect[1];$x=[int][math]::Round($moninf[5] + $monwidth / 2 - $winwidth / 2);$y=[int][math]::Round($moninf[6] + $monheight / 2 - $winheight / 2);$SWP_NOSIZE=0x0001;$SWP_NOZORDER=0x0004;exit [int]($w::SetWindowPos($hwnd, [IntPtr]::Zero, $x, $y, 0, 0, $SWP_NOSIZE -bOr $SWP_NOZORDER) -eq 0)"
+REM Check if zr-offline.txt is present, if not run in online mode later
+IF "%OFFLINE%"=="1" CALL :OFFLINEMODE
 IF "%~1"=="" (
 	REM Show splash screen
 	CALL :SPLASHSCREEN
@@ -67,53 +96,31 @@ IF NOT "%ALLOWSTART%"=="1" (
 	CALL :CLEANEXIT
 )
 SET "FILETYPE=%~x1"
-REM Request Admin if not, Generates UAC prompt
 REM Only allow one instance at a time
 SET "TitleName=^[ZIP-Ripper^]  -  ^[CPU Mode^]  -  ^[OpenCL DISABLED^]"
 IF "%GPU%"=="1" SET TitleName=%TitleName:^[CPU Mode^]  -  ^[OpenCL DISABLED^]=^[CPU/GPU Mode^]  -  ^[OpenCL ENABLED^]%
 TASKLIST /V /NH /FI "imagename eq cmd.exe"|FIND /I /C "%TitleName%">nul
 IF NOT %errorlevel%==1 (ECHO ERROR:&ECHO ZIP-Ripper is already running!) |MSG *&EXIT
 TITLE %TitleName%
-REM Center CMD window with powershell, doesnt work with new terminal
->nul 2>&1 POWERSHELL -nop -c "$w=Add-Type -Name WAPI -PassThru -MemberDefinition '[DllImport(\"user32.dll\")]public static extern void SetProcessDPIAware();[DllImport(\"shcore.dll\")]public static extern void SetProcessDpiAwareness(int value);[DllImport(\"kernel32.dll\")]public static extern IntPtr GetConsoleWindow();[DllImport(\"user32.dll\")]public static extern void GetWindowRect(IntPtr hwnd, int[] rect);[DllImport(\"user32.dll\")]public static extern void GetClientRect(IntPtr hwnd, int[] rect);[DllImport(\"user32.dll\")]public static extern void GetMonitorInfoW(IntPtr hMonitor, int[] lpmi);[DllImport(\"user32.dll\")]public static extern IntPtr MonitorFromWindow(IntPtr hwnd, int dwFlags);[DllImport(\"user32.dll\")]public static extern int SetWindowPos(IntPtr hwnd, IntPtr hwndAfterZ, int x, int y, int w, int h, int flags);';$PROCESS_PER_MONITOR_DPI_AWARE=2;try {$w::SetProcessDpiAwareness($PROCESS_PER_MONITOR_DPI_AWARE)} catch {$w::SetProcessDPIAware()}$hwnd=$w::GetConsoleWindow();$moninf=[int[]]::new(10);$moninf[0]=40;$MONITOR_DEFAULTTONEAREST=2;$w::GetMonitorInfoW($w::MonitorFromWindow($hwnd, $MONITOR_DEFAULTTONEAREST), $moninf);$monwidth=$moninf[7] - $moninf[5];$monheight=$moninf[8] - $moninf[6];$wrect=[int[]]::new(4);$w::GetWindowRect($hwnd, $wrect);$winwidth=$wrect[2] - $wrect[0];$winheight=$wrect[3] - $wrect[1];$x=[int][math]::Round($moninf[5] + $monwidth / 2 - $winwidth / 2);$y=[int][math]::Round($moninf[6] + $monheight / 2 - $winheight / 2);$SWP_NOSIZE=0x0001;$SWP_NOZORDER=0x0004;exit [int]($w::SetWindowPos($hwnd, [IntPtr]::Zero, $x, $y, 0, 0, $SWP_NOSIZE -bOr $SWP_NOZORDER) -eq 0)"
-REM Test internet connection, if FALSE exit if zr-offline.txt is not present
-PING -n 1 "google.com" | FINDSTR /r /c:"[0-9] *ms">nul
-IF NOT %errorlevel%==0 (
-	IF NOT EXIST "%ProgramData%\zr-offline.txt" (
-		ECHO/
-		ECHO Internet connection not detected...
-		ECHO/
-		ECHO ^[zr-offline.txt^] must be in the same folder as ZIP-Ripper for offline mode.
-		ECHO/
-		ECHO It can be downloaded using the below address:
-		ECHO/
-		ECHO https://github.com/illsk1lls/ZipRipper/raw/main/.resources/zr-offline.txt?download=
-		ECHO/
-		PAUSE
-		REM GOTO nowhere, self-delete %ProgramData% copy, and exit
-		CALL :CLEANEXIT
-	)
-)
-IF EXIST "%ProgramData%\JtR" >nul 2>&1 RD "%ProgramData%\JtR" /S /Q
-REM Remove old incomplete BITS downloads from previous interrupted sessions, if present
->nul 2>&1 ATTRIB -h "%ProgramData%\BIT*.tmp"
-IF EXIST "%ProgramData%\BIT*.tmp" >nul 2>&1 DEL "%ProgramData%\BIT*.tmp" /F /Q
+IF "%OFFLINE%"=="0" CALL :ONLINEMODE
 CALL :GETJTRREADY
+ECHO Done&ECHO/
 REM Input JtR settings
 PUSHD "%ProgramData%\JtR\run"
 REN john.conf john.defaultconf
 POWERSHELL -nop -c "$^=gc john.defaultconf|%%{$_.Replace('SingleMaxBufferAvailMem = N','SingleMaxBufferAvailMem = Y').Replace('MaxKPCWarnings = 10','MaxKPCWarnings = 0')}|sc john.conf">nul 2>&1
-CLS
 SET "FLAG="
 REM If filesize is large hash will take a while
 IF %~z1 GEQ 200000000 (
-	ECHO Creating password hash - This can take a few minutes on large files...
+	<NUL set /p=Creating password hash - This can take a few minutes on large files...
 ) ELSE (
-	ECHO Creating password hash...
+	<NUL set /p=Creating password hash...
 )
 SET ZIP2=0
 REM Get pwhash
 CALL :HASH%FILETYPE% %1
+ECHO Done
+ECHO/
 CLS
 ECHO Running JohnTheRipper...
 ECHO/
@@ -160,40 +167,43 @@ CALL :CLEANEXIT
 >nul 2>&1 REG DELETE HKCU\Software\classes\.ZipRipper\ /F &>nul 2>&1 del %ProgramData%\elevate.ZipRipper /F /Q
 EXIT /b
 
-:GETJTRREADY
-CLS
-REM Check if zr-offline.txt is present, if not, run in online mode
-IF NOT EXIST "%ProgramData%\zr-offline.txt" (
-	ECHO Retrieving tools...
+:ONLINEMODE
+<NUL set /p=Retrieving tools
 POWERSHELL -nop -c "Invoke-WebRequest -Uri https://www.7-zip.org/a/7zr.exe -o '%ProgramData%\7zr.exe'";"Invoke-WebRequest -Uri https://www.7-zip.org/a/7z2300-extra.7z -o '%ProgramData%\7zExtra.7z'"
-	CLS
-	IF "%ISPERL%"=="1" (
-		REM Download JtR, and perl portable
-		ECHO Retrieving required dependencies, please wait...
+IF "%ISPERL%"=="1" (
+	REM Download JtR, and perl portable
+	<NUL set /p=, Getting required dependencies, please wait...
 POWERSHELL -nop -c "Start-BitsTransfer -Priority Foreground -Source https://github.com/openwall/john-packages/releases/download/jumbo-dev/winX64_1_JtR.7z -Destination '%ProgramData%\winX64_1_JtR.7z'";"Start-BitsTransfer -Priority Foreground -Source https://github.com/StrawberryPerl/Perl-Dist-Strawberry/releases/download/SP_5380_5361/strawberry-perl-5.38.0.1-64bit-portable.zip -Destination '%ProgramData%\perlportable.zip'"
-	) ELSE (
-		REM Download JtR only
-		ECHO Retrieving required dependencies...
-POWERSHELL -nop -c "Start-BitsTransfer -Priority Foreground -Source https://github.com/openwall/john-packages/releases/download/jumbo-dev/winX64_1_JtR.7z -Destination '%ProgramData%\winX64_1_JtR.7z'"
-	)
 ) ELSE (
-	REM Offline mode, use local file
-	ECHO Offline mode enabled, preparing resources...
-	REN "%ProgramData%\zr-offline.txt" .resources.exe>nul
-	"%ProgramData%\.resources" -y -pDependencies -o"%ProgramData%">nul
-	>nul 2>&1 DEL "%ProgramData%\.resources.exe" /F /Q
-
+	REM Download JtR only
+	<NUL set /p=, Getting required dependencies...
+POWERSHELL -nop -c "Start-BitsTransfer -Priority Foreground -Source https://github.com/openwall/john-packages/releases/download/jumbo-dev/winX64_1_JtR.7z -Destination '%ProgramData%\winX64_1_JtR.7z'"
 )
+ECHO Done
+ECHO/
+EXIT /b
+
+:OFFLINEMODE
+REM Offline mode, use local file
+<NUL set /p=Offline mode enabled, preparing resources...
+REN "%ProgramData%\zr-offline.txt" .resources.exe>nul
+"%ProgramData%\.resources" -y -pDependencies -o"%ProgramData%">nul
+REN "%ProgramData%\.resources.exe" zr-offline.txt>nul
+ECHO Done&ECHO/
+EXIT /b
+
+:GETJTRREADY
 REM Extract JtR
 >nul 2>&1 "%ProgramData%\7zr.exe" x -y "%ProgramData%\winX64_1_JtR.7z" -o"%ProgramData%\"
 >nul 2>&1 "%ProgramData%\7zr.exe" x -y "%ProgramData%\7zExtra.7z" -o"%ProgramData%\JtR\"
-REM Extract perl portable if needed
 IF "%ISPERL%"=="1" (
-	CLS
-	ECHO Extracting required dependencies, this will take a moment...
+	REM Extract perl portable if needed
+	<NUL set /p=Extracting required dependencies, this will take a moment...
 	"%ProgramData%\JtR\7za.exe" x -y "%ProgramData%\perlportable.zip" -o"%ProgramData%\JtR\run">nul
+	IF EXIST "%ProgramData%\perlportable.zip" >nul 2>&1 DEL "%ProgramData%\perlportable.zip" /F /Q
+) ELSE (
+	<NUL set /p=Extracting required dependencies...
 )
-IF EXIST "%ProgramData%\perlportable.zip" >nul 2>&1 DEL "%ProgramData%\perlportable.zip" /F /Q
 REM Cleanup temp files
 >nul 2>&1 DEL "%ProgramData%\winX64_1_JtR.7z" /F /Q
 >nul 2>&1 DEL "%ProgramData%\7zr.exe" /F /Q
@@ -333,12 +343,13 @@ EXIT /b
 
 :GETFILE
 REM Open file picker to select a file, Delayed expansion required to retrieve return value
-FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "Add-Type -AssemblyName System.Windows.Forms;$^=New-Object System.Windows.Forms.OpenFileDialog -Property @{InitialDirectory='$Desktop';Title='Select a password protected ZIP, RAR, 7z or PDF...';Filter='All Supported (*.zip;*.rar;*.7z;*.pdf)|*.zip;*.rar;*.7z;*.pdf|ZIP (*.zip)|*.zip|RAR (*.rar)|*.rar|7-Zip (*.7z)|*.7z|PDF (*.pdf)|*.pdf'};$null=$^.ShowDialog();If($^.Filename -match ' '){$Quoted='"^""' + $^^.Filename + '"^""';$Quoted}ELSE{$^.Filename}"`) DO SET %1=%%#
+FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "Add-Type -AssemblyName System.Windows.Forms;$^=New-Object System.Windows.Forms.OpenFileDialog -Property @{InitialDirectory='';Title='Select a password protected ZIP, RAR, 7z or PDF...';Filter='All Supported (*.zip;*.rar;*.7z;*.pdf)|*.zip;*.rar;*.7z;*.pdf|ZIP (*.zip)|*.zip|RAR (*.rar)|*.rar|7-Zip (*.7z)|*.7z|PDF (*.pdf)|*.pdf'};$null=$^.ShowDialog();If($^.Filename -match ' '){$Quoted='"^""' + $^^.Filename + '"^""';$Quoted}ELSE{$^.Filename}"`) DO SET %1=%%#
 EXIT /b
 
 :SPLASHSCREEN
 SET "SPLASH=%ProgramData%\john.jpg"
-POWERSHELL -nop -c "Invoke-WebRequest -Uri https://raw.githubusercontent.com/illsk1lls/ZipRipper/main/.resources/john.jpg -o '%ProgramData%\john.jpg'";"Add-Type -AssemblyName 'System.Windows.Forms';$img=[System.Drawing.Image]::Fromfile((get-item '%SPLASH:'=''%'));Function ClearAndClose(){$Timer.Stop();$Form.Close();$Form.Dispose();$Timer.Dispose()};Function Timer_Tick(){$Label.Text = "Loading...";--$Script:CountDown;if ($Script:CountDown -lt 0){ClearAndClose}};[System.Windows.Forms.Application]::EnableVisualStyles();$form=new-object Windows.Forms.Form;$form.Width=$img.Size.Width;$form.Height=$img.Size.Height;$pictureBox=new-object Windows.Forms.PictureBox;$pictureBox.Width=$img.Size.Width;$pictureBox.Height=$img.Size.Height;$pictureBox.Image=$img;$form.controls.add($pictureBox);$form.Add_Shown({$form.Activate()});$form.FormBorderStyle='None';$form.StartPosition='CenterScreen';$Timer=New-Object System.Windows.Forms.Timer;$Timer.Interval=1000;$Script:CountDown=3;$Timer.Add_Tick({Timer_Tick});$Timer.Start();$form.ShowDialog()">nul
+IF "%OFFLINE%"=="0" POWERSHELL -nop -c "Invoke-WebRequest -Uri https://raw.githubusercontent.com/illsk1lls/ZipRipper/main/.resources/john.jpg -o '%ProgramData%\john.jpg'"
+POWERSHELL -nop -c "Add-Type -AssemblyName 'System.Windows.Forms';$img=[System.Drawing.Image]::Fromfile((get-item '%SPLASH:'=''%'));Function ClearAndClose(){$Timer.Stop();$Form.Close();$Form.Dispose();$Timer.Dispose()};Function Timer_Tick(){$Label.Text = "Loading...";--$Script:CountDown;if ($Script:CountDown -lt 0){ClearAndClose}};[System.Windows.Forms.Application]::EnableVisualStyles();$form=new-object Windows.Forms.Form;$form.Width=$img.Size.Width;$form.Height=$img.Size.Height;$pictureBox=new-object Windows.Forms.PictureBox;$pictureBox.Width=$img.Size.Width;$pictureBox.Height=$img.Size.Height;$pictureBox.Image=$img;$form.controls.add($pictureBox);$form.Add_Shown({$form.Activate()});$form.FormBorderStyle='None';$form.StartPosition='CenterScreen';$Timer=New-Object System.Windows.Forms.Timer;$Timer.Interval=1000;$Script:CountDown=3;$Timer.Add_Tick({Timer_Tick});$Timer.Start();$form.ShowDialog()">nul
 >nul 2>&1 DEL "%SPLASH%" /F /Q
 EXIT /b
 
