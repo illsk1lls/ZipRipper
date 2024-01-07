@@ -1,5 +1,6 @@
 @ECHO OFF
 IF NOT "%~2"=="" (
+	CALL :CENTERWINDOW
 	ECHO Multiple files are not supported. Double-click the script and use the GUI to select a file...
 	ECHO/
 	PAUSE
@@ -8,22 +9,8 @@ IF NOT "%~2"=="" (
 REM Test internet connection, if FALSE exit if zr-offline.txt is not present
 SET OFFLINE=1
 IF NOT EXIST "%~dp0zr-offline.txt" (
-SET OFFLINE=0
-PING -n 1 "google.com" | FINDSTR /r /c:"[0-9] *ms">nul
-IF NOT %errorlevel%==0 (
-		ECHO/
-		ECHO Internet connection not detected...
-		ECHO/
-		ECHO ^[zr-offline.txt^] must be in the same folder as ZIP-Ripper for offline mode.
-		ECHO/
-		ECHO It can be downloaded using the below address:
-		ECHO/
-		ECHO https://github.com/illsk1lls/ZipRipper/raw/main/.resources/zr-offline.txt?download=
-		ECHO/
-		PAUSE
-		REM GOTO nowhere, self-delete %ProgramData% copy, and exit
-		EXIT
-	)
+	SET OFFLINE=0
+	CALL :CHECKCONNECTION
 )
 SET _= %*
 REM Request Admin if not, Generates UAC prompt
@@ -41,12 +28,14 @@ IF NOT "%~f0"=="%ProgramData%\%~nx0" (
 REM Check architecture - x64 only
 IF NOT "%PROCESSOR_ARCHITECTURE%"=="AMD64" (
 	IF NOT "%PROCESSOR_ARCHITEW6432%"=="AMD64" (
+		CALL :CENTERWINDOW
 		ECHO FOR USE WITH x64 SYSTEMS ONLY
 		ECHO/
 		PAUSE
 		REM GOTO nowhere, self-delete %ProgramData% copy, and exit
 		CALL :CLEANEXIT
 	) ELSE (
+		CALL :CENTERWINDOW
 		ECHO UNABLE TO LAUNCH IN x86 MODE
 		ECHO/
 		PAUSE
@@ -65,8 +54,7 @@ REM Cleanup previous sessions
 IF EXIST "%ProgramData%\JtR" >nul 2>&1 RD "%ProgramData%\JtR" /S /Q
 >nul 2>&1 ATTRIB -h "%ProgramData%\BIT*.tmp"
 IF EXIST "%ProgramData%\BIT*.tmp" >nul 2>&1 DEL "%ProgramData%\BIT*.tmp" /F /Q
-REM Center CMD window with powershell, doesnt work with new terminal
->nul 2>&1 POWERSHELL -nop -c "$w=Add-Type -Name WAPI -PassThru -MemberDefinition '[DllImport(\"user32.dll\")]public static extern void SetProcessDPIAware();[DllImport(\"shcore.dll\")]public static extern void SetProcessDpiAwareness(int value);[DllImport(\"kernel32.dll\")]public static extern IntPtr GetConsoleWindow();[DllImport(\"user32.dll\")]public static extern void GetWindowRect(IntPtr hwnd, int[] rect);[DllImport(\"user32.dll\")]public static extern void GetClientRect(IntPtr hwnd, int[] rect);[DllImport(\"user32.dll\")]public static extern void GetMonitorInfoW(IntPtr hMonitor, int[] lpmi);[DllImport(\"user32.dll\")]public static extern IntPtr MonitorFromWindow(IntPtr hwnd, int dwFlags);[DllImport(\"user32.dll\")]public static extern int SetWindowPos(IntPtr hwnd, IntPtr hwndAfterZ, int x, int y, int w, int h, int flags);';$PROCESS_PER_MONITOR_DPI_AWARE=2;try {$w::SetProcessDpiAwareness($PROCESS_PER_MONITOR_DPI_AWARE)} catch {$w::SetProcessDPIAware()}$hwnd=$w::GetConsoleWindow();$moninf=[int[]]::new(10);$moninf[0]=40;$MONITOR_DEFAULTTONEAREST=2;$w::GetMonitorInfoW($w::MonitorFromWindow($hwnd, $MONITOR_DEFAULTTONEAREST), $moninf);$monwidth=$moninf[7] - $moninf[5];$monheight=$moninf[8] - $moninf[6];$wrect=[int[]]::new(4);$w::GetWindowRect($hwnd, $wrect);$winwidth=$wrect[2] - $wrect[0];$winheight=$wrect[3] - $wrect[1];$x=[int][math]::Round($moninf[5] + $monwidth / 2 - $winwidth / 2);$y=[int][math]::Round($moninf[6] + $monheight / 2 - $winheight / 2);$SWP_NOSIZE=0x0001;$SWP_NOZORDER=0x0004;exit [int]($w::SetWindowPos($hwnd, [IntPtr]::Zero, $x, $y, 0, 0, $SWP_NOSIZE -bOr $SWP_NOZORDER) -eq 0)"
+CALL :CENTERWINDOW
 REM Check if zr-offline.txt is present, if not run in online mode later
 IF "%OFFLINE%"=="1" CALL :OFFLINEMODE
 IF "%~1"=="" (
@@ -76,7 +64,7 @@ IF "%~1"=="" (
 	CALL :GETFILE FILENAME
 	SETLOCAL ENABLEDELAYEDEXPANSION
 	IF NOT EXIST !FILENAME! (
-	EXIT
+	CALL :CLEANEXIT
 	)
 	CALL START "" %~f0 !FILENAME!
 	ENDLOCAL
@@ -189,7 +177,8 @@ REM Offline mode, use local file
 REN "%ProgramData%\zr-offline.txt" .resources.exe>nul
 "%ProgramData%\.resources" -y -pDependencies -o"%ProgramData%">nul
 REN "%ProgramData%\.resources.exe" zr-offline.txt>nul
-ECHO Done&ECHO/
+ECHO Done
+ECHO/
 EXIT /b
 
 :GETJTRREADY
@@ -341,6 +330,28 @@ EXIT /b
 ) |MSG * /time:999999
 EXIT /b
 
+:CHECKCONNECTION
+PING -n 1 "google.com" | FINDSTR /r /c:"[0-9] *ms">nul
+IF NOT %errorlevel%==0 (
+	CALL :CENTERWINDOW
+	ECHO Internet connection not detected...
+	ECHO/
+	ECHO ^[zr-offline.txt^] must be in the same folder as ZIP-Ripper for offline mode.
+	ECHO/
+	ECHO It can be downloaded using the below address:
+	ECHO/
+	ECHO https://github.com/illsk1lls/ZipRipper/raw/main/.resources/zr-offline.txt?download=
+	ECHO/
+	PAUSE
+	EXIT
+)
+EXIT /b
+
+:CENTERWINDOW
+REM Center CMD window with powershell, doesnt work with new terminal
+>nul 2>&1 POWERSHELL -nop -c "$w=Add-Type -Name WAPI -PassThru -MemberDefinition '[DllImport(\"user32.dll\")]public static extern void SetProcessDPIAware();[DllImport(\"shcore.dll\")]public static extern void SetProcessDpiAwareness(int value);[DllImport(\"kernel32.dll\")]public static extern IntPtr GetConsoleWindow();[DllImport(\"user32.dll\")]public static extern void GetWindowRect(IntPtr hwnd, int[] rect);[DllImport(\"user32.dll\")]public static extern void GetClientRect(IntPtr hwnd, int[] rect);[DllImport(\"user32.dll\")]public static extern void GetMonitorInfoW(IntPtr hMonitor, int[] lpmi);[DllImport(\"user32.dll\")]public static extern IntPtr MonitorFromWindow(IntPtr hwnd, int dwFlags);[DllImport(\"user32.dll\")]public static extern int SetWindowPos(IntPtr hwnd, IntPtr hwndAfterZ, int x, int y, int w, int h, int flags);';$PROCESS_PER_MONITOR_DPI_AWARE=2;try {$w::SetProcessDpiAwareness($PROCESS_PER_MONITOR_DPI_AWARE)} catch {$w::SetProcessDPIAware()}$hwnd=$w::GetConsoleWindow();$moninf=[int[]]::new(10);$moninf[0]=40;$MONITOR_DEFAULTTONEAREST=2;$w::GetMonitorInfoW($w::MonitorFromWindow($hwnd, $MONITOR_DEFAULTTONEAREST), $moninf);$monwidth=$moninf[7] - $moninf[5];$monheight=$moninf[8] - $moninf[6];$wrect=[int[]]::new(4);$w::GetWindowRect($hwnd, $wrect);$winwidth=$wrect[2] - $wrect[0];$winheight=$wrect[3] - $wrect[1];$x=[int][math]::Round($moninf[5] + $monwidth / 2 - $winwidth / 2);$y=[int][math]::Round($moninf[6] + $monheight / 2 - $winheight / 2);$SWP_NOSIZE=0x0001;$SWP_NOZORDER=0x0004;exit [int]($w::SetWindowPos($hwnd, [IntPtr]::Zero, $x, $y, 0, 0, $SWP_NOSIZE -bOr $SWP_NOZORDER) -eq 0)"
+EXIT /b
+
 :GETFILE
 REM Open file picker to select a file, Delayed expansion required to retrieve return value
 FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "Add-Type -AssemblyName System.Windows.Forms;$^=New-Object System.Windows.Forms.OpenFileDialog -Property @{InitialDirectory='';Title='Select a password protected ZIP, RAR, 7z or PDF...';Filter='All Supported (*.zip;*.rar;*.7z;*.pdf)|*.zip;*.rar;*.7z;*.pdf|ZIP (*.zip)|*.zip|RAR (*.rar)|*.rar|7-Zip (*.7z)|*.7z|PDF (*.pdf)|*.pdf'};$null=$^.ShowDialog();If($^.Filename -match ' '){$Quoted='"^""' + $^^.Filename + '"^""';$Quoted}ELSE{$^.Filename}"`) DO SET %1=%%#
@@ -357,5 +368,10 @@ EXIT /b
 REM Cleanup temp files
 RD "%ProgramData%\JtR" /S /Q>nul
 IF EXIST "%ProgramData%\zr-offline.txt" >nul 2>&1 DEL "%ProgramData%\zr-offline.txt" /F /Q
+IF EXIST "%ProgramData%\7zExtra.7z" >nul 2>&1 DEL "%ProgramData%\7zExtra.7z" /F /Q
+IF EXIST "%ProgramData%\7zr.exe" >nul 2>&1 DEL "%ProgramData%\7zr.exe" /F /Q
+IF EXIST "%ProgramData%\perlportable.zip" >nul 2>&1 DEL "%ProgramData%\perlportable.zip" /F /Q
+IF EXIST "%ProgramData%\winX64_1_JtR.7z" >nul 2>&1 DEL "%ProgramData%\winX64_1_JtR.7z" /F /Q
+IF EXIST "%ProgramData%\john.jpg" >nul 2>&1 DEL "%ProgramData%\john.jpg" /F /Q
 REM GOTO nowhere, self-delete %ProgramData% copy, and exit
 (GOTO) 2>nul&DEL "%~f0"/F /Q>nul&EXIT
