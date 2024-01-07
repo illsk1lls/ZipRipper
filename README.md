@@ -10,9 +10,11 @@ JohnTheRipper - <a href="https://github.com/openwall/john">https://github.com/op
 7zip - <a href="https://www.7-zip.org/">https://www.7-zip.org/</a><br>
 StarwberryPerl(Portable) - <a href="https://strawberryperl.com/releases.html">https://strawberryperl.com/releases.html</a><br>
 
+**Instructions:**
+
 $${\color{yellow}1.) \space Double-click \space the \space script, \space and \space select \space a \space password \space protected \space ZIP, \space RAR, \space 7z, \space or \space PDF \space file}$$<br>
 
-2.) Wait for password..<br>
+$${\color{yellow}2.) \space Wait \space for \space password..}$$<br>
 
 When a password is found an alert window will appear, and the password(s) will be<br>
 saved to the users desktop as: ZipRipper-Passwords.txt
