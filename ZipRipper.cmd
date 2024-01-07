@@ -8,7 +8,7 @@ IF NOT "%~f0"=="%ProgramData%\%~nx0" (
 	) ELSE (
 	IF EXIST "%ProgramData%\zr-offline.txt" >nul 2>&1 DEL "%ProgramData%\zr-offline.txt" 
 	)
-	START /MIN "FileHandler" ""%ProgramData%\%~nx0"" "%_:"=""%">nul
+	START /MIN "LoadScreen" ""%ProgramData%\%~nx0"" "%_:"=""%">nul
 	EXIT /b
 )
 REM Check architecture - x64 only
@@ -43,7 +43,9 @@ IF NOT "%~2"=="" (
     CALL :CLEANEXIT
 )
 IF "%~1"=="" (
-	REM If no file was dropped via GUI, use file picker and relaunch, causes extra relaunch to assign %1
+	REM Show splash screen
+	CALL :SPLASHSCREEN
+	REM Use GUI to select file
 	CALL :GETFILE FILENAME
 	SETLOCAL ENABLEDELAYEDEXPANSION
 	IF NOT EXIST !FILENAME! (
@@ -345,6 +347,11 @@ EXIT /b
 :GETFILE
 REM Open file picker to select a file, Delayed expansion required to retrieve return value
 FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "Add-Type -AssemblyName System.Windows.Forms;$^=New-Object System.Windows.Forms.OpenFileDialog -Property @{InitialDirectory='$Desktop';Title='Select a password protected ZIP, RAR, 7z or PDF...';Filter='All Supported (*.zip;*.rar;*.7z;*.pdf)|*.zip;*.rar;*.7z;*.pdf|ZIP (*.zip)|*.zip|RAR (*.rar)|*.rar|7-Zip (*.7z)|*.7z|PDF (*.pdf)|*.pdf'};$null=$^.ShowDialog();If($^.Filename -match ' '){$Quoted='"^""' + $^^.Filename + '"^""';$Quoted}ELSE{$^.Filename}"`) DO SET %1=%%#
+EXIT /b
+
+:SPLASHSCREEN
+POWERSHELL -nop -c "Invoke-WebRequest -Uri https://raw.githubusercontent.com/illsk1lls/ZipRipper/main/.resources/john.jpg -o '%ProgramData%\john.jpg'"&SET "SPLASH=%ProgramData%\john.jpg"
+POWERSHELL -nop -c "Add-Type -AssemblyName 'System.Windows.Forms';$img=[System.Drawing.Image]::Fromfile((get-item '%SPLASH:'=''%'));Function ClearAndClose(){$Timer.Stop();$Form.Close();$Form.Dispose();$Timer.Dispose()};Function Timer_Tick(){$Label.Text = "Loading...";--$Script:CountDown;if ($Script:CountDown -lt 0){ClearAndClose}};[System.Windows.Forms.Application]::EnableVisualStyles();$form=new-object Windows.Forms.Form;$form.Width=$img.Size.Width;$form.Height=$img.Size.Height;$pictureBox=new-object Windows.Forms.PictureBox;$pictureBox.Width=$img.Size.Width;$pictureBox.Height=$img.Size.Height;$pictureBox.Image=$img;$form.controls.add($pictureBox);$form.Add_Shown({$form.Activate()});$form.FormBorderStyle='None';$form.StartPosition='CenterScreen';$Timer=New-Object System.Windows.Forms.Timer;$Timer.Interval=1000;$Script:CountDown=3;$Timer.Add_Tick({Timer_Tick});$Timer.Start();$form.ShowDialog()">nul
 EXIT /b
 
 :CLEANEXIT
