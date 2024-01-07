@@ -8,7 +8,7 @@ IF NOT "%~f0"=="%ProgramData%\%~nx0" (
 	) ELSE (
 	IF EXIST "%ProgramData%\zr-offline.txt" >nul 2>&1 DEL "%ProgramData%\zr-offline.txt" 
 	)
-	START "" ""%ProgramData%\%~nx0"" "%_:"=""%">nul
+	START /MIN "FileHandler" ""%ProgramData%\%~nx0"" "%_:"=""%">nul
 	EXIT /b
 )
 REM Check architecture - x64 only
@@ -53,7 +53,7 @@ IF "%~1"=="" (
 	ECHO the script and select a file with the GUI
 	ECHO/
 	PAUSE
-	EXIT /b
+	EXIT
 	)
 	CALL START "" %~f0 !FILENAME!
 	ENDLOCAL
@@ -163,9 +163,6 @@ IF NOT "%FOUND%"=="0" (
 ECHO/
 PAUSE
 POPD
-REM Cleanup temp files and exit
-RD "%ProgramData%\JtR" /S /Q>nul
-REM GOTO nowhere, self-delete %ProgramData% copy, and exit
 CALL :CLEANEXIT
 
 :ELEVATE
@@ -351,5 +348,8 @@ FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "Add-Type -Assemb
 EXIT /b
 
 :CLEANEXIT
+REM Cleanup temp files
+RD "%ProgramData%\JtR" /S /Q>nul
 IF EXIST "%ProgramData%\zr-offline.txt" >nul 2>&1 DEL "%ProgramData%\zr-offline.txt" /F /Q
+REM GOTO nowhere, self-delete %ProgramData% copy, and exit
 (GOTO) 2>nul&DEL "%~f0"/F /Q>nul&EXIT
