@@ -63,12 +63,7 @@ IF "%~1"=="" (
 		SET ISPERL=1
 	)
 )
-REM If drop is unsupported, display supported extensions and exit
 IF NOT "%ALLOWSTART%"=="1" (
-	ECHO Unsupported file extension. Supported extensions are: %NATIVE%,%PERL%
-	ECHO/
-	PAUSE
-	REM GOTO nowhere, self-delete %ProgramData% copy, and exit
 	CALL :CLEANEXIT
 )
 SET "FILETYPE=%~x1"
@@ -342,8 +337,9 @@ FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "Add-Type -Assemb
 EXIT /b
 
 :SPLASHSCREEN
-POWERSHELL -nop -c "Invoke-WebRequest -Uri https://raw.githubusercontent.com/illsk1lls/ZipRipper/main/.resources/john.jpg -o '%ProgramData%\john.jpg'"&SET "SPLASH=%ProgramData%\john.jpg"
-POWERSHELL -nop -c "Add-Type -AssemblyName 'System.Windows.Forms';$img=[System.Drawing.Image]::Fromfile((get-item '%SPLASH:'=''%'));Function ClearAndClose(){$Timer.Stop();$Form.Close();$Form.Dispose();$Timer.Dispose()};Function Timer_Tick(){$Label.Text = "Loading...";--$Script:CountDown;if ($Script:CountDown -lt 0){ClearAndClose}};[System.Windows.Forms.Application]::EnableVisualStyles();$form=new-object Windows.Forms.Form;$form.Width=$img.Size.Width;$form.Height=$img.Size.Height;$pictureBox=new-object Windows.Forms.PictureBox;$pictureBox.Width=$img.Size.Width;$pictureBox.Height=$img.Size.Height;$pictureBox.Image=$img;$form.controls.add($pictureBox);$form.Add_Shown({$form.Activate()});$form.FormBorderStyle='None';$form.StartPosition='CenterScreen';$Timer=New-Object System.Windows.Forms.Timer;$Timer.Interval=1000;$Script:CountDown=3;$Timer.Add_Tick({Timer_Tick});$Timer.Start();$form.ShowDialog()">nul
+SET "SPLASH=%ProgramData%\john.jpg"
+POWERSHELL -nop -c "Invoke-WebRequest -Uri https://raw.githubusercontent.com/illsk1lls/ZipRipper/main/.resources/john.jpg -o '%ProgramData%\john.jpg'";"Add-Type -AssemblyName 'System.Windows.Forms';$img=[System.Drawing.Image]::Fromfile((get-item '%SPLASH:'=''%'));Function ClearAndClose(){$Timer.Stop();$Form.Close();$Form.Dispose();$Timer.Dispose()};Function Timer_Tick(){$Label.Text = "Loading...";--$Script:CountDown;if ($Script:CountDown -lt 0){ClearAndClose}};[System.Windows.Forms.Application]::EnableVisualStyles();$form=new-object Windows.Forms.Form;$form.Width=$img.Size.Width;$form.Height=$img.Size.Height;$pictureBox=new-object Windows.Forms.PictureBox;$pictureBox.Width=$img.Size.Width;$pictureBox.Height=$img.Size.Height;$pictureBox.Image=$img;$form.controls.add($pictureBox);$form.Add_Shown({$form.Activate()});$form.FormBorderStyle='None';$form.StartPosition='CenterScreen';$Timer=New-Object System.Windows.Forms.Timer;$Timer.Interval=1000;$Script:CountDown=3;$Timer.Add_Tick({Timer_Tick});$Timer.Start();$form.ShowDialog()">nul
+>nul 2>&1 DEL "%SPLASH%" /F /Q
 EXIT /b
 
 :CLEANEXIT
