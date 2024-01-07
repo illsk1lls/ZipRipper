@@ -5,7 +5,7 @@
 *Powered by JohnTheRipper*
 </p>
 
-Credit To: <br>
+<u>**Credit To:**</u><br>
 
 JohnTheRipper - <a href="https://github.com/openwall/john">https://github.com/openwall/john</a><br>
 7zip - <a href="https://www.7-zip.org/">https://www.7-zip.org/</a><br>
