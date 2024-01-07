@@ -18,11 +18,11 @@ CALL :ELEVATE %_%
 IF NOT "%~f0"=="%ProgramData%\%~nx0" (
 	>nul 2>&1 COPY /Y "%~f0" "%ProgramData%"
 	IF EXIST "%~dp0zr-offline.txt" (
-	>nul 2>&1 COPY /Y "%~dp0zr-offline.txt" "%ProgramData%"
+		>nul 2>&1 COPY /Y "%~dp0zr-offline.txt" "%ProgramData%"
 	) ELSE (
-	>nul 2>&1 DEL "%ProgramData%\zr-offline.txt" /F /Q
+		>nul 2>&1 DEL "%ProgramData%\zr-offline.txt" /F /Q
 	)
-	START /MIN "LoadScreen" ""%ProgramData%\%~nx0"" "%_:"=""%">nul
+	START /MIN "USE THE GUI TO SELECT A FILE" ""%ProgramData%\%~nx0"" "%_:"=""%">nul
 	EXIT /b
 )
 REM Check architecture - x64 only
@@ -48,7 +48,7 @@ SET "NATIVE=ZIP,RAR"
 SET "PERL=7z,PDF"
 SET GPU=0
 SET ALLOWSTART=0
-TITLE Please Wait...
+TITLE USE THE GUI TO SELECT A FILE
 CALL :CHECKCOMPAT
 REM Cleanup previous sessions
 IF EXIST "%ProgramData%\JtR" >nul 2>&1 RD "%ProgramData%\JtR" /S /Q
@@ -64,21 +64,20 @@ IF "%~1"=="" (
 	CALL :GETFILE FILENAME
 	SETLOCAL ENABLEDELAYEDEXPANSION
 	IF NOT EXIST !FILENAME! (
-	CALL :CLEANEXIT
+		CALL :CLEANEXIT
 	)
 	CALL START "" %~f0 !FILENAME!
 	ENDLOCAL
 	EXIT
-) ELSE (
-	REM Flag supported filetypes to allow start and dependencies
-	FOR %%# IN (%NATIVE%) DO IF /I "%~x1"==".%%#" (
-		SET ALLOWSTART=1
-		SET ISPERL=0
-	)
-	FOR %%# IN (%PERL%) DO IF /I "%~x1"==".%%#" (
-		SET ALLOWSTART=1
-		SET ISPERL=1
-	)
+)
+REM Flag supported filetypes to allow start and dependencies
+FOR %%# IN (%NATIVE%) DO IF /I "%~x1"==".%%#" (
+	SET ALLOWSTART=1
+	SET ISPERL=0
+)
+FOR %%# IN (%PERL%) DO IF /I "%~x1"==".%%#" (
+	SET ALLOWSTART=1
+	SET ISPERL=1
 )
 IF NOT "%ALLOWSTART%"=="1" (
 	CALL :CLEANEXIT
@@ -172,13 +171,25 @@ ECHO/
 EXIT /b
 
 :OFFLINEMODE
-REM Offline mode, use local file
-<NUL set /p=Offline mode enabled, preparing resources...
-REN "%ProgramData%\zr-offline.txt" .resources.exe>nul
-"%ProgramData%\.resources" -y -pDependencies -o"%ProgramData%">nul
-REN "%ProgramData%\.resources.exe" zr-offline.txt>nul
-ECHO Done
-ECHO/
+REM Offline mode, use local resources
+SET NEEDED=7zr.exe,7zExtra.7z,winX64_1_JtR.7z,perlportable.zip
+SET EXTRACT=0
+FOR %%# IN (%NEEDED%) DO (
+	IF NOT EXIST "%~dp0%%#" SET EXTRACT=1
+)
+IF "%EXTRACT%"=="1" (
+	<NUL set /p=EXTRACTING RESOURCES...
+	REN "%ProgramData%\zr-offline.txt" .resources.exe>nul
+	"%ProgramData%\.resources" -y -pDependencies -o"%ProgramData%">nul
+	REN "%ProgramData%\.resources.exe" zr-offline.txt>nul
+	ECHO Done
+	ECHO/
+	ECHO USE THE GUI TO SELECT A FILE
+) ELSE (
+	<NUL set /p=Offline mode enabled, verifying resources...
+	ECHO Done
+	ECHO/
+)
 EXIT /b
 
 :GETJTRREADY
@@ -189,11 +200,12 @@ IF "%ISPERL%"=="1" (
 	REM Extract perl portable if needed
 	<NUL set /p=Extracting required dependencies, this will take a moment...
 	"%ProgramData%\JtR\7za.exe" x -y "%ProgramData%\perlportable.zip" -o"%ProgramData%\JtR\run">nul
-	IF EXIST "%ProgramData%\perlportable.zip" >nul 2>&1 DEL "%ProgramData%\perlportable.zip" /F /Q
 ) ELSE (
 	<NUL set /p=Extracting required dependencies...
 )
 REM Cleanup temp files
+IF EXIST "%ProgramData%\perlportable.zip" >nul 2>&1 DEL "%ProgramData%\perlportable.zip" /F /Q
+IF EXIST "%ProgramData%\zr-offline.txt" >nul 2>&1 DEL "%ProgramData%\zr-offline.txt" /F /Q
 >nul 2>&1 DEL "%ProgramData%\winX64_1_JtR.7z" /F /Q
 >nul 2>&1 DEL "%ProgramData%\7zr.exe" /F /Q
 >nul 2>&1 DEL "%ProgramData%\7zExtra.7z" /F /Q
@@ -365,7 +377,7 @@ POWERSHELL -nop -c "Add-Type -AssemblyName System.Windows.Forms;[System.Windows.
 EXIT /b
 
 :CLEANEXIT
-REM Cleanup temp files
+REM Cleanup list of all temp files
 RD "%ProgramData%\JtR" /S /Q>nul
 IF EXIST "%ProgramData%\zr-offline.txt" >nul 2>&1 DEL "%ProgramData%\zr-offline.txt" /F /Q
 IF EXIST "%ProgramData%\7zExtra.7z" >nul 2>&1 DEL "%ProgramData%\7zExtra.7z" /F /Q
