@@ -2,7 +2,7 @@
 
 <p align="center">
   <img src="https://github.com/illsk1lls/ZipRipper/blob/main/.resources/zipripper.png?raw=true"><br>
-*Powered by JohnTheRipper*
+<sup>*Powered by JohnTheRipper*</sup>
 </p>
 
 **Credit To:**<br>
@@ -12,7 +12,7 @@ StarwberryPerl(Portable) - <a href="https://strawberryperl.com/releases.html">ht
 
 **Instructions:**
 
-$${\color{yellow}1.) Double-click the script, and select a password protected ZIP, RAR, 7z, or PDF file}$$<br>
+$${\color{yellow}1.) \space Double-click \space the \space script, \space and \space select \space a \space password \space protected \space ZIP, \space RAR, \space 7z, \space or \space PDF \space file}$$<br>
 
 $${\color{yellow}2.) \space Wait \space for \space password..}$$<br>
 
