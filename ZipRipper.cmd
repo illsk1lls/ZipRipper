@@ -1,4 +1,10 @@
 @ECHO OFF
+IF NOT "%~2"=="" (
+	ECHO Multiple files are not supported. Double-click the script and use the GUI to select a file...
+	ECHO/
+	PAUSE
+	EXIT
+)
 SET _= %*
 CALL :ELEVATE %_%
 IF NOT "%~f0"=="%ProgramData%\%~nx0" (
@@ -34,14 +40,6 @@ SET GPU=0
 SET ALLOWSTART=0
 TITLE Please Wait...
 CALL :CHECKCOMPAT
-REM Check if more than one file was dropped
-IF NOT "%~2"=="" (
-	ECHO Multiple files are not supported, Please drop one file at a time.
-	ECHO/
-	PAUSE
-    REM GOTO nowhere, self-delete %ProgramData% copy, and exit
-    CALL :CLEANEXIT
-)
 IF "%~1"=="" (
 	REM Show splash screen
 	CALL :SPLASHSCREEN
@@ -49,12 +47,6 @@ IF "%~1"=="" (
 	CALL :GETFILE FILENAME
 	SETLOCAL ENABLEDELAYEDEXPANSION
 	IF NOT EXIST !FILENAME! (
-	ECHO ERROR: No file was selected.
-	ECHO/
-	ECHO Drop a password protected %NATIVE%,%PERL% file onto the script, or relaunch
-	ECHO the script and select a file with the GUI
-	ECHO/
-	PAUSE
 	EXIT
 	)
 	CALL START "" %~f0 !FILENAME!
