@@ -1,7 +1,7 @@
 # ZipRipper - A CMD script to crack password protected ZIP, RAR, 7z, and PDF files, using JohnTheRipper
 
-![alt text](https://github.com/illsk1lls/ZipRipper/blob/main/.resources/zipripper.png?raw=true)
-*Powered by JohnTheRipper*
+<center>![alt text](https://github.com/illsk1lls/ZipRipper/blob/main/.resources/zipripper.png?raw=true)</center><br>
+<center>*Powered by JohnTheRipper*</center>
 
 Credit To: <br>
 
