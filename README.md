@@ -10,7 +10,7 @@ JohnTheRipper - <a href="https://github.com/openwall/john">https://github.com/op
 7zip - <a href="https://www.7-zip.org/">https://www.7-zip.org/</a><br>
 StarwberryPerl(Portable) - <a href="https://strawberryperl.com/releases.html">https://strawberryperl.com/releases.html</a><br>
 
-<p align="center">**Instructions:**</p>
+**<p align="center">Instructions:</p>**
 
 $${\color{yellow}1.) \space Double-click \space the \space script, \space and \space select \space a \space password \space protected \space ZIP, \space RAR, \space 7z, \space or \space PDF \space file}$$<br>
 
