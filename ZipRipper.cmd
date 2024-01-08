@@ -5,13 +5,13 @@ IF NOT "%PROCESSOR_ARCHITECTURE%"=="AMD64" (
 		CALL :CENTERWINDOW
 		ECHO FOR USE WITH x64 SYSTEMS ONLY
 		ECHO/
-		EXIT
+		GOTO :EOF
 	) ELSE (
 		CALL :CENTERWINDOW
 		ECHO UNABLE TO LAUNCH IN x86 MODE
 		ECHO/
 		PAUSE
-		EXIT
+		GOTO :EOF
 	)
 )
 IF NOT "%~2"=="" (
@@ -19,7 +19,7 @@ IF NOT "%~2"=="" (
 	ECHO Multiple files are not supported. Double-click the script and use the GUI to select a file...
 	ECHO/
 	PAUSE
-	EXIT
+	GOTO :EOF
 )
 REM Test internet connection, if FALSE exit if zr-offline.txt is not present
 SET OFFLINE=1
