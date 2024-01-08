@@ -89,7 +89,8 @@ IF NOT %errorlevel%==1 (ECHO ERROR:&ECHO ZIP-Ripper is already running!) |MSG *&
 TITLE %TitleName%
 IF "%OFFLINE%"=="0" CALL :ONLINEMODE
 CALL :GETJTRREADY
-ECHO Done&ECHO/
+ECHO Done
+ECHO/
 REM Input JtR settings
 PUSHD "%ProgramData%\JtR\run"
 REN john.conf john.defaultconf
@@ -130,9 +131,9 @@ IF !POTSIZE! GEQ 1 (
 	ECHO Password not found :^(
 	
 )
-CALL :GETSIZE "%UserProfile%\Desktop\ZipRipper-Passwords.txt" PWSIZE
 SETLOCAL ENABLEDELAYEDEXPANSION
-IF NOT "%FOUND%"=="0" (
+IF NOT "!FOUND!"=="0" (
+	CALL :GETSIZE "%UserProfile%\Desktop\ZipRipper-Passwords.txt" PWSIZE
 	IF !PWSIZE! LEQ 1600 (
 		ENDLOCAL
 		CALL :DISPLAYINFOA
@@ -364,7 +365,7 @@ EXIT /b
 
 :GETFILE
 REM Open file picker to select a file, Delayed expansion required to retrieve return value
-FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "Add-Type -AssemblyName System.Windows.Forms;$^=New-Object System.Windows.Forms.OpenFileDialog -Property @{InitialDirectory='';Title='Select a password protected ZIP, RAR, 7z or PDF...';Filter='All Supported (*.zip;*.rar;*.7z;*.pdf)|*.zip;*.rar;*.7z;*.pdf|ZIP (*.zip)|*.zip|RAR (*.rar)|*.rar|7-Zip (*.7z)|*.7z|PDF (*.pdf)|*.pdf'};$null=$^.ShowDialog();If($^.Filename -match ' '){$Quoted='"^""' + $^^.Filename + '"^""';$Quoted}ELSE{$^.Filename}"`) DO SET %1=%%#
+FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "Add-Type -AssemblyName System.Windows.Forms;$^=New-Object System.Windows.Forms.OpenFileDialog -Property @{InitialDirectory='';Title='Select a password protected ZIP, RAR, 7z or PDF...';Filter='All Supported (*.zip;*.rar;*.7z;*.pdf)|*.zip;*.rar;*.7z;*.pdf|ZIP (*.zip)|*.zip|RAR (*.rar)|*.rar|7-Zip (*.7z)|*.7z|PDF (*.pdf)|*.pdf'};$null=$^.ShowDialog();$Quoted='"^""' + $^^.Filename + '"^""';$Quoted"`) DO SET %1=%%#
 EXIT /b
 
 :SPLASHSCREEN
