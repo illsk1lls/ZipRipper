@@ -38,7 +38,7 @@ IF NOT "%~f0"=="%ProgramData%\%~nx0" (
 		>nul 2>&1 DEL "%ProgramData%\zr-offline.txt" /F /Q
 	)
 	START /MIN "USE THE GUI TO SELECT A FILE" ""%ProgramData%\%~nx0"" "%_:"=""%">nul
-	EXIT /b
+	GOTO :EOF
 )
 REM Supported extensions and dependencies, declare init vars
 SET "NATIVE=ZIP,RAR"
@@ -220,7 +220,7 @@ FOR /F "usebackq skip=2 tokens=3,4" %%# IN (`REG QUERY "HKLM\SOFTWARE\Microsoft\
 		ECHO SYSTEM NOT SUPPORTED
 		ECHO/
 		PAUSE
-		EXIT /b
+		GOTO :EOF
 	)
 )
 REM Detect GPU lineup and OpenCL availability
@@ -352,7 +352,7 @@ IF NOT %errorlevel%==0 (
 	ECHO https://github.com/illsk1lls/ZipRipper/raw/main/.resources/zr-offline.txt?download=
 	ECHO/
 	PAUSE
-	EXIT
+	GOTO :EOF
 )
 EXIT /b
 
