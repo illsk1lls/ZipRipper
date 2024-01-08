@@ -1,4 +1,19 @@
 @ECHO OFF
+REM Check architecture - x64 only
+IF NOT "%PROCESSOR_ARCHITECTURE%"=="AMD64" (
+	IF NOT "%PROCESSOR_ARCHITEW6432%"=="AMD64" (
+		CALL :CENTERWINDOW
+		ECHO FOR USE WITH x64 SYSTEMS ONLY
+		ECHO/
+		EXIT
+	) ELSE (
+		CALL :CENTERWINDOW
+		ECHO UNABLE TO LAUNCH IN x86 MODE
+		ECHO/
+		PAUSE
+		EXIT
+	)
+)
 IF NOT "%~2"=="" (
 	CALL :CENTERWINDOW
 	ECHO Multiple files are not supported. Double-click the script and use the GUI to select a file...
@@ -24,24 +39,6 @@ IF NOT "%~f0"=="%ProgramData%\%~nx0" (
 	)
 	START /MIN "USE THE GUI TO SELECT A FILE" ""%ProgramData%\%~nx0"" "%_:"=""%">nul
 	EXIT /b
-)
-REM Check architecture - x64 only
-IF NOT "%PROCESSOR_ARCHITECTURE%"=="AMD64" (
-	IF NOT "%PROCESSOR_ARCHITEW6432%"=="AMD64" (
-		CALL :CENTERWINDOW
-		ECHO FOR USE WITH x64 SYSTEMS ONLY
-		ECHO/
-		PAUSE
-		REM GOTO nowhere, self-delete %ProgramData% copy, and exit
-		CALL :CLEANEXIT
-	) ELSE (
-		CALL :CENTERWINDOW
-		ECHO UNABLE TO LAUNCH IN x86 MODE
-		ECHO/
-		PAUSE
-		REM GOTO nowhere, self-delete %ProgramData% copy, and exit
-		CALL :CLEANEXIT
-	)
 )
 REM Supported extensions and dependencies, declare init vars
 SET "NATIVE=ZIP,RAR"
