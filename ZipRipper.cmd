@@ -38,7 +38,7 @@ IF NOT "%~f0"=="%ProgramData%\%~nx0" (
 	) ELSE (
 		>nul 2>&1 DEL "%ProgramData%\zr-offline.txt" /F /Q
 	)
-	START /MIN "USE THE GUI TO SELECT A FILE" ""%ProgramData%\%~nx0"" "%_:"=""%">nul
+	START /MIN "USE THE GUI TO SELECT A FILE" "%ProgramData%\%~nx0" "%_:"=""%">nul
 	GOTO :EOF
 )
 REM Supported extensions and dependencies, declare init vars
