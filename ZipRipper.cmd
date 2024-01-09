@@ -56,14 +56,20 @@ CALL :CENTERWINDOW
 REM Check if zr-offline.txt is present, if not run in online mode later
 IF "%OFFLINE%"=="1" CALL :OFFLINEMODE
 IF "%~1"=="" (
-	REM Show splash screen
-	CALL :SPLASHSCREEN
-	REM Use GUI to select file
-	CALL :GETFILE FILENAME
-	SETLOCAL ENABLEDELAYEDEXPANSION
-	IF NOT EXIST !FILENAME! (
+SETLOCAL ENABLEDELAYEDEXPANSION
+:MAIN
+	REM Show logo and start/quit buttons
+	CALL :MAINMENU ACTION
+	IF NOT "!ACTION!"=="OK" (
+		ENDLOCAL
 		CALL :CLEANEXIT
 	)
+	REM Use GUI to select file
+	CALL :GETFILE FILENAME
+	IF NOT EXIST !FILENAME! (
+		GOTO :MAIN
+	)
+	>nul 2>&1 DEL "!LOGO!" /F /Q
 	CALL START "" %~f0 !FILENAME!
 	ENDLOCAL
 	EXIT
@@ -368,11 +374,12 @@ REM Open file picker to select a file, Delayed expansion required to retrieve re
 FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "Add-Type -AssemblyName System.Windows.Forms;$^=New-Object System.Windows.Forms.OpenFileDialog -Property @{InitialDirectory='';Title='Select a password protected ZIP, RAR, 7z or PDF...';Filter='All Supported (*.zip;*.rar;*.7z;*.pdf)|*.zip;*.rar;*.7z;*.pdf|ZIP (*.zip)|*.zip|RAR (*.rar)|*.rar|7-Zip (*.7z)|*.7z|PDF (*.pdf)|*.pdf'};$null=$^.ShowDialog();$Quoted='"^""' + $^^.Filename + '"^""';$Quoted"`) DO SET %1=%%#
 EXIT /b
 
-:SPLASHSCREEN
-SET "SPLASH=%ProgramData%\zipripper.png"
-IF "%OFFLINE%"=="0" POWERSHELL -nop -c "Invoke-WebRequest -Uri https://raw.githubusercontent.com/illsk1lls/ZipRipper/main/.resources/zipripper.png -o '%SPLASH%'"
-POWERSHELL -nop -c "Add-Type -AssemblyName System.Windows.Forms;[System.Windows.Forms.Application]::EnableVisualStyles();$i=[System.Drawing.Image]::Fromfile('%SPLASH:'=''%');$^=New-Object system.Windows.Forms.Form;$^.Width=$i.Width;$^.Height=$i.Height;$^.TopMost=$true;$^.BackgroundImage=$i;$^.AllowTransparency=$true;$^.TransparencyKey=$^.BackColor;$^.StartPosition=1;$^.FormBorderStyle=0;$^.Show();Start-Sleep -Seconds 3;$^.Close();$^.Dispose()"
->nul 2>&1 DEL "%SPLASH%" /F /Q
+:MAINMENU
+SET "LOGO=%ProgramData%\zipripper.png"
+IF NOT EXIST "%LOGO%" (
+IF "%OFFLINE%"=="0" POWERSHELL -nop -c "Invoke-WebRequest -Uri https://raw.githubusercontent.com/illsk1lls/ZipRipper/main/.resources/zipripper.png -o '%LOGO%'"
+)
+FOR /F "usebackq tokens=*" %%# IN (`POWERSHELL -nop -c "$b_={$^.Close();$^.Dispose()};$b2_={$^.Close();$^.Dispose()};Add-Type -AssemblyName System.Windows.Forms;[System.Windows.Forms.Application]::EnableVisualStyles();$i=[System.Drawing.Image]::Fromfile('%LOGO:'=''%');$^=New-Object system.Windows.Forms.Form;$^.Width=$i.Width;$^.Height=$i.Height;$^.TopMost=$true;$^.BackgroundImage=$i;$^.AllowTransparency=$true;$^.TransparencyKey=$^.BackColor;$^.StartPosition=1;$^.FormBorderStyle=0;$b=New-Object System.Windows.Forms.Button;$b.Location=New-Object System.Drawing.Size(65,301);$b.Size=New-Object System.Drawing.Size(65,22);$b.BackColor='#333333';$b.ForeColor='#eeeeee';$b.Text='Start';$b.DialogResult='OK';$b.Add_Click($b_);$^.Controls.Add($b);$b2=New-Object System.Windows.Forms.Button;$b2.Location=New-Object System.Drawing.Size(165,301);$b2.Size=New-Object System.Drawing.Size(65,22);$b2.BackColor='#333333';$b2.ForeColor='#eeeeee';$b2.Margin=0;$b2.Text='Quit';$b2.Add_Click($b2_);$^.Controls.Add($b2);$^.showdialog()"`) DO SET %1=%%#
 EXIT /b
 
 :CLEANEXIT
