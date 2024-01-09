@@ -28,7 +28,7 @@ IF NOT EXIST "%~dp0zr-offline.txt" (
 	SET OFFLINE=0
 	CALL :CHECKCONNECTION
 )
-SET "_= %*"
+SET _= %*
 REM Request Admin if not, Generates UAC prompt
 CALL :ELEVATE %_%
 IF NOT "%~f0"=="%ProgramData%\%~nx0" (
@@ -38,7 +38,7 @@ IF NOT "%~f0"=="%ProgramData%\%~nx0" (
 	) ELSE (
 		>nul 2>&1 DEL "%ProgramData%\zr-offline.txt" /F /Q
 	)
-	START /MIN "USE THE GUI TO SELECT A FILE" "%ProgramData%\%~nx0" %_%>nul
+	START /MIN "USE THE GUI TO SELECT A FILE" "%ProgramData%\%~nx0" "%_:"=""%">nul
 	GOTO :EOF
 )
 REM Supported extensions and dependencies, declare init vars
@@ -70,7 +70,7 @@ SETLOCAL ENABLEDELAYEDEXPANSION
 		GOTO :MAIN
 	)
 	>nul 2>&1 DEL "!LOGO!" /F /Q
-	CALL START "" "%~f0" !FILENAME!
+	CALL START "" %~f0 !FILENAME!
 	ENDLOCAL
 	EXIT
 )
