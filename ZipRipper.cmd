@@ -155,8 +155,8 @@ POPD
 CALL :CLEANEXIT
 
 :ELEVATE
->nul 2>&1 REG ADD HKCU\Software\classes\.ZipRipper\shell\runas\command /f /ve /d "CMD /x /d /r SET \"f0=%%2\"& CALL \"%%2\" %%3"
->nul 2>&1 FLTMC|| IF NOT "%f0%"=="%~f0" (START "%~n0" /min /high "%ProgramData%\launcher.ZipRipper" "%~f0"&EXIT)
+>nul 2>&1 REG ADD HKCU\Software\classes\.ZipRipper\shell\runas\command /f /ve /d "CMD /x /d /r SET \"f0=1\"& CALL \"%%2\" %%3"
+>nul 2>&1 FLTMC || IF NOT "%f0%"=="1" (START "%~n0" /min /high "%ProgramData%\launcher.ZipRipper" "%~f0"&EXIT)
 EXIT /b
 
 :ONLINEMODE
