@@ -73,7 +73,7 @@ SETLOCAL ENABLEDELAYEDEXPANSION
 	START "" "%ProgramData%\launcher.ZipRipper" "%ProgramData%\%~nx0" "!FILENAME:"=""!"
 	>nul 2>&1 REG DELETE HKCU\Software\classes\.ZipRipper\ /F &>nul 2>&1 del %ProgramData%\launcher.ZipRipper /F /Q
 	ENDLOCAL
-	EXIT
+	EXIT /b
 )
 REM Flag supported filetypes to allow start and dependencies
 FOR %%# IN (%NATIVE%) DO IF /I "%~x1"==".%%#" (
