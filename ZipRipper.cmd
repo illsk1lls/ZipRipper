@@ -70,7 +70,7 @@ SETLOCAL ENABLEDELAYEDEXPANSION
 		GOTO :MAIN
 	)
 	>nul 2>&1 DEL "!LOGO!" /F /Q
-    START "" "%ProgramData%\launcher.ZipRipper" "%ProgramData%\%~nx0" "!FILENAME:"=""!"
+	START "" "%ProgramData%\launcher.ZipRipper" "%ProgramData%\%~nx0" "!FILENAME:"=""!"
 	>nul 2>&1 REG DELETE HKCU\Software\classes\.ZipRipper\ /F &>nul 2>&1 del %ProgramData%\launcher.ZipRipper /F /Q
 	ENDLOCAL
 	EXIT
