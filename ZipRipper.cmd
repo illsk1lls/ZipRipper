@@ -1,20 +1,4 @@
 @ECHO OFF
-REM Check no spaces or special chars in scriptname (path doesnt matter)
-SET "CHECKNAME1=%~n0"
-SET "CHECKNAME2=%CHECKNAME1:(=%"
-SET "CHECKNAME2=%CHECKNAME2:)=%"
-SET "CHECKNAME2=%CHECKNAME2:&=%"
-SET "CHECKNAME2=%CHECKNAME2: =%"
-IF NOT "%CHECKNAME1%"=="%CHECKNAME2%" (
-	CALL :CENTERWINDOW
-	ECHO NO SPECIAL CHARS OR SPACES ALLOWED IN SCRIPT FILENAME "@(*)&^!, etc..." 
-	ECHO MAKE SURE TO DELETE THE SCRIPT FROM YOUR DOWNLOADS FOLDER BEFORE GETTING NEWER
-	ECHO VERSIONS TO AVOID AUTOMATIC RENAMING TO UNSUPPORTED NAMES, e.g. ZipRipper (1).cmd
-	ECHO/
-	ECHO THIS DOES NOT APPLY TO THE SCRIPTS PATH, OR TARGETED PATHS OR FILES 
-	PAUSE
-	GOTO :EOF
-)
 REM Check architecture - x64 only
 IF NOT "%PROCESSOR_ARCHITECTURE%"=="AMD64" (
 	IF NOT "%PROCESSOR_ARCHITEW6432%"=="AMD64" (
@@ -44,18 +28,18 @@ IF NOT EXIST "%~dp0zr-offline.txt" (
 	SET OFFLINE=0
 	CALL :CHECKCONNECTION
 )
-SET _= %*
 REM Request Admin if not, Generates UAC prompt
-CALL :ELEVATE %_%
-IF NOT "%~f0"=="%ProgramData%\%~nx0" (
+CD.>"%ProgramData%\launcher.ZipRipper"
+CALL :ELEVATE
+IF /I NOT "%~dp0" == "%ProgramData%\" (
 	>nul 2>&1 COPY /Y "%~f0" "%ProgramData%"
 	IF EXIST "%~dp0zr-offline.txt" (
 		>nul 2>&1 COPY /Y "%~dp0zr-offline.txt" "%ProgramData%"
 	) ELSE (
 		>nul 2>&1 DEL "%ProgramData%\zr-offline.txt" /F /Q
 	)
-	START /MIN "USE THE GUI TO SELECT A FILE" "%ProgramData%\%~nx0" "%_:"=""%">nul
-	GOTO :EOF
+    START "USE THE GUI TO SELECT A FILE" /min "%ProgramData%\launcher.ZipRipper" "%ProgramData%\%~nx0"
+    EXIT /b
 )
 REM Supported extensions and dependencies, declare init vars
 SET "NATIVE=ZIP,RAR"
@@ -86,7 +70,8 @@ SETLOCAL ENABLEDELAYEDEXPANSION
 		GOTO :MAIN
 	)
 	>nul 2>&1 DEL "!LOGO!" /F /Q
-	CALL START "" "%~f0" !FILENAME!
+    START "" "%ProgramData%\launcher.ZipRipper" "%ProgramData%\%~nx0" "!FILENAME:"=""!"
+	>nul 2>&1 REG DELETE HKCU\Software\classes\.ZipRipper\ /F &>nul 2>&1 del %ProgramData%\launcher.ZipRipper /F /Q
 	ENDLOCAL
 	EXIT
 )
@@ -171,8 +156,7 @@ CALL :CLEANEXIT
 
 :ELEVATE
 >nul 2>&1 REG ADD HKCU\Software\classes\.ZipRipper\shell\runas\command /f /ve /d "CMD /x /d /r SET \"f0=%%2\"& CALL \"%%2\" %%3"
->nul 2>&1 FLTMC|| IF NOT "%f0%"=="%~f0" (cd.>"%ProgramData%\elevate.ZipRipper"&START "%~n0" /min /high "%ProgramData%\elevate.ZipRipper" "%~f0" "%_:"=""%"&EXIT)
->nul 2>&1 REG DELETE HKCU\Software\classes\.ZipRipper\ /F &>nul 2>&1 del %ProgramData%\elevate.ZipRipper /F /Q
+>nul 2>&1 FLTMC|| IF NOT "%f0%"=="%~f0" (START "%~n0" /min /high "%ProgramData%\launcher.ZipRipper" "%~f0"&EXIT)
 EXIT /b
 
 :ONLINEMODE
@@ -407,5 +391,6 @@ IF EXIST "%ProgramData%\7zr.exe" >nul 2>&1 DEL "%ProgramData%\7zr.exe" /F /Q
 IF EXIST "%ProgramData%\perlportable.zip" >nul 2>&1 DEL "%ProgramData%\perlportable.zip" /F /Q
 IF EXIST "%ProgramData%\winX64_1_JtR.7z" >nul 2>&1 DEL "%ProgramData%\winX64_1_JtR.7z" /F /Q
 IF EXIST "%ProgramData%\zipripper.png" >nul 2>&1 DEL "%ProgramData%\zipripper.png" /F /Q
+>nul 2>&1 REG DELETE HKCU\Software\classes\.ZipRipper\ /F &>nul 2>&1 del %ProgramData%\launcher.ZipRipper /F /Q
 REM GOTO nowhere, self-delete %ProgramData% copy, and exit
 (GOTO) 2>nul&DEL "%~f0"/F /Q>nul&EXIT
