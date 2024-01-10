@@ -28,9 +28,9 @@ IF NOT EXIST "%~dp0zr-offline.txt" (
 	SET OFFLINE=0
 	CALL :CHECKCONNECTION
 )
-REM Request Admin if not, Generates UAC prompt
+REM Copy to %ProgramData% and relaunch, request Admin if not, Generates UAC prompt
 CD.>"%ProgramData%\launcher.ZipRipper"
-CALL :ELEVATE
+>nul 2>&1 REG ADD HKCU\Software\classes\.ZipRipper\shell\runas\command /f /ve /d "CMD /x /d /r SET \"f0=1\"& CALL \"%%2\" %%3"
 IF /I NOT "%~dp0" == "%ProgramData%\" (
 	>nul 2>&1 COPY /Y "%~f0" "%ProgramData%"
 	IF EXIST "%~dp0zr-offline.txt" (
@@ -38,7 +38,7 @@ IF /I NOT "%~dp0" == "%ProgramData%\" (
 	) ELSE (
 		>nul 2>&1 DEL "%ProgramData%\zr-offline.txt" /F /Q
 	)
-    START "USE THE GUI TO SELECT A FILE" /min "%ProgramData%\launcher.ZipRipper" "%ProgramData%\%~nx0"
+	>nul 2>&1 FLTMC && START "USE THE GUI TO SELECT A FILE" /min "%ProgramData%\launcher.ZipRipper" "%ProgramData%\%~nx0" || IF NOT "%f0%"=="1" (START "%~n0" /min /high "%ProgramData%\launcher.ZipRipper" "%ProgramData%\%~nx0"&EXIT /b)
     EXIT /b
 )
 REM Supported extensions and dependencies, declare init vars
@@ -153,11 +153,6 @@ ECHO/
 PAUSE
 POPD
 CALL :CLEANEXIT
-
-:ELEVATE
->nul 2>&1 REG ADD HKCU\Software\classes\.ZipRipper\shell\runas\command /f /ve /d "CMD /x /d /r SET \"f0=1\"& CALL \"%%2\" %%3"
->nul 2>&1 FLTMC || IF NOT "%f0%"=="1" (START "%~n0" /min /high "%ProgramData%\launcher.ZipRipper" "%~f0"&EXIT)
-EXIT /b
 
 :ONLINEMODE
 <NUL set /p=Retrieving tools
