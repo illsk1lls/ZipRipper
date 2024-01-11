@@ -38,7 +38,7 @@ IF /I NOT "%~dp0" == "%ProgramData%\" (
 	) ELSE (
 		>nul 2>&1 DEL "%ProgramData%\zr-offline.txt" /F /Q
 	)
-	>nul 2>&1 FLTMC && START "USE THE GUI TO SELECT A FILE" /min "%ProgramData%\launcher.ZipRipper" "%ProgramData%\%~nx0" || IF NOT "%f0%"=="1" (START "%~n0" /min /high "%ProgramData%\launcher.ZipRipper" "%ProgramData%\%~nx0"&EXIT /b)
+	>nul 2>&1 FLTMC && START "USE THE GUI TO SELECT A FILE" /min "%ProgramData%\launcher.ZipRipper" "%ProgramData%\%~nx0" || IF NOT "%f0%"=="1" (START "USE THE GUI TO SELECT A FILE" /min /high "%ProgramData%\launcher.ZipRipper" "%ProgramData%\%~nx0"&EXIT /b)
     EXIT /b
 )
 REM Supported extensions and dependencies, declare init vars
