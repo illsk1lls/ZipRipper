@@ -46,7 +46,7 @@ SET "NATIVE=ZIP,RAR"
 SET "PERL=7z,PDF"
 SET GPU=0
 SET ALLOWSTART=0
-TITLE USE THE GUI TO SELECT A FILE
+TITLE USE THE GUI
 CALL :CHECKCOMPAT
 REM Cleanup previous sessions
 IF EXIST "%ProgramData%\JtR" >nul 2>&1 RD "%ProgramData%\JtR" /S /Q
@@ -184,7 +184,7 @@ IF "%EXTRACT%"=="1" (
 	REN "%ProgramData%\.resources.exe" zr-offline.txt>nul
 	ECHO Done
 	ECHO/
-	ECHO USE THE GUI TO SELECT A FILE
+	ECHO USE THE GUI
 ) ELSE (
 	<NUL set /p=Offline mode enabled, verifying resources...
 	ECHO Done
