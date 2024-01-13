@@ -24,7 +24,7 @@ nVidia "GeForce" & "Quadro" and AMD "Radeon RX" & "Radeon Pro" cards.<br>
 
 *ZIP, RAR, 7z, and PDF filetypes are supported
 
-There are two different running modes, Online Mode, and Offline mode.
+ZipRipper is portable, there are two different running modes; Online Mode, and Offline mode...
 
 **Online Mode:** ZipRipper gathers its resources from the web (JohnTheRipper,7zip, and Portable Perl).<br>
 Only the script itself and an internet connection are required for this mode.<br>
