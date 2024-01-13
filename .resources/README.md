@@ -13,4 +13,4 @@ When the script is finished, the newly created zr-offline.txt will appear in the
 It is recommended that you use Create-ZR-Offline.cmd to create your own zr-offline.txt, the archived version here is only needed if<br>
 any of the included links become unavailable.<br>
 
-**Offline mode can be enabled by putting zr-offline.txt in the same folder as ZipRipper.cmd**
+**Offline mode can be enabled by putting zr-offline.txt in the same folder as ZipRipper before launch**
