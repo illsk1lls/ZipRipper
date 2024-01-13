@@ -93,7 +93,7 @@ REM Only allow one instance at a time
 SET "TitleName=^[ZIP-Ripper^]  -  ^[CPU Mode^]  -  ^[OpenCL DISABLED^]"
 IF "%GPU%"=="1" SET TitleName=%TitleName:^[CPU Mode^]  -  ^[OpenCL DISABLED^]=^[CPU/GPU Mode^]  -  ^[OpenCL ENABLED^]%
 TASKLIST /V /NH /FI "imagename eq cmd.exe"|FIND /I /C "%TitleName%">nul
-IF NOT %errorlevel%==1 (ECHO ERROR:&ECHO ZIP-Ripper is already running!) |MSG *&EXIT
+IF NOT %errorlevel%==1 (ECHO ERROR:&ECHO ZipRipper is already running!) |MSG *&EXIT
 TITLE %TitleName%
 IF "%OFFLINE%"=="0" CALL :ONLINEMODE
 CALL :GETJTRREADY
@@ -348,7 +348,7 @@ IF NOT %errorlevel%==0 (
 	CALL :CENTERWINDOW
 	ECHO Internet connection not detected...
 	ECHO/
-	ECHO ^[zr-offline.txt^] must be in the same folder as ZIP-Ripper for offline mode.
+	ECHO ^[zr-offline.txt^] must be in the same folder as ZipRipper for offline mode.
 	ECHO/
 	ECHO It can be downloaded using the below address:
 	ECHO/
