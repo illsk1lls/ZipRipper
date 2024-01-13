@@ -157,11 +157,11 @@ CALL :CLEANEXIT
 
 :ONLINEMODE
 <NUL set /p=Retrieving tools
-POWERSHELL -nop -c "Invoke-WebRequest -Uri https://www.7-zip.org/a/7zr.exe -o '%ProgramData%\7zr.exe'";"Invoke-WebRequest -Uri https://www.7-zip.org/a/7z2300-extra.7z -o '%ProgramData%\7zExtra.7z'"
+POWERSHELL -nop -c "Invoke-WebRequest -Uri https://www.7-zip.org/a/7zr.exe -o '%ProgramData%\7zr.exe';Invoke-WebRequest -Uri https://www.7-zip.org/a/7z2300-extra.7z -o '%ProgramData%\7zExtra.7z'"
 IF "%ISPERL%"=="1" (
 	REM Download JtR, and perl portable
 	<NUL set /p=, Getting required dependencies, please wait...
-POWERSHELL -nop -c "Start-BitsTransfer -Priority Foreground -Source https://github.com/openwall/john-packages/releases/download/jumbo-dev/winX64_1_JtR.7z -Destination '%ProgramData%\winX64_1_JtR.7z'";"Start-BitsTransfer -Priority Foreground -Source https://github.com/StrawberryPerl/Perl-Dist-Strawberry/releases/download/SP_5380_5361/strawberry-perl-5.38.0.1-64bit-portable.zip -Destination '%ProgramData%\perlportable.zip'"
+POWERSHELL -nop -c "Start-BitsTransfer -Priority Foreground -Source https://github.com/openwall/john-packages/releases/download/jumbo-dev/winX64_1_JtR.7z -Destination '%ProgramData%\winX64_1_JtR.7z';Start-BitsTransfer -Priority Foreground -Source https://github.com/StrawberryPerl/Perl-Dist-Strawberry/releases/download/SP_5380_5361/strawberry-perl-5.38.0.1-64bit-portable.zip -Destination '%ProgramData%\perlportable.zip'"
 ) ELSE (
 	REM Download JtR only
 	<NUL set /p=, Getting required dependencies...
@@ -173,19 +173,18 @@ EXIT /b
 
 :OFFLINEMODE
 REM Offline mode, use local resources
-SET NEEDED=7zr.exe,7zExtra.7z,winX64_1_JtR.7z,perlportable.zip
+SET NEEDED=7zr.exe,7zExtra.7z,winX64_1_JtR.7z,perlportable.zip,zipripper.png
 SET EXTRACT=0
 FOR %%# IN (%NEEDED%) DO (
 	IF NOT EXIST "%~dp0%%#" SET EXTRACT=1
 )
 IF "%EXTRACT%"=="1" (
-	<NUL set /p=EXTRACTING RESOURCES...
+	<NUL set /p=Getting Tools Ready...
 	REN "%ProgramData%\zr-offline.txt" .resources.exe>nul
 	"%ProgramData%\.resources" -y -pDependencies -o"%ProgramData%">nul
 	REN "%ProgramData%\.resources.exe" zr-offline.txt>nul
 	ECHO Done
 	ECHO/
-	ECHO USE THE GUI
 ) ELSE (
 	<NUL set /p=Offline mode enabled, verifying resources...
 	ECHO Done
