@@ -24,6 +24,14 @@ nVidia "GeForce" & "Quadro" and AMD "Radeon RX" & "Radeon Pro" cards.<br>
 
 *ZIP, RAR, 7z, and PDF filetypes are supported
 
+There are two different running modes, Online Mode, and Offline mode.
+
+Online Mode: ZipRipper gathers its resources from the web (JohnTheRipper,7zip, and Portable Perl).<br>
+Only the script itself and an internet connection is required for this mode.<br>
+
+Offline Mode: ZipRipper uses a local resource file [zr-offline.txt]. An internet connection is not<br>
+required for this mode.<br>
+
 **Offline mode can be enabled by putting [zr-offline.txt] in the same folder as the ZipRipper before launch.**<br>
 **[zr-offline.txt] creator:** <a href="https://github.com/illsk1lls/ZipRipper/blob/main/.resources/Create-ZR-Offline.cmd">https://github.com/illsk1lls/ZipRipper/blob/main/.resources/Create-ZR-Offline.cmd</a><br>
 **[zr-offline.txt] archive:** <a href="https://github.com/illsk1lls/ZipRipper/raw/main/.resources/zr-offline.txt?download=">https://github.com/illsk1lls/ZipRipper/raw/main/.resources/zr-offline.txt?download=</a><br>
