@@ -119,6 +119,23 @@ IF %~z1 GEQ 200000000 (
 ) ELSE (
 	<NUL set /p=Creating password hash...
 )
+REM Check if resume is available
+SET RESUME=0
+FOR /F "usebackq skip=1 tokens=*" %%# IN (`CERTUTIL -hashfile "%~1" md5`) DO SET "MD5=%%#"&GOTO :CHECKMD5
+:CHECKMD5
+IF EXIST "%AppData%\ZR-InProgress\%MD5%" (
+CALL :RESUMEDECIDE ISRESUME
+SETLOCAL ENABLEDELAYEDEXPANSION
+IF "!ISRESUME!"=="1" (
+ENDLOCAL
+>nul 2>&1 COPY /Y "%AppData%\ZR-InProgress\%MD5%\*.*" "%ProgramData%\JtR\run\"
+SET RESUME=1
+GOTO :STARTJTR
+) ELSE (
+ENDLOCAL
+>nul 2>&1 RD "%AppData%\ZR-InProgress\%MD5%" /S /Q
+)
+)
 SET ZIP2=0
 SET PROTECTED=1
 SET /A HSIZE=0
@@ -129,13 +146,20 @@ ECHO/
 SETLOCAL ENABLEDELAYEDEXPANSION
 IF "!PROTECTED!"=="0" CALL :NOTPROTECTED %1&EXIT /b
 ENDLOCAL
+:STARTJTR
 CLS
 ECHO Running JohnTheRipper...
 ECHO/
 REM Start JtR
+IF "%RESUME%"=="1" (
+ECHO Resuming Job...
+ECHO/
+john --restore
+) ELSE (
 SETLOCAL ENABLEDELAYEDEXPANSION
 john "%ProgramData%\JtR\run\pwhash" !FLAG!
 ENDLOCAL
+)
 REM Check for found passwords
 CALL :GETSIZE "%ProgramData%\JtR\run\john.pot" POTSIZE
 REM Build password list if found
@@ -144,14 +168,14 @@ IF !POTSIZE! GEQ 1 (
 	ENDLOCAL
 	SET FOUND=1
 	CALL :SAVEFILE %1
+	IF EXIST "%AppData%\ZR-InProgress\%MD5%" >nul 2>&1 RD "%AppData%\ZR-InProgress\%MD5%" /S /Q
 	ECHO/
 	ECHO Passwords saved to: "%UserProfile%\Desktop\ZipRipper-Passwords.txt"
 ) ELSE (
 	ENDLOCAL
 	SET FOUND=0
 	ECHO/
-	ECHO Password not found :^(
-	
+	CALL :SETRESUME %1
 )
 SETLOCAL ENABLEDELAYEDEXPANSION
 IF NOT "!FOUND!"=="0" (
@@ -169,13 +193,31 @@ PAUSE
 POPD
 CALL :CLEANEXIT
 
+:RESUMEDECIDE
+FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "$wshell=New-Object -ComObject Wscript.Shell;$wshell.Popup('Resume available for this file! Click OK to resume, or Cancel to remove the saved job and start over',0,'Done',0x1)"`) DO SET %1=%%#
+EXIT /b
+
+:SETRESUME
+FOR /F "usebackq skip=1 tokens=*" %%# IN (`CERTUTIL -hashfile "%~1" md5`) DO SET "MD5=%%#"&GOTO :RESUMESET
+:RESUMESET
+IF NOT EXIST "%ProgramData%\JtR\run\john.rec" (
+	ECHO Resume is UNAVAILABLE for this file ;^(
+) ELSE (
+	ECHO Resume is available for the next session...
+	IF NOT EXIST "%AppData%\ZR-InProgress\%MD5%" MD "%AppData%\ZR-InProgress\%MD5%"
+	>nul 2>&1 MOVE /Y "%ProgramData%\JtR\run\pwhash" "%AppData%\ZR-InProgress\%MD5%"
+	>nul 2>&1 MOVE /Y "%ProgramData%\JtR\run\john.pot" "%AppData%\ZR-InProgress\%MD5%"
+	>nul 2>&1 MOVE /Y "%ProgramData%\JtR\run\john.rec" "%AppData%\ZR-InProgress\%MD5%"
+	>nul 2>&1 MOVE /Y "%ProgramData%\JtR\run\john.log" "%AppData%\ZR-InProgress\%MD5%"
+)
+EXIT /b
+
 :NOTPROTECTED
 CLS
 ECHO "%~1" is not password protected..
 ECHO/
 PAUSE
 EXIT /b 
-
 
 :ONLINEMODE
 <NUL set /p=Retrieving tools
