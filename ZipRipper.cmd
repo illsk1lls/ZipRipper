@@ -48,7 +48,8 @@ SET "PERL=7z,PDF"
 SET GPU=0
 SET ALLOWSTART=0
 SET BUILDING=0
-CALL :CHECKCOMPAT
+CALL :CHECKWIN
+CALL :CHECKGPU
 REM Cleanup previous sessions
 IF EXIST "%ProgramData%\JtR" >nul 2>&1 RD "%ProgramData%\JtR" /S /Q
 >nul 2>&1 ATTRIB -h "%ProgramData%\BIT*.tmp"
@@ -60,6 +61,7 @@ IF "%~1"=="" (
 TITLE GUI LOADER
 ECHO USE THE GUI TO PROCEED
 SETLOCAL ENABLEDELAYEDEXPANSION
+
 :MAIN
 	REM Show logo and start/quit buttons
 	CALL :MAINMENU ACTION
@@ -122,6 +124,7 @@ IF %~z1 GEQ 200000000 (
 REM Check if resume is available
 SET RESUME=0
 FOR /F "usebackq skip=1 tokens=*" %%# IN (`CERTUTIL -hashfile "%~1" md5`) DO SET "MD5=%%#"&GOTO :CHECKMD5
+
 :CHECKMD5
 IF EXIST "%AppData%\ZR-InProgress\%MD5%" (
 CALL :RESUMEDECIDE ISRESUME
@@ -146,6 +149,7 @@ ECHO/
 SETLOCAL ENABLEDELAYEDEXPANSION
 IF "!PROTECTED!"=="0" CALL :NOTPROTECTED %1&EXIT /b
 ENDLOCAL
+
 :STARTJTR
 CLS
 ECHO Running JohnTheRipper...
@@ -199,6 +203,7 @@ EXIT /b
 
 :SETRESUME
 FOR /F "usebackq skip=1 tokens=*" %%# IN (`CERTUTIL -hashfile "%~1" md5`) DO SET "MD5=%%#"&GOTO :RESUMESET
+
 :RESUMESET
 IF NOT EXIST "%ProgramData%\JtR\run\john.rec" (
 	ECHO Resume is UNAVAILABLE for this file ;^(
@@ -277,7 +282,7 @@ REM Enable OpenCL
 IF "%GPU%"=="1" >nul 2>&1 COPY /Y "%WinDir%\System32\OpenCL.dll" "%ProgramData%\JtR\run\cygOpenCL-1.dll"
 EXIT /b
 
-:CHECKCOMPAT
+:CHECKWIN
 REM Check Windows version
 FOR /F "usebackq skip=2 tokens=3,4" %%# IN (`REG QUERY "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v ProductName 2^>nul`) DO (
 	IF "%%# %%$"=="Windows 7" (
@@ -290,6 +295,9 @@ FOR /F "usebackq skip=2 tokens=3,4" %%# IN (`REG QUERY "HKLM\SOFTWARE\Microsoft\
 		GOTO :EOF
 	)
 )
+EXIT /b
+
+:CHECKGPU
 REM Detect GPU lineup and OpenCL availability
 FOR /F "usebackq skip=1 tokens=2,3" %%# IN (`WMIC path Win32_VideoController get Name ^| findstr "."`) DO (
 	IF /I "%%#"=="GeForce" SET GPU=1
