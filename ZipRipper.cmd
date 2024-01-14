@@ -198,7 +198,7 @@ POPD
 CALL :CLEANEXIT
 
 :RESUMEDECIDE
-FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "$wshell=New-Object -ComObject Wscript.Shell;$wshell.Popup('Resume available for this file! Click OK to resume, or Cancel to remove the saved job and start over',0,'Done',0x1)"`) DO SET %1=%%#
+FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "$wshell=New-Object -ComObject Wscript.Shell;$wshell.Popup('Click OK to resume, or Cancel to remove the saved job and start over',0,'Resume is available for this file',0x1)"`) DO SET %1=%%#
 EXIT /b
 
 :SETRESUME
