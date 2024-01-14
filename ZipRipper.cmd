@@ -30,8 +30,9 @@ IF NOT EXIST "%~dp0zr-offline.txt" (
 )
 REM Copy to %ProgramData% and relaunch, request Admin if not, Generates UAC prompt
 CD.>"%ProgramData%\launcher.ZipRipper"
->nul 2>&1 REG ADD HKCU\Software\classes\.ZipRipper\shell\runas\command /f /ve /d "CMD /x /d /r SET \"f0=1\"& CALL \"%%2\" %%3"
+>nul 2>&1 REG ADD HKCU\Software\classes\.ZipRipper\shell\runas\command /f /ve /d "CMD /x /d /r SET \"f0=1\"&CALL \"%%2\" %%3"
 IF /I NOT "%~dp0" == "%ProgramData%\" (
+	ECHO "%~dp0">"%ProgramData%\launcher.ZRlocation"
 	>nul 2>&1 COPY /Y "%~f0" "%ProgramData%"
 	IF EXIST "%~dp0zr-offline.txt" (
 		>nul 2>&1 COPY /Y "%~dp0zr-offline.txt" "%ProgramData%"
@@ -46,6 +47,7 @@ SET "NATIVE=ZIP,RAR"
 SET "PERL=7z,PDF"
 SET GPU=0
 SET ALLOWSTART=0
+SET BUILDING=0
 CALL :CHECKCOMPAT
 REM Cleanup previous sessions
 IF EXIST "%ProgramData%\JtR" >nul 2>&1 RD "%ProgramData%\JtR" /S /Q
@@ -61,6 +63,13 @@ SETLOCAL ENABLEDELAYEDEXPANSION
 :MAIN
 	REM Show logo and start/quit buttons
 	CALL :MAINMENU ACTION
+	IF "!ACTION!"=="Offline" (
+		CALL :OFFLINECREATOR
+		START "" "%ProgramData%\launcher.ZipRipper" "%ProgramData%\CreateOffline.cmd"
+		ENDLOCAL
+		SET BUILDING=1
+		CALL :CLEANEXIT
+	)
 	IF NOT "!ACTION!"=="Start" (
 		ENDLOCAL
 		CALL :CLEANEXIT
@@ -111,10 +120,15 @@ IF %~z1 GEQ 200000000 (
 	<NUL set /p=Creating password hash...
 )
 SET ZIP2=0
+SET PROTECTED=1
+SET /A HSIZE=0
 REM Get pwhash
 CALL :HASH%FILETYPE% %1
 ECHO Done
 ECHO/
+SETLOCAL ENABLEDELAYEDEXPANSION
+IF "!PROTECTED!"=="0" CALL :NOTPROTECTED %1&EXIT /b
+ENDLOCAL
 CLS
 ECHO Running JohnTheRipper...
 ECHO/
@@ -154,6 +168,14 @@ ECHO/
 PAUSE
 POPD
 CALL :CLEANEXIT
+
+:NOTPROTECTED
+CLS
+ECHO "%~1" is not password protected..
+ECHO/
+PAUSE
+EXIT /b 
+
 
 :ONLINEMODE
 <NUL set /p=Retrieving tools
@@ -239,6 +261,8 @@ EXIT /b
 
 :HASH.ZIP
 zip2john "%~1">"%ProgramData%\JtR\run\pwhash" 2>nul
+FOR /F %%# IN ("%ProgramData%\JtR\run\pwhash") DO SET /A HSIZE=%%~z#
+IF %HSIZE% EQU 0 SET PROTECTED=0
 IF "%GPU%"=="1" FOR /F "tokens=2 delims=$" %%# IN (pwhash) DO (
 	IF "%%#"=="zip2" (
 		SET "FLAG=--format=ZIP-opencl"
@@ -248,26 +272,32 @@ IF "%GPU%"=="1" FOR /F "tokens=2 delims=$" %%# IN (pwhash) DO (
 EXIT /b
 
 :HASH.RAR
-rar2john "%~1">"%ProgramData%\JtR\run\pwhash" 2>nul
+rar2john "%~1">"%ProgramData%\JtR\run\pwhash" 2>"%ProgramData%\JtR\run\statusout"
+FOR /F "usebackq tokens=*" %%# IN (`TYPE "%ProgramData%\JtR\run\statusout" ^| findstr /I "Did not find"`) DO SET PROTECTED=0
 IF "%GPU%"=="1" FOR /F "tokens=2 delims=$" %%# IN (pwhash) DO (
-	IF "%%#"=="rar" SET "FLAG=--format=rar-opencl"
-	IF "%%#"=="rar5" SET "FLAG=--format=RAR5-opencl"
+	IF /I "%%#"=="rar" SET "FLAG=--format=rar-opencl"
+	IF /I "%%#"=="rar3" SET "FLAG=--format=rar-opencl"
+	IF /I "%%#"=="rar5" SET "FLAG=--format=RAR5-opencl"
 )
 EXIT /b
 
 :HASH.7z
-CALL portableshell.bat 7z2john.pl "%~1">"%ProgramData%\JtR\run\pwhash" 2>nul
+CALL portableshell.bat 7z2john.pl "%~1">"%ProgramData%\JtR\run\pwhash" 2>"%ProgramData%\JtR\run\statusout"
+FOR /F "usebackq tokens=*" %%# IN (`TYPE statusout ^| findstr "no AES"`) DO SET PROTECTED=0
 IF "%GPU%"=="1" SET "FLAG=--format=7z-opencl"
 EXIT /b
 
 :HASH.PDF
 CALL portableshell.bat pdf2john.pl "%~1">"%ProgramData%\JtR\run\pwhash" 2>nul
 POWERSHELL -nop -c "$^=[regex]::Match((gc pwhash),'^(.+\/)(?i)(.*\.pdf)(.+$)');$^.Groups[2].value+$^.Groups[3].value|sc pwhash">nul 2>&1
+FOR /F %%# IN ("%ProgramData%\JtR\run\pwhash") DO SET /A HSIZE=%%~z#
+IF %HSIZE% LSS 8000 FOR /F "usebackq tokens=*" %%# IN (`TYPE pwhash ^| findstr "not encrypted!"`) DO SET PROTECTED=0
 EXIT /b
 
 :GETSIZE
 REM Delayed expansion required to retrieve return value
 SET /A "%2=%~z1"
+IF %~z1==[] SET /A "%2=0"
 EXIT /b
 
 :SINGLE
@@ -350,7 +380,8 @@ IF NOT %errorlevel%==0 (
 	ECHO/
 	ECHO ^[zr-offline.txt^] must be in the same folder as ZipRipper for offline mode.
 	ECHO/
-	ECHO It can be downloaded using the below address:
+	ECHO Click JtR on John's hat on an internet connected machine, or downloaded the archived
+	ECHO version using the below address:
 	ECHO/
 	ECHO https://github.com/illsk1lls/ZipRipper/raw/main/.resources/zr-offline.txt?download=
 	ECHO/
@@ -374,11 +405,11 @@ SET "LOGO=%ProgramData%\zipripper.png"
 IF NOT EXIST "%LOGO%" (
 IF "%OFFLINE%"=="0" POWERSHELL -nop -c "Invoke-WebRequest -Uri https://raw.githubusercontent.com/illsk1lls/ZipRipper/main/.resources/zipripper.png -o '%LOGO%'"
 )
-FOR /F "usebackq tokens=*" %%# IN (`POWERSHELL -nop -c "Add-Type -AssemblyName PresentationFramework, System.Drawing, System.Windows.Forms, WindowsFormsIntegration;[xml]$xaml='<Window xmlns="^""http://schemas.microsoft.com/winfx/2006/xaml/presentation"^"" xmlns:x="^""http://schemas.microsoft.com/winfx/2006/xaml"^"" WindowStartupLocation="^""CenterScreen"^"" WindowStyle="^""None"^"" Background="^""Transparent"^"" AllowsTransparency="^""True"^"" Width="^""285"^"" Height="^""324"^""><Window.Resources><ControlTemplate x:Key="^""HoverOff"^"" TargetType="^""Button"^""><Border Background="^""{TemplateBinding Background}"^"" BorderBrush="^""{TemplateBinding BorderBrush}"^"" BorderThickness="^""{TemplateBinding BorderThickness}"^""><ContentPresenter HorizontalAlignment="^""{TemplateBinding HorizontalContentAlignment}"^"" VerticalAlignment="^""{TemplateBinding VerticalContentAlignment}"^""/></Border><ControlTemplate.Triggers><Trigger Property="^""IsEnabled"^"" Value="^""False"^""><Setter Property="^""Background"^"" Value="^""{x:Static SystemColors.ControlLightBrush}"^""/><Setter Property="^""Foreground"^"" Value="^""{x:Static SystemColors.GrayTextBrush}"^""/></Trigger></ControlTemplate.Triggers></ControlTemplate></Window.Resources><Grid><Grid.RowDefinitions><RowDefinition Height="^""298"^""/><RowDefinition Height="^""*"^""/></Grid.RowDefinitions><Grid.Background><ImageBrush ImageSource="^""%LOGO%"^""/></Grid.Background><Grid.Triggers><EventTrigger RoutedEvent="^""Loaded"^""><BeginStoryboard><Storyboard><DoubleAnimation Storyboard.TargetProperty="^""Background.Opacity"^"" From="^""0"^"" To="^""1"^"" Duration="^""0:0:1"^""/></Storyboard></BeginStoryboard></EventTrigger></Grid.Triggers><Canvas Grid.Row="^""1"^""><Button x:Name="^""Start"^"" Height="^""22"^"" Width="^""65"^"" Content="^""Start"^"" ToolTip="^""Click to Begin..."^"" Template="^""{StaticResource HoverOff}"^""><Button.Triggers><EventTrigger RoutedEvent="^""Loaded"^""><BeginStoryboard><Storyboard><DoubleAnimation From="^""40"^"" To="^""65"^"" Duration="^""0:0:1"^"" Storyboard.TargetProperty="^""(Canvas.Left)"^"" AutoReverse="^""False"^""/><DoubleAnimation Storyboard.TargetProperty="^""Opacity"^"" From="^""0"^"" To="^""1"^"" Duration="^""0:0:2"^""/></Storyboard></BeginStoryboard></EventTrigger></Button.Triggers></Button></Canvas><Canvas Grid.Row="^""1"^""><Button x:Name="^""Quit"^"" Height="^""22"^"" Width="^""65"^"" Content="^""Quit"^"" ToolTip="^""Click to Exit"^"" Template="^""{StaticResource HoverOff}"^""><Button.Triggers><EventTrigger RoutedEvent="^""Loaded"^""><BeginStoryboard><Storyboard><DoubleAnimation From="^""40"^"" To="^""65"^"" Duration="^""0:0:1"^"" Storyboard.TargetProperty="^""(Canvas.Right)"^"" AutoReverse="^""False"^""/><DoubleAnimation Storyboard.TargetProperty="^""Opacity"^"" From="^""0"^"" To="^""1"^"" Duration="^""0:0:2"^""/></Storyboard></BeginStoryboard></EventTrigger></Button.Triggers></Button></Canvas></Grid><Window.TaskbarItemInfo><TaskbarItemInfo/></Window.TaskbarItemInfo></Window>';$reader=(New-Object System.Xml.XmlNodeReader $xaml);$window=[Windows.Markup.XamlReader]::Load($reader);$window.Title='ZipRipper';$bitmap=New-Object System.Windows.Media.Imaging.BitmapImage;$bitmap='%LOGO:'=''%';$window.Icon=$bitmap;$window.TaskbarItemInfo.Overlay=$bitmap;$window.TaskbarItemInfo.Description=$window.Title;$window.Add_Closing({[System.Windows.Forms.Application]::Exit();Stop-Process $pid});$b=$Window.FindName("^""Start"^"");$b.Background = "^""#333333"^"";$b.Foreground="^""#eeeeee"^"";$b.FontSize="^""12"^"";$b.FontWeight="^""Bold"^"";$b.Add_MouseEnter({$b.Background="^""#eeeeee"^"";$b.Foreground="^""#333333"^""});$b.Add_MouseLeave({$b.Background="^""#333333"^"";$b.Foreground="^""#eeeeee"^""});$b.Add_Click({write-host 'Start';Exit});$b2 = $Window.FindName("^""Quit"^"");$b2.Background="^""#333333"^"";$b2.Foreground="^""#eeeeee"^"";$b2.FontSize="^""12"^"";$b2.FontWeight="^""Bold"^"";$b2.Add_MouseEnter({$b2.Background="^""#eeeeee"^"";$b2.Foreground="^""#333333"^""});$b2.Add_MouseLeave({$b2.Background="^""#333333"^"";$b2.Foreground="^""#eeeeee"^""});$b2.Add_Click({write-host 'Quit';Exit});$window.Show();$appContext=New-Object System.Windows.Forms.ApplicationContext;[void][System.Windows.Forms.Application]::Run($appContext)"`) DO SET %1=%%#
+FOR /F "usebackq tokens=*" %%# IN (`POWERSHELL -nop -c "Add-Type -AssemblyName PresentationFramework, System.Drawing, System.Windows.Forms, WindowsFormsIntegration;[xml]$xaml='<Window xmlns="^""http://schemas.microsoft.com/winfx/2006/xaml/presentation"^"" xmlns:x="^""http://schemas.microsoft.com/winfx/2006/xaml"^"" WindowStartupLocation="^""CenterScreen"^"" WindowStyle="^""None"^"" Background="^""Transparent"^"" AllowsTransparency="^""True"^"" Width="^""285"^"" Height="^""324"^""><Window.Resources><ControlTemplate x:Key="^""NoMouseOverButtonTemplate"^"" TargetType="^""Button"^""><Border Background="^""{TemplateBinding Background}"^"" BorderBrush="^""{TemplateBinding BorderBrush}"^"" BorderThickness="^""{TemplateBinding BorderThickness}"^""><ContentPresenter HorizontalAlignment="^""{TemplateBinding HorizontalContentAlignment}"^"" VerticalAlignment="^""{TemplateBinding VerticalContentAlignment}"^""/></Border><ControlTemplate.Triggers><Trigger Property="^""IsEnabled"^"" Value="^""False"^""><Setter Property="^""Background"^"" Value="^""{x:Static SystemColors.ControlLightBrush}"^""/><Setter Property="^""Foreground"^"" Value="^""{x:Static SystemColors.GrayTextBrush}"^""/></Trigger></ControlTemplate.Triggers></ControlTemplate></Window.Resources><Grid><Grid.RowDefinitions><RowDefinition Height="^""298"^""/><RowDefinition Height="^""*"^""/></Grid.RowDefinitions><Grid.Background><ImageBrush ImageSource="^""%LOGO%"^""/></Grid.Background><Grid.Triggers><EventTrigger RoutedEvent="^""Loaded"^""><BeginStoryboard><Storyboard><DoubleAnimation Storyboard.TargetProperty="^""Background.Opacity"^"" From="^""0"^"" To="^""1"^"" Duration="^""0:0:1"^""/></Storyboard></BeginStoryboard></EventTrigger></Grid.Triggers><Canvas Grid.Row="^""0"^""><Button x:Name="^""Offline"^"" Canvas.Left="^""141"^"" Canvas.Top="^""56"^"" Height="^""16"^"" Width="^""26"^"" ToolTip="^""Create [zr-offline.txt]"^"" Template="^""{StaticResource NoMouseOverButtonTemplate}"^""/></Canvas><Canvas Grid.Row="^""1"^""><Button x:Name="^""Start"^"" Height="^""22"^"" Width="^""65"^"" Content="^""Start"^"" ToolTip="^""Click to Begin..."^"" Template="^""{StaticResource NoMouseOverButtonTemplate}"^""><Button.Triggers><EventTrigger RoutedEvent="^""Loaded"^""><BeginStoryboard><Storyboard><DoubleAnimation From="^""40"^"" To="^""65"^"" Duration="^""0:0:1"^"" Storyboard.TargetProperty="^""(Canvas.Left)"^"" AutoReverse="^""False"^""/><DoubleAnimation Storyboard.TargetProperty="^""Opacity"^"" From="^""0"^"" To="^""1"^"" Duration="^""0:0:2"^""/></Storyboard></BeginStoryboard></EventTrigger></Button.Triggers></Button></Canvas><Canvas Grid.Row="^""1"^""><Button x:Name="^""Quit"^"" Height="^""22"^"" Width="^""65"^"" Content="^""Quit"^"" ToolTip="^""Click to Exit"^"" Template="^""{StaticResource NoMouseOverButtonTemplate}"^""><Button.Triggers><EventTrigger RoutedEvent="^""Loaded"^""><BeginStoryboard><Storyboard><DoubleAnimation From="^""40"^"" To="^""65"^"" Duration="^""0:0:1"^"" Storyboard.TargetProperty="^""(Canvas.Right)"^"" AutoReverse="^""False"^""/><DoubleAnimation Storyboard.TargetProperty="^""Opacity"^"" From="^""0"^"" To="^""1"^"" Duration="^""0:0:2"^""/></Storyboard></BeginStoryboard></EventTrigger></Button.Triggers></Button></Canvas></Grid><Window.TaskbarItemInfo><TaskbarItemInfo/></Window.TaskbarItemInfo></Window>';$reader=(New-Object System.Xml.XmlNodeReader $xaml);$window=[Windows.Markup.XamlReader]::Load($reader);$window.Title='ZipRipper';$bitmap=New-Object System.Windows.Media.Imaging.BitmapImage;$bitmap='%LOGO:'=''%';$window.Icon=$bitmap;$window.TaskbarItemInfo.Overlay=$bitmap;$window.TaskbarItemInfo.Description=$window.Title;$window.Add_Closing({[System.Windows.Forms.Application]::Exit();Stop-Process $pid});$b=$Window.FindName("^""Start"^"");$b.Background = "^""#333333"^"";$b.Foreground="^""#eeeeee"^"";$b.FontSize="^""12"^"";$b.FontWeight="^""Bold"^"";$b.Add_MouseEnter({$b.Background="^""#eeeeee"^"";$b.Foreground="^""#333333"^""});$b.Add_MouseLeave({$b.Background="^""#333333"^"";$b.Foreground="^""#eeeeee"^""});$b.Add_Click({write-host 'Start';Exit});$b2=$Window.FindName("^""Quit"^"");$b2.Background="^""#333333"^"";$b2.Foreground="^""#eeeeee"^"";$b2.FontSize="^""12"^"";$b2.FontWeight="^""Bold"^"";$b2.Add_MouseEnter({$b2.Background="^""#eeeeee"^"";$b2.Foreground="^""#333333"^""});$b2.Add_MouseLeave({$b2.Background="^""#333333"^"";$b2.Foreground="^""#eeeeee"^""});$b2.Add_Click({write-host 'Quit';Exit});$b3=$Window.FindName("^""Offline"^"");$b3.Background="^""#333333"^"";$b3.Foreground="^""#eeeeee"^"";$b3.FontSize="^""12"^"";$b3.FontWeight="^""Bold"^"";$b3.Opacity="^""0"^"";$b3.Add_Click({write-host 'Offline';Exit});$window.Show();$appContext=New-Object System.Windows.Forms.ApplicationContext;[void][System.Windows.Forms.Application]::Run($appContext)"`) DO SET %1=%%#
 EXIT /b
 
 :CLEANEXIT
-REM Cleanup list of all temp files
+REM Clean all temp files\key created by ZipRipper
 RD "%ProgramData%\JtR" /S /Q>nul
 IF EXIST "%ProgramData%\zr-offline.txt" >nul 2>&1 DEL "%ProgramData%\zr-offline.txt" /F /Q
 IF EXIST "%ProgramData%\7zExtra.7z" >nul 2>&1 DEL "%ProgramData%\7zExtra.7z" /F /Q
@@ -386,6 +417,57 @@ IF EXIST "%ProgramData%\7zr.exe" >nul 2>&1 DEL "%ProgramData%\7zr.exe" /F /Q
 IF EXIST "%ProgramData%\perlportable.zip" >nul 2>&1 DEL "%ProgramData%\perlportable.zip" /F /Q
 IF EXIST "%ProgramData%\winX64_1_JtR.7z" >nul 2>&1 DEL "%ProgramData%\winX64_1_JtR.7z" /F /Q
 IF EXIST "%ProgramData%\zipripper.png" >nul 2>&1 DEL "%ProgramData%\zipripper.png" /F /Q
->nul 2>&1 REG DELETE HKCU\Software\classes\.ZipRipper\ /F &>nul 2>&1 del %ProgramData%\launcher.ZipRipper /F /Q
+IF NOT "%BUILDING%"=="1" (
+IF EXIST "%ProgramData%\CreateOffline.cmd" >nul 2>&1 DEL "%ProgramData%\CreateOffline.cmd" /F /Q
+IF EXIST "%ProgramData%\launcher.ZRlocation" >nul 2>&1 DEL "%ProgramData%\launcher.ZRlocation" /F /Q
+IF EXIST "%ProgramData%\ZR-Temp\*" >nul 2>&1 RD "%ProgramData%\ZR-Temp" /S /Q
+)
+>nul 2>&1 REG DELETE HKCU\Software\classes\.ZipRipper\ /F &>nul 2>&1 del "%ProgramData%\launcher.ZipRipper" /F /Q
 REM GOTO nowhere, self-delete %ProgramData% copy, and exit
 (GOTO) 2>nul&DEL "%~f0"/F /Q>nul&EXIT
+
+:OFFLINECREATOR
+(
+ECHO @ECHO OFF
+ECHO CALL :CHECKCONNECTION
+ECHO TITLE ^[zr-offline.txt^] ZipRipper Resource Creator
+ECHO PUSHD "%%UserProfile%%\Desktop"
+ECHO IF EXIST "%%ProgramData%%\ZR-Temp\*" ^>nul 2^>^&1 RD "%%ProgramData%%\ZR-Temp" /S /Q
+ECHO MD "%%ProgramData%%\ZR-Temp"
+ECHO PUSHD "%%ProgramData%%\ZR-Temp"
+ECHO ^<NUL set /p=Getting required dependencies, please wait...
+ECHO POWERSHELL -nop -c "Invoke-WebRequest -Uri https://www.7-zip.org/a/7zr.exe -o '%%ProgramData%%\ZR-Temp\7zr.exe';Invoke-WebRequest -Uri https://www.7-zip.org/a/7z2301-x64.exe -o '%%ProgramData%%\ZR-Temp\7z2301-x64.exe';Invoke-WebRequest -Uri https://www.7-zip.org/a/7z2300-extra.7z -o '%%ProgramData%%\ZR-Temp\7zExtra.7z';Invoke-WebRequest -Uri https://raw.githubusercontent.com/illsk1lls/ZipRipper/main/.resources/zipripper.png -o '%%ProgramData%%\ZR-Temp\zipripper.png';Start-BitsTransfer -Priority Foreground -Source https://github.com/openwall/john-packages/releases/download/jumbo-dev/winX64_1_JtR.7z -Destination '%%ProgramData%%\ZR-Temp\winX64_1_JtR.7z'";"Start-BitsTransfer -Priority Foreground -Source https://github.com/StrawberryPerl/Perl-Dist-Strawberry/releases/download/SP_5380_5361/strawberry-perl-5.38.0.1-64bit-portable.zip -Destination '%%ProgramData%%\ZR-Temp\perlportable.zip'"
+ECHO ^>nul 2^>^&1 7zr.exe x -y "%%ProgramData%%\ZR-Temp\7zExtra.7z" -o"%%ProgramData%%\ZR-Temp\"
+ECHO ^>nul 2^>^&1 7za.exe x -y "%%ProgramData%%\ZR-Temp\7z2301-x64.exe" -o"%%ProgramData%%\ZR-Temp\"
+ECHO ECHO Done
+ECHO ECHO/
+ECHO ^<NUL set /p=Building ^[zr-offline.txt^]...
+ECHO ^>nul 2^>^&1 7z a resources.exe "winX64_1_JtR.7z" "perlportable.zip" "7zr.exe" "7zExtra.7z" "zipripper.png" -sfx7zCon.sfx -pDependencies
+ECHO IF EXIST "zr-offline.txt" ^>nul 2^>^&1 DEL "zr-offline.txt" /F /Q
+ECHO ^>nul 2^>^&1 REN resources.exe zr-offline.txt
+ECHO POPD
+ECHO SET /p SAVETO=^<"%%ProgramData%%\launcher.ZRlocation"
+ECHO ^>nul 2^>^&1 MOVE /Y "%%ProgramData%%\ZR-Temp\zr-offline.txt" "%%SAVETO%%"
+ECHO ^>nul 2^>^&1 DEL "%%ProgramData%%\launcher.ZRlocation" /F /Q
+ECHO ^>nul 2^>^&1 RD "%%ProgramData%%\ZR-Temp" /S /Q
+ECHO ECHO Done
+ECHO ECHO/
+ECHO ECHO ^[zr-offline.txt^] has been created and is located in the same folder as ZipRipper. ;^^^)
+ECHO ECHO/
+ECHO ECHO Re-Launch ZipRipper with ^[zr-offline.txt^] in the same folder to enable Offline Mode...
+ECHO ECHO/
+ECHO PAUSE
+ECHO ^(GOTO^) 2^>nul^&DEL "%%~f0"/F /Q^>nul^&EXIT
+ECHO 
+ECHO :CHECKCONNECTION
+ECHO TITLE Internet Not Detected!
+ECHO PING -n 1 "google.com" ^| FINDSTR /r /c:"[0-9] *ms"^>nul
+ECHO IF NOT %%errorlevel%%==0 ^(
+ECHO 	ECHO Internet connection required to create ^[zr-offline.txt^]
+ECHO 	ECHO/
+ECHO 	PAUSE
+ECHO 	GOTO :EOF
+ECHO ^)
+ECHO EXIT /b
+)>"%ProgramData%\CreateOffline.cmd"
+EXIT /b
