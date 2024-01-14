@@ -326,7 +326,7 @@ SET "ALTNAME=%%#"
 SET ALT=0
 )
 )
-IF "%ALT%"=="1" POWERSHELL -nop -c "$^=New-Object -ComObject Wscript.Shell;$^.Popup("^""This file has been renamed since the initial session. When a password is found, the file name shown in the script window will be the initial file name.`n`nInitial file name: %ALTNAME%`n`nThe output file [ZipRipper-Passwords.txt] and the alert window will show the current file name`n`nCurrent file name: %~nx1`n`nIt is recommended you do not change the file name after the initial session to avoid confusion, but the session will resume anyway..."^"",0,'WARNING:',0x0)">nul
+IF "%ALT%"=="1" POWERSHELL -nop -c "$^=New-Object -ComObject Wscript.Shell;$^.Popup("^""This file has been renamed since the initial session. When a password is found, the file name shown in the script window will be the initial file name.`n`nInitial file name: %ALTNAME%`n`nThe output file [ZipRipper-Passwords.txt] and the GUI alert window will show the current file name.`n`nCurrent file name: %~nx1`n`nIt is recommended that you do not change the file name after the initial session to avoid confusion, but it is not a requirement, and the session is able to resume anyway..."^"",0,'WARNING: File name change detected!',0x0)">nul
 EXIT /b
 
 :HASH.ZIP
