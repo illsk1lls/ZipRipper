@@ -123,22 +123,23 @@ IF %~z1 GEQ 200000000 (
 )
 REM Check if resume is available
 SET RESUME=0
-FOR /F "usebackq skip=1 tokens=*" %%# IN (`CERTUTIL -hashfile "%~1" md5`) DO SET "MD5=%%#"&GOTO :CHECKMD5
-
-:CHECKMD5
-IF EXIST "%AppData%\ZR-InProgress\%MD5%" (
+CALL :GETMD5 %1 MD5
+SETLOCAL ENABLEDELAYEDEXPANSION
+IF EXIST "%AppData%\ZR-InProgress\!MD5!" (
+ENDLOCAL
 CALL :RESUMEDECIDE ISRESUME
 SETLOCAL ENABLEDELAYEDEXPANSION
 IF "!ISRESUME!"=="1" (
+>nul 2>&1 COPY /Y "%AppData%\ZR-InProgress\!MD5!\*.*" "%ProgramData%\JtR\run\"
 ENDLOCAL
->nul 2>&1 COPY /Y "%AppData%\ZR-InProgress\%MD5%\*.*" "%ProgramData%\JtR\run\"
 SET RESUME=1
 GOTO :STARTJTR
 ) ELSE (
+>nul 2>&1 RD "%AppData%\ZR-InProgress\!MD5!" /S /Q
 ENDLOCAL
->nul 2>&1 RD "%AppData%\ZR-InProgress\%MD5%" /S /Q
 )
 )
+ENDLOCAL
 SET ZIP2=0
 SET PROTECTED=1
 SET /A HSIZE=0
@@ -172,7 +173,9 @@ IF !POTSIZE! GEQ 1 (
 	ENDLOCAL
 	SET FOUND=1
 	CALL :SAVEFILE %1
-	IF EXIST "%AppData%\ZR-InProgress\%MD5%" >nul 2>&1 RD "%AppData%\ZR-InProgress\%MD5%" /S /Q
+	SETLOCAL ENABLEDELAYEDEXPANSION
+	IF EXIST "%AppData%\ZR-InProgress\!MD5!" >nul 2>&1 RD "%AppData%\ZR-InProgress\!MD5!" /S /Q
+	ENDLOCAL
 	ECHO/
 	ECHO Passwords saved to: "%UserProfile%\Desktop\ZipRipper-Passwords.txt"
 ) ELSE (
@@ -197,23 +200,26 @@ PAUSE
 POPD
 CALL :CLEANEXIT
 
+:GETMD5
+FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "$md5=New-Object -TypeName System.Security.Cryptography.MD5CryptoServiceProvider;$^=[System.BitConverter]::ToString($md5.ComputeHash([System.IO.File]::ReadAllBytes('%~1')));$^.Replace('-','').ToLower()"`) DO SET %2=%%#
+EXIT /b
+
 :RESUMEDECIDE
 FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "$^=New-Object -ComObject Wscript.Shell;$^.Popup('Click OK to resume, or Cancel to remove the saved job and start over',0,'There is a job in progress for this file!',0x1)"`) DO SET %1=%%#
 EXIT /b
 
 :SETRESUME
-FOR /F "usebackq skip=1 tokens=*" %%# IN (`CERTUTIL -hashfile "%~1" md5`) DO SET "MD5=%%#"&GOTO :RESUMESET
-
-:RESUMESET
 IF NOT EXIST "%ProgramData%\JtR\run\john.rec" (
 	ECHO Resume is UNAVAILABLE for this file ;^(
 ) ELSE (
 	ECHO Resume is available for the next session...
-	IF NOT EXIST "%AppData%\ZR-InProgress\%MD5%" MD "%AppData%\ZR-InProgress\%MD5%"
-	>nul 2>&1 MOVE /Y "%ProgramData%\JtR\run\pwhash" "%AppData%\ZR-InProgress\%MD5%"
-	>nul 2>&1 MOVE /Y "%ProgramData%\JtR\run\john.pot" "%AppData%\ZR-InProgress\%MD5%"
-	>nul 2>&1 MOVE /Y "%ProgramData%\JtR\run\john.rec" "%AppData%\ZR-InProgress\%MD5%"
-	>nul 2>&1 MOVE /Y "%ProgramData%\JtR\run\john.log" "%AppData%\ZR-InProgress\%MD5%"
+	SETLOCAL ENABLEDELAYEDEXPANSION
+	IF NOT EXIST "%AppData%\ZR-InProgress\!MD5!" MD "%AppData%\ZR-InProgress\!MD5!"
+	>nul 2>&1 MOVE /Y "%ProgramData%\JtR\run\pwhash" "%AppData%\ZR-InProgress\!MD5!"
+	>nul 2>&1 MOVE /Y "%ProgramData%\JtR\run\john.pot" "%AppData%\ZR-InProgress\!MD5!"
+	>nul 2>&1 MOVE /Y "%ProgramData%\JtR\run\john.rec" "%AppData%\ZR-InProgress\!MD5!"
+	>nul 2>&1 MOVE /Y "%ProgramData%\JtR\run\john.log" "%AppData%\ZR-InProgress\!MD5!"
+	ENDLOCAL
 )
 EXIT /b
 
