@@ -201,7 +201,8 @@ POPD
 CALL :CLEANEXIT
 
 :GETMD5
-FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "$md5=New-Object -TypeName System.Security.Cryptography.MD5CryptoServiceProvider;$^=[System.BitConverter]::ToString($md5.ComputeHash([System.IO.File]::ReadAllBytes('%~1')));$^.Replace('-','').ToLower()"`) DO SET %2=%%#
+SET "MD5FILE=%~1"
+FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "$^=Resolve-Path '%MD5FILE:'=''%';$md5=new-object -TypeName System.Security.Cryptography.MD5CryptoServiceProvider;$f=[System.IO.File]::Open($^,[System.IO.Filemode]::Open,[System.IO.FileAccess]::Read);try{[System.BitConverter]::ToString($md5.ComputeHash($f)).Replace('-','').ToLower()}finally{$f.Dispose()}"`) DO SET %2=%%#
 EXIT /b
 
 :RESUMEDECIDE
