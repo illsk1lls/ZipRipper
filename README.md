@@ -19,6 +19,11 @@ $${\color{yellow}2.) \space Wait \space for \space password..}$$<br>
 When a password is found an alert window will appear, and the password(s) will be<br>
 saved to the users desktop as: ZipRipper-Passwords.txt
 
+*If the script is interrupted normally (by pressing the 'q' key to quit), resume will be enabled<br>.*
+*An MD5 hash is created for each job, that is used to store the resume data, in: %AppData%\ZR-InProgress\[MD5HASH]<br>*
+*to ensure multiple files with the same name can have InProgress jobs simultaneously. If a pending job is found the<br>*
+*user is presented with the options of either resuming the job, or bypassing the resume feature and starting a new job.<br>*
+
 Current version provides support for hardware acceleration via OpenCL for:<br>
 nVidia "GeForce" & "Quadro" and AMD "Radeon RX" & "Radeon Pro" cards.<br>
 
@@ -36,3 +41,5 @@ The file can be created by using Create-ZR-Offline.cmd, located in the .resource
 **Offline mode can be enabled by putting [zr-offline.txt] in the same folder as the ZipRipper before launch.**<br>
 **[zr-offline.txt] creator:** <a href="https://github.com/illsk1lls/ZipRipper/blob/main/.resources/Create-ZR-Offline.cmd">https://github.com/illsk1lls/ZipRipper/blob/main/.resources/Create-ZR-Offline.cmd</a><br>
 **[zr-offline.txt] archive:** <a href="https://github.com/illsk1lls/ZipRipper/raw/main/.resources/zr-offline.txt?download=">https://github.com/illsk1lls/ZipRipper/raw/main/.resources/zr-offline.txt?download=</a><br>
+
+*UNC Paths are not supported. Mapped network drives are supported.*
