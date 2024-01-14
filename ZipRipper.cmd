@@ -132,6 +132,7 @@ IF EXIST "%AppData%\ZR-InProgress\!MD5!" (
 	IF "!ISRESUME!"=="1" (
 		>nul 2>&1 COPY /Y "%AppData%\ZR-InProgress\!MD5!\*.*" "%ProgramData%\JtR\run\"
 		ENDLOCAL
+		CALL :CHECKRESUMENAME %1
 		SET RESUME=1
 		GOTO :STARTJTR
 	) ELSE (
@@ -157,7 +158,7 @@ ECHO Running JohnTheRipper...
 ECHO/
 REM Start JtR
 IF "%RESUME%"=="1" (
-	ECHO Resuming Job...
+	ECHO Resuming Session...
 	ECHO/
 	john --restore
 ) ELSE (
@@ -255,7 +256,7 @@ FOR %%# IN (%NEEDED%) DO (
 	IF NOT EXIST "%~dp0%%#" SET EXTRACT=1
 )
 IF "%EXTRACT%"=="1" (
-	<NUL set /p=Getting Tools Ready...
+	<NUL set /p=Offline mode enabled, preparing resources...
 	REN "%ProgramData%\zr-offline.txt" .resources.exe>nul
 	"%ProgramData%\.resources" -y -pDependencies -o"%ProgramData%">nul
 	REN "%ProgramData%\.resources.exe" zr-offline.txt>nul
@@ -314,6 +315,18 @@ FOR /F "usebackq skip=1 tokens=2,3" %%# IN (`WMIC path Win32_VideoController get
 REM Check if OpenCL is available
 	IF NOT EXIST "%WinDir%\System32\OpenCL.dll" SET GPU=0
 )
+EXIT /b
+
+:CHECKRESUMENAME
+FOR /F "usebackq tokens=1 delims=:/" %%# IN (pwhash) DO (
+IF NOT "%~nx1"=="%%#" (
+SET ALT=1
+SET "ALTNAME=%%#"
+) ELSE (
+SET ALT=0
+)
+)
+IF "%ALT%"=="1" POWERSHELL -nop -c "$^=New-Object -ComObject Wscript.Shell;$^.Popup("^""This file has been renamed since the initial session. When a password is found, the file name shown in the script window will be the initial file name.`n`nInitial file name: %ALTNAME%`n`nThe output file [ZipRipper-Passwords.txt] and the alert window will show the current file name`n`nCurrent file name: %~nx1`n`nIt is recommended you do not change the file name after the initial session to avoid confusion, but the session will resume anyway..."^"",0,'WARNING:',0x0)">nul
 EXIT /b
 
 :HASH.ZIP
