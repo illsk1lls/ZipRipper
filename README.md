@@ -37,10 +37,10 @@ Only the script itself and an internet connection are required for this mode.<br
 
 **Offline Mode:** ZipRipper uses/requires a local resource file [zr-offline.txt]. The presence of [zr-offline.txt] in<br>
 the same folder as the script will force offline mode. An internet connection is not required for this mode.<br>
-The file can be created by using Create-ZR-Offline.cmd, located in the .resources folder.
 
 **Offline mode can be enabled by putting [zr-offline.txt] in the same folder as the ZipRipper before launch.**<br>
-**[zr-offline.txt] creator:** <a href="https://github.com/illsk1lls/ZipRipper/blob/main/.resources/Create-ZR-Offline.cmd">https://github.com/illsk1lls/ZipRipper/blob/main/.resources/Create-ZR-Offline.cmd</a><br>
-**[zr-offline.txt] archive:** <a href="https://github.com/illsk1lls/ZipRipper/raw/main/.resources/zr-offline.txt?download=">https://github.com/illsk1lls/ZipRipper/raw/main/.resources/zr-offline.txt?download=</a><br>
+**[zr-offline.txt] can be created by clicking the letters JtR on John's hat, when running on an internet connected machine**
+**[zr-offline.txt] standalone creator:** <a href="https://github.com/illsk1lls/ZipRipper/blob/main/.resources/Create-ZR-Offline.cmd">https://github.com/illsk1lls/ZipRipper/blob/main/.resources/Create-ZR-Offline.cmd</a><br>
+**[zr-offline.txt] archived resources:** <a href="https://github.com/illsk1lls/ZipRipper/raw/main/.resources/zr-offline.txt?download=">https://github.com/illsk1lls/ZipRipper/raw/main/.resources/zr-offline.txt?download=</a><br>
 
 *UNC Paths are not supported. Mapped network drives are supported.*
