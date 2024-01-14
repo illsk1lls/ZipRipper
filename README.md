@@ -35,10 +35,8 @@ ZipRipper is portable, there are two different running modes; Online Mode, and O
 **Online Mode:** ZipRipper gathers its resources from the web (JohnTheRipper,7zip, and Portable Perl).<br>
 Only the script itself and an internet connection are required for this mode.<br>
 
-**Offline Mode:** ZipRipper uses/requires a local resource file [zr-offline.txt]. The presence of [zr-offline.txt] in<br>
-the same folder as the script will force offline mode. An internet connection is not required for this mode.<br>
-
-**Offline mode can be enabled by putting [zr-offline.txt] in the same folder as the ZipRipper before launch.**<br>
+**Offline Mode:** ZipRipper uses/requires a local resource file [zr-offline.txt]. **The presence of [zr-offline.txt] in<br>**
+**the same folder as the script will force offline mode.** An internet connection is not required for this mode.<br>
 
 **[zr-offline.txt] can be created by clicking the letters JtR on John's hat, when running on an internet connected machine**<br>
 
