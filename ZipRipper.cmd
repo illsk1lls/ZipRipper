@@ -58,9 +58,9 @@ CALL :CENTERWINDOW
 REM Check if zr-offline.txt is present, if not run in online mode later
 IF "%OFFLINE%"=="1" CALL :OFFLINEMODE
 IF "%~1"=="" (
-TITLE GUI LOADER
-ECHO USE THE GUI TO PROCEED
-SETLOCAL ENABLEDELAYEDEXPANSION
+	TITLE GUI LOADER
+	ECHO USE THE GUI TO PROCEED
+	SETLOCAL ENABLEDELAYEDEXPANSION
 
 :MAIN
 	REM Show logo and start/quit buttons
@@ -126,18 +126,18 @@ SET RESUME=0
 CALL :GETMD5 %1 MD5
 SETLOCAL ENABLEDELAYEDEXPANSION
 IF EXIST "%AppData%\ZR-InProgress\!MD5!" (
-ENDLOCAL
-CALL :RESUMEDECIDE ISRESUME
-SETLOCAL ENABLEDELAYEDEXPANSION
-IF "!ISRESUME!"=="1" (
->nul 2>&1 COPY /Y "%AppData%\ZR-InProgress\!MD5!\*.*" "%ProgramData%\JtR\run\"
-ENDLOCAL
-SET RESUME=1
-GOTO :STARTJTR
-) ELSE (
->nul 2>&1 RD "%AppData%\ZR-InProgress\!MD5!" /S /Q
-ENDLOCAL
-)
+	ENDLOCAL
+	CALL :RESUMEDECIDE ISRESUME
+	SETLOCAL ENABLEDELAYEDEXPANSION
+	IF "!ISRESUME!"=="1" (
+		>nul 2>&1 COPY /Y "%AppData%\ZR-InProgress\!MD5!\*.*" "%ProgramData%\JtR\run\"
+		ENDLOCAL
+		SET RESUME=1
+		GOTO :STARTJTR
+	) ELSE (
+		>nul 2>&1 RD "%AppData%\ZR-InProgress\!MD5!" /S /Q
+		ENDLOCAL
+	)
 )
 ENDLOCAL
 SET ZIP2=0
@@ -157,13 +157,13 @@ ECHO Running JohnTheRipper...
 ECHO/
 REM Start JtR
 IF "%RESUME%"=="1" (
-ECHO Resuming Job...
-ECHO/
-john --restore
+	ECHO Resuming Job...
+	ECHO/
+	john --restore
 ) ELSE (
-SETLOCAL ENABLEDELAYEDEXPANSION
-john "%ProgramData%\JtR\run\pwhash" !FLAG!
-ENDLOCAL
+	SETLOCAL ENABLEDELAYEDEXPANSION
+	john "%ProgramData%\JtR\run\pwhash" !FLAG!
+	ENDLOCAL
 )
 REM Check for found passwords
 CALL :GETSIZE "%ProgramData%\JtR\run\john.pot" POTSIZE
