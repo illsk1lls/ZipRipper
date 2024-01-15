@@ -163,7 +163,7 @@ IF "%RESUME%"=="1" (
 	john --restore
 ) ELSE (
 	SETLOCAL ENABLEDELAYEDEXPANSION
-	john "%ProgramData%\JtR\run\pwhash" !FLAG!
+	john "%ProgramData%\JtR\run\pwhash" --wordlist="%ProgramData%\JtR\run\password.lst" --rules=single,all !FLAG!
 	ENDLOCAL
 )
 REM Check for found passwords
@@ -321,12 +321,13 @@ EXIT /b
 FOR /F "usebackq tokens=1 delims=:/" %%# IN (pwhash) DO (
 IF NOT "%~nx1"=="%%#" (
 SET ALT=1
-SET "ALTNAME=%%#"
+SET "OLDNAME=%%#"
 ) ELSE (
 SET ALT=0
 )
 )
-IF "%ALT%"=="1" POWERSHELL -nop -c "$^=New-Object -ComObject Wscript.Shell;$^.Popup("^""This file has been renamed since the initial session. When a password is found, the file name shown in the script window will be the initial file name.`n`nInitial file name: %ALTNAME%`n`nThe output file [ZipRipper-Passwords.txt] and the GUI alert window will show the current file name.`n`nCurrent file name: %~nx1`n`nIt is recommended that you do not change the file name after the initial session to avoid confusion, but it is not a requirement, and the session is able to resume anyway..."^"",0,'WARNING: File name change detected!',0x0)">nul
+SET "NEWNAME=%~nx1"
+IF "%ALT%"=="1" POWERSHELL -nop -c "$^=New-Object -ComObject Wscript.Shell;$^.Popup("^""This file has been renamed since the initial session. The filename will be updated in the saved session data.`n`nInitial file name: %OLDNAME%`n`nCurrent file name: %~nx1`n`nIt is recommended that you do not change the file name after the initial session to avoid potential issues, but it is not a requirement, and the session is able to resume anyway..."^"",0,'WARNING: File name change detected!',0x0);$update=[System.IO.File]::ReadAllText('%ProgramData%\JtR\run\pwhash').Replace('%OLDNAME:'=''%','%NEWNAME:'=''%');[System.IO.File]::WriteAllText('%ProgramData%\JtR\run\pwhash', $update)">nul
 EXIT /b
 
 :HASH.ZIP
