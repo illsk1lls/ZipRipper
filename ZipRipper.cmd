@@ -420,6 +420,7 @@ IF "%ZIP2%"=="1" (
 EXIT /b
 
 :DISPLAYINFOA
+
 ENDLOCAL
 (
 	TYPE "%UserProfile%\Desktop\ZipRipper-Passwords.txt"
