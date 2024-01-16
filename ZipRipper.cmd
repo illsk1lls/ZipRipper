@@ -29,10 +29,9 @@ IF NOT EXIST "%~dp0zr-offline.txt" (
 	CALL :CHECKCONNECTION
 )
 REM Copy to %ProgramData% and relaunch, request Admin if not, Generates UAC prompt
-CD.>"%ProgramData%\launcher.ZipRipper"
 >nul 2>&1 REG ADD HKCU\Software\classes\.ZipRipper\shell\runas\command /f /ve /d "CMD /x /d /r SET \"f0=1\"&CALL \"%%2\" %%3"
 IF /I NOT "%~dp0" == "%ProgramData%\" (
-	ECHO "%~dp0">"%ProgramData%\launcher.ZRlocation"
+	ECHO "%~dp0">"%ProgramData%\launcher.ZipRipper"
 	>nul 2>&1 COPY /Y "%~f0" "%ProgramData%"
 	IF EXIST "%~dp0zr-offline.txt" (
 		>nul 2>&1 COPY /Y "%~dp0zr-offline.txt" "%ProgramData%"
@@ -490,10 +489,10 @@ IF EXIST "%ProgramData%\winX64_1_JtR.7z" >nul 2>&1 DEL "%ProgramData%\winX64_1_J
 IF EXIST "%ProgramData%\zipripper.png" >nul 2>&1 DEL "%ProgramData%\zipripper.png" /F /Q
 IF NOT "%BUILDING%"=="1" (
 IF EXIST "%ProgramData%\CreateOffline.cmd" >nul 2>&1 DEL "%ProgramData%\CreateOffline.cmd" /F /Q
-IF EXIST "%ProgramData%\launcher.ZRlocation" >nul 2>&1 DEL "%ProgramData%\launcher.ZRlocation" /F /Q
+IF EXIST "%ProgramData%\launcher.ZipRipper" >nul 2>&1 DEL "%ProgramData%\launcher.ZipRipper" /F /Q
 IF EXIST "%ProgramData%\ZR-Temp\*" >nul 2>&1 RD "%ProgramData%\ZR-Temp" /S /Q
 )
->nul 2>&1 REG DELETE HKCU\Software\classes\.ZipRipper\ /F &>nul 2>&1 del "%ProgramData%\launcher.ZipRipper" /F /Q
+>nul 2>&1 REG DELETE HKCU\Software\classes\.ZipRipper\ /F
 REM GOTO nowhere, self-delete %ProgramData% copy, and exit
 (GOTO) 2>nul&DEL "%~f0"/F /Q>nul&EXIT
 
@@ -517,9 +516,9 @@ ECHO ^>nul 2^>^&1 7z a resources.exe "winX64_1_JtR.7z" "perlportable.zip" "7zr.e
 ECHO IF EXIST "zr-offline.txt" ^>nul 2^>^&1 DEL "zr-offline.txt" /F /Q
 ECHO ^>nul 2^>^&1 REN resources.exe zr-offline.txt
 ECHO POPD
-ECHO SET /p SAVETO=^<"%%ProgramData%%\launcher.ZRlocation"
+ECHO SET /p SAVETO=^<"%%ProgramData%%\launcher.ZipRipper"
 ECHO ^>nul 2^>^&1 MOVE /Y "%%ProgramData%%\ZR-Temp\zr-offline.txt" "%%SAVETO%%"
-ECHO ^>nul 2^>^&1 DEL "%%ProgramData%%\launcher.ZRlocation" /F /Q
+ECHO ^>nul 2^>^&1 DEL "%%ProgramData%%\launcher.ZipRipper" /F /Q
 ECHO ^>nul 2^>^&1 RD "%%ProgramData%%\ZR-Temp" /S /Q
 ECHO ECHO Done
 ECHO ECHO/
