@@ -498,7 +498,14 @@ REM GOTO nowhere, self-delete %ProgramData% copy, and exit
 :OFFLINECREATOR
 (
 ECHO @ECHO OFF
-ECHO CALL :CHECKCONNECTION
+ECHO PING -n 1 "google.com" ^| FINDSTR /r /c:"[0-9] *ms"^>nul
+ECHO IF NOT %%errorlevel%%==0 ^(
+ECHO 	TITLE Internet Not Detected!
+ECHO 	ECHO Internet connection required to create ^[zr-offline.txt^]
+ECHO 	ECHO/
+ECHO 	PAUSE
+ECHO 	GOTO :EOF
+ECHO ^)
 ECHO TITLE ^[zr-offline.txt^] ZipRipper Resource Creator
 ECHO PUSHD "%%UserProfile%%\Desktop"
 ECHO IF EXIST "%%ProgramData%%\ZR-Temp\*" ^>nul 2^>^&1 RD "%%ProgramData%%\ZR-Temp" /S /Q
@@ -527,16 +534,5 @@ ECHO ECHO Re-Launch ZipRipper with ^[zr-offline.txt^] in the same folder to enab
 ECHO ECHO/
 ECHO PAUSE
 ECHO ^(GOTO^) 2^>nul^&DEL "%%~f0"/F /Q^>nul^&EXIT
-ECHO 
-ECHO :CHECKCONNECTION
-ECHO TITLE Internet Not Detected!
-ECHO PING -n 1 "google.com" ^| FINDSTR /r /c:"[0-9] *ms"^>nul
-ECHO IF NOT %%errorlevel%%==0 ^(
-ECHO 	ECHO Internet connection required to create ^[zr-offline.txt^]
-ECHO 	ECHO/
-ECHO 	PAUSE
-ECHO 	GOTO :EOF
-ECHO ^)
-ECHO EXIT /b
 )>"%ProgramData%\CreateOffline.cmd"
 EXIT /b
