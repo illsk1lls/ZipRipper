@@ -63,7 +63,8 @@ function Build () {
 	$TextBlock.Text=" Building zr-offline.txt... "
 	Update-Gui
 	.\ZR-Builder\7z.exe a '.\ZR-Builder\resources.exe' '.\ZR-Builder\winX64_1_JtR.7z' '.\ZR-Builder\perlportable.zip' '.\ZR-Builder\7zr.exe' '.\ZR-Builder\7zExtra.7z' '.\ZR-Builder\zipripper.png' -sfx'.\ZR-Builder\7zCon.sfx' -pDependencies
-	Move-Item -Path ".\ZR-Builder\resources.exe" -Destination ".\zr-offline.txt" -Force
+	$opath=(gc $env:ProgramData\launcher.ZipRipper)
+ 	Move-Item -Path ".\ZR-Builder\resources.exe" -Destination $opath + "zr-offline.txt" -Force
 	$progressBarTotal.Value = 100
 	$progressBar.Value = 100
 	$TextBlock.Text=" Build Completed!"
