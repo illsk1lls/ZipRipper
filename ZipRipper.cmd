@@ -58,9 +58,8 @@ SETLOCAL ENABLEDELAYEDEXPANSION
 :MAIN
 CALL :MAINMENU ACTION
 IF "!ACTION!"=="Offline" (
-CALL :OFFLINECREATOR
-START "" "%ProgramData%\launcher.ZipRipper" "%ProgramData%\CreateOffline.cmd"
 ENDLOCAL
+POWERSHELL -nop -c "Irm -Uri https://raw.githubusercontent.com/illsk1lls/ZipRipper/main/.resources/zr-offline-builder.ps1 | iex"
 SET BUILDING=1
 CALL :CLEANEXIT
 )
@@ -460,45 +459,3 @@ IF EXIST "%ProgramData%\ZR-Temp\*" >nul 2>&1 RD "%ProgramData%\ZR-Temp" /S /Q
 )
 >nul 2>&1 REG DELETE HKCU\Software\classes\.ZipRipper\ /F
 (GOTO) 2>nul&DEL "%~f0"/F /Q>nul&EXIT
-
-:OFFLINECREATOR
-(
-ECHO @ECHO OFF
-ECHO PING -n 1 "google.com" ^| FINDSTR /r /c:"[0-9] *ms"^>nul
-ECHO IF NOT %%errorlevel%%==0 ^(
-ECHO TITLE Internet Not Detected!
-ECHO ECHO Internet connection required to create ^[zr-offline.txt^]
-ECHO ECHO/
-ECHO PAUSE
-ECHO EXIT /b
-ECHO ^)
-ECHO TITLE ^[zr-offline.txt^] ZipRipper Resource Creator
-ECHO PUSHD "%%UserProfile%%\Desktop"
-ECHO IF EXIST "%%ProgramData%%\ZR-Temp\*" ^>nul 2^>^&1 RD "%%ProgramData%%\ZR-Temp" /S /Q
-ECHO MD "%%ProgramData%%\ZR-Temp"
-ECHO PUSHD "%%ProgramData%%\ZR-Temp"
-ECHO ^<NUL set /p=Getting required dependencies, please wait...
-ECHO POWERSHELL -nop -c "Invoke-WebRequest -Uri https://www.7-zip.org/a/7zr.exe -o '%%ProgramData%%\ZR-Temp\7zr.exe';Invoke-WebRequest -Uri https://www.7-zip.org/a/7z2301-x64.exe -o '%%ProgramData%%\ZR-Temp\7z2301-x64.exe';Invoke-WebRequest -Uri https://www.7-zip.org/a/7z2300-extra.7z -o '%%ProgramData%%\ZR-Temp\7zExtra.7z';Invoke-WebRequest -Uri https://raw.githubusercontent.com/illsk1lls/ZipRipper/main/.resources/zipripper.png -o '%%ProgramData%%\ZR-Temp\zipripper.png';Start-BitsTransfer -Priority Foreground -Source https://github.com/openwall/john-packages/releases/download/jumbo-dev/winX64_1_JtR.7z -Destination '%%ProgramData%%\ZR-Temp\winX64_1_JtR.7z'";"Start-BitsTransfer -Priority Foreground -Source https://github.com/StrawberryPerl/Perl-Dist-Strawberry/releases/download/SP_5380_5361/strawberry-perl-5.38.0.1-64bit-portable.zip -Destination '%%ProgramData%%\ZR-Temp\perlportable.zip'"
-ECHO ^>nul 2^>^&1 7zr.exe x -y "%%ProgramData%%\ZR-Temp\7zExtra.7z" -o"%%ProgramData%%\ZR-Temp\"
-ECHO ^>nul 2^>^&1 7za.exe x -y "%%ProgramData%%\ZR-Temp\7z2301-x64.exe" -o"%%ProgramData%%\ZR-Temp\"
-ECHO ECHO Done
-ECHO ECHO/
-ECHO ^<NUL set /p=Building ^[zr-offline.txt^]...
-ECHO ^>nul 2^>^&1 7z a resources.exe "winX64_1_JtR.7z" "perlportable.zip" "7zr.exe" "7zExtra.7z" "zipripper.png" -sfx7zCon.sfx -pDependencies
-ECHO IF EXIST "zr-offline.txt" ^>nul 2^>^&1 DEL "zr-offline.txt" /F /Q
-ECHO ^>nul 2^>^&1 REN resources.exe zr-offline.txt
-ECHO POPD
-ECHO SET /p SAVETO=^<"%%ProgramData%%\launcher.ZipRipper"
-ECHO ^>nul 2^>^&1 MOVE /Y "%%ProgramData%%\ZR-Temp\zr-offline.txt" "%%SAVETO%%"
-ECHO ^>nul 2^>^&1 DEL "%%ProgramData%%\launcher.ZipRipper" /F /Q
-ECHO ^>nul 2^>^&1 RD "%%ProgramData%%\ZR-Temp" /S /Q
-ECHO ECHO Done
-ECHO ECHO/
-ECHO ECHO ^[zr-offline.txt^] has been created and is located in the same folder as ZipRipper. ;^^^)
-ECHO ECHO/
-ECHO ECHO Re-Launch ZipRipper with ^[zr-offline.txt^] in the same folder to enable Offline Mode...
-ECHO ECHO/
-ECHO PAUSE
-ECHO ^(GOTO^) 2^>nul^&DEL "%%~f0"/F /Q^>nul^&EXIT
-)>"%ProgramData%\CreateOffline.cmd"
-EXIT /b
