@@ -57,21 +57,12 @@ SETLOCAL ENABLEDELAYEDEXPANSION
 
 :MAIN
 CALL :MAINMENU ACTION
-IF "!ACTION!"=="Offline" (
-CALL :OFFLINECREATOR
-START "" "%ProgramData%\launcher.ZipRipper" "%ProgramData%\CreateOffline.cmd"
-ENDLOCAL
-SET BUILDING=1
-CALL :CLEANEXIT
-)
 IF NOT "!ACTION!"=="Start" (
 ENDLOCAL
 CALL :CLEANEXIT
 )
 CALL :GETFILE FILENAME
-IF NOT EXIST !FILENAME! (
-GOTO :MAIN
-)
+IF NOT EXIST !FILENAME! GOTO :MAIN
 >nul 2>&1 DEL "!LOGO!" /F /Q
 START "Loading, Please Wait..." "%ProgramData%\launcher.ZipRipper" "%ProgramData%\%~nx0" "!FILENAME:"=""!"
 >nul 2>&1 REG DELETE HKCU\Software\classes\.ZipRipper\ /F &>nul 2>&1 del %ProgramData%\launcher.ZipRipper /F /Q
@@ -442,7 +433,7 @@ SET "LOGO=%ProgramData%\zipripper.png"
 IF NOT EXIST "%LOGO%" (
 IF "%OFFLINE%"=="0" POWERSHELL -nop -c "Invoke-RestMethod -Uri https://raw.githubusercontent.com/illsk1lls/ZipRipper/main/.resources/zipripper.png -o '%LOGO:'=''%'"
 )
-FOR /F "usebackq tokens=*" %%# IN (`POWERSHELL -nop -c "Add-Type -AssemblyName PresentationFramework, System.Drawing, System.Windows.Forms, WindowsFormsIntegration;[xml]$xaml='<Window xmlns="^""http://schemas.microsoft.com/winfx/2006/xaml/presentation"^"" xmlns:x="^""http://schemas.microsoft.com/winfx/2006/xaml"^"" WindowStartupLocation="^""CenterScreen"^"" WindowStyle="^""None"^"" Background="^""Transparent"^"" AllowsTransparency="^""True"^"" Width="^""285"^"" Height="^""324"^""><Window.Resources><ControlTemplate x:Key="^""NoMouseOverButtonTemplate"^"" TargetType="^""Button"^""><Border Background="^""{TemplateBinding Background}"^"" BorderBrush="^""{TemplateBinding BorderBrush}"^"" BorderThickness="^""{TemplateBinding BorderThickness}"^""><ContentPresenter HorizontalAlignment="^""{TemplateBinding HorizontalContentAlignment}"^"" VerticalAlignment="^""{TemplateBinding VerticalContentAlignment}"^""/></Border><ControlTemplate.Triggers><Trigger Property="^""IsEnabled"^"" Value="^""False"^""><Setter Property="^""Background"^"" Value="^""{x:Static SystemColors.ControlLightBrush}"^""/><Setter Property="^""Foreground"^"" Value="^""{x:Static SystemColors.GrayTextBrush}"^""/></Trigger></ControlTemplate.Triggers></ControlTemplate></Window.Resources><Grid><Grid.RowDefinitions><RowDefinition Height="^""298"^""/><RowDefinition Height="^""*"^""/></Grid.RowDefinitions><Grid.Background><ImageBrush ImageSource="^""%LOGO%"^""/></Grid.Background><Grid.Triggers><EventTrigger RoutedEvent="^""Loaded"^""><BeginStoryboard><Storyboard><DoubleAnimation Storyboard.TargetProperty="^""Background.Opacity"^"" From="^""0"^"" To="^""1"^"" Duration="^""0:0:1"^""/></Storyboard></BeginStoryboard></EventTrigger></Grid.Triggers><Canvas Grid.Row="^""0"^""><Button x:Name="^""Offline"^"" Canvas.Left="^""141"^"" Canvas.Top="^""56"^"" Height="^""16"^"" Width="^""26"^"" ToolTip="^""Create [zr-offline.txt]"^"" Template="^""{StaticResource NoMouseOverButtonTemplate}"^""/><Button x:Name="^""Cleanup"^"" Canvas.Left="^""138"^"" Canvas.Top="^""154"^"" Height="^""20"^"" Width="^""20"^"" ToolTip="^""Clear Resume Cache"^"" Template="^""{StaticResource NoMouseOverButtonTemplate}"^""/></Canvas><Canvas Grid.Row="^""1"^""><Button x:Name="^""Start"^"" Height="^""22"^"" Width="^""65"^"" Content="^""Start"^"" ToolTip="^""Click to Begin..."^"" Template="^""{StaticResource NoMouseOverButtonTemplate}"^""><Button.Triggers><EventTrigger RoutedEvent="^""Loaded"^""><BeginStoryboard><Storyboard><DoubleAnimation From="^""40"^"" To="^""65"^"" Duration="^""0:0:1"^"" Storyboard.TargetProperty="^""(Canvas.Left)"^"" AutoReverse="^""False"^""/><DoubleAnimation Storyboard.TargetProperty="^""Opacity"^"" From="^""0"^"" To="^""1"^"" Duration="^""0:0:2"^""/></Storyboard></BeginStoryboard></EventTrigger></Button.Triggers></Button></Canvas><Canvas Grid.Row="^""1"^""><Button x:Name="^""Quit"^"" Height="^""22"^"" Width="^""65"^"" Content="^""Quit"^"" ToolTip="^""Click to Exit"^"" Template="^""{StaticResource NoMouseOverButtonTemplate}"^""><Button.Triggers><EventTrigger RoutedEvent="^""Loaded"^""><BeginStoryboard><Storyboard><DoubleAnimation From="^""40"^"" To="^""65"^"" Duration="^""0:0:1"^"" Storyboard.TargetProperty="^""(Canvas.Right)"^"" AutoReverse="^""False"^""/><DoubleAnimation Storyboard.TargetProperty="^""Opacity"^"" From="^""0"^"" To="^""1"^"" Duration="^""0:0:2"^""/></Storyboard></BeginStoryboard></EventTrigger></Button.Triggers></Button></Canvas></Grid><Window.TaskbarItemInfo><TaskbarItemInfo/></Window.TaskbarItemInfo></Window>';$reader=(New-Object System.Xml.XmlNodeReader $xaml);$window=[Windows.Markup.XamlReader]::Load($reader);$window.Title='ZipRipper';$bitmap=New-Object System.Windows.Media.Imaging.BitmapImage;$bitmap='%LOGO:'=''%';$window.Icon=$bitmap;$window.TaskbarItemInfo.Overlay=$bitmap;$window.TaskbarItemInfo.Description=$window.Title;$window.Add_Closing({[System.Windows.Forms.Application]::Exit();Stop-Process $pid});$b=$Window.FindName("^""Start"^"");$b.Background = "^""#333333"^"";$b.Foreground="^""#eeeeee"^"";$b.FontSize="^""12"^"";$b.FontWeight="^""Bold"^"";$b.Add_MouseEnter({$b.Background="^""#eeeeee"^"";$b.Foreground="^""#333333"^""});$b.Add_MouseLeave({$b.Background="^""#333333"^"";$b.Foreground="^""#eeeeee"^""});$b.Add_Click({write-host 'Start';Exit});$b2=$Window.FindName("^""Quit"^"");$b2.Background="^""#333333"^"";$b2.Foreground="^""#eeeeee"^"";$b2.FontSize="^""12"^"";$b2.FontWeight="^""Bold"^"";$b2.Add_MouseEnter({$b2.Background="^""#eeeeee"^"";$b2.Foreground="^""#333333"^""});$b2.Add_MouseLeave({$b2.Background="^""#333333"^"";$b2.Foreground="^""#eeeeee"^""});$b2.Add_Click({write-host 'Quit';Exit});$b3=$Window.FindName("^""Offline"^"");$b3.Opacity="^""0"^"";$b3.Add_Click({$b3m=New-Object -ComObject Wscript.Shell;$b3a=$b3m.Popup("^""Close the script and create [zr-offline.txt]?"^"",0,'Create Resource File',0x1);if($b3a -eq 1){write-host 'Offline';Exit}});$b4=$Window.FindName("^""Cleanup"^"");$b4.Opacity="^""0"^"";$b4.Add_Click({$b4m=New-Object -ComObject Wscript.Shell;$b4a=$b4m.Popup("^""Cleanup ALL resume data?"^"",0,'Clear InProgress Jobs',0x1);if($b4a -eq 1){if(Test-Path -Path '%AppData:'=''%\ZR-InProgress'){Remove-Item '%AppData:'=''%\ZR-InProgress' -Recurse -force -ErrorAction SilentlyContinue;$b4m2=New-Object -ComObject Wscript.Shell;$b4m2.Popup("^""ALL Jobs Cleared"^"",0,'Clear InProgress Jobs',0x0)} else {$b4m3=New-Object -ComObject Wscript.Shell;$b4m3.Popup('There are no jobs to clear',0,'Clear InProgress Jobs',0x0)}}});$window.Show();$appContext=New-Object System.Windows.Forms.ApplicationContext;[void][System.Windows.Forms.Application]::Run($appContext)"`) DO SET %1=%%#
+FOR /F "usebackq tokens=*" %%# IN (`POWERSHELL -nop -c "Add-Type -AssemblyName PresentationFramework, System.Drawing, System.Windows.Forms, WindowsFormsIntegration;[xml]$xaml='<Window xmlns="^""http://schemas.microsoft.com/winfx/2006/xaml/presentation"^"" xmlns:x="^""http://schemas.microsoft.com/winfx/2006/xaml"^"" WindowStartupLocation="^""CenterScreen"^"" WindowStyle="^""None"^"" Background="^""Transparent"^"" AllowsTransparency="^""True"^"" Width="^""285"^"" Height="^""324"^""><Window.Resources><ControlTemplate x:Key="^""NoMouseOverButtonTemplate"^"" TargetType="^""Button"^""><Border Background="^""{TemplateBinding Background}"^"" BorderBrush="^""{TemplateBinding BorderBrush}"^"" BorderThickness="^""{TemplateBinding BorderThickness}"^""><ContentPresenter HorizontalAlignment="^""{TemplateBinding HorizontalContentAlignment}"^"" VerticalAlignment="^""{TemplateBinding VerticalContentAlignment}"^""/></Border><ControlTemplate.Triggers><Trigger Property="^""IsEnabled"^"" Value="^""False"^""><Setter Property="^""Background"^"" Value="^""{x:Static SystemColors.ControlLightBrush}"^""/><Setter Property="^""Foreground"^"" Value="^""{x:Static SystemColors.GrayTextBrush}"^""/></Trigger></ControlTemplate.Triggers></ControlTemplate></Window.Resources><Grid><Grid.RowDefinitions><RowDefinition Height="^""298"^""/><RowDefinition Height="^""*"^""/></Grid.RowDefinitions><Grid.Background><ImageBrush ImageSource="^""%LOGO%"^""/></Grid.Background><Grid.Triggers><EventTrigger RoutedEvent="^""Loaded"^""><BeginStoryboard><Storyboard><DoubleAnimation Storyboard.TargetProperty="^""Background.Opacity"^"" From="^""0"^"" To="^""1"^"" Duration="^""0:0:1"^""/></Storyboard></BeginStoryboard></EventTrigger></Grid.Triggers><Canvas Grid.Row="^""0"^""><Button x:Name="^""Offline"^"" Canvas.Left="^""141"^"" Canvas.Top="^""56"^"" Height="^""16"^"" Width="^""26"^"" ToolTip="^""Create [zr-offline.txt]"^"" Template="^""{StaticResource NoMouseOverButtonTemplate}"^""/><Button x:Name="^""Cleanup"^"" Canvas.Left="^""138"^"" Canvas.Top="^""154"^"" Height="^""20"^"" Width="^""20"^"" ToolTip="^""Clear Resume Cache"^"" Template="^""{StaticResource NoMouseOverButtonTemplate}"^""/></Canvas><Canvas Grid.Row="^""1"^""><Button x:Name="^""Start"^"" Height="^""22"^"" Width="^""65"^"" Content="^""Start"^"" ToolTip="^""Click to Begin..."^"" Template="^""{StaticResource NoMouseOverButtonTemplate}"^""><Button.Triggers><EventTrigger RoutedEvent="^""Loaded"^""><BeginStoryboard><Storyboard><DoubleAnimation From="^""40"^"" To="^""65"^"" Duration="^""0:0:1"^"" Storyboard.TargetProperty="^""(Canvas.Left)"^"" AutoReverse="^""False"^""/><DoubleAnimation Storyboard.TargetProperty="^""Opacity"^"" From="^""0"^"" To="^""1"^"" Duration="^""0:0:2"^""/></Storyboard></BeginStoryboard></EventTrigger></Button.Triggers></Button></Canvas><Canvas Grid.Row="^""1"^""><Button x:Name="^""Quit"^"" Height="^""22"^"" Width="^""65"^"" Content="^""Quit"^"" ToolTip="^""Click to Exit"^"" Template="^""{StaticResource NoMouseOverButtonTemplate}"^""><Button.Triggers><EventTrigger RoutedEvent="^""Loaded"^""><BeginStoryboard><Storyboard><DoubleAnimation From="^""40"^"" To="^""65"^"" Duration="^""0:0:1"^"" Storyboard.TargetProperty="^""(Canvas.Right)"^"" AutoReverse="^""False"^""/><DoubleAnimation Storyboard.TargetProperty="^""Opacity"^"" From="^""0"^"" To="^""1"^"" Duration="^""0:0:2"^""/></Storyboard></BeginStoryboard></EventTrigger></Button.Triggers></Button></Canvas></Grid><Window.TaskbarItemInfo><TaskbarItemInfo/></Window.TaskbarItemInfo></Window>';$reader=(New-Object System.Xml.XmlNodeReader $xaml);$window=[Windows.Markup.XamlReader]::Load($reader);$window.Title='ZipRipper';$bitmap=New-Object System.Windows.Media.Imaging.BitmapImage;$bitmap='%LOGO:'=''%';$window.Icon=$bitmap;$window.TaskbarItemInfo.Overlay=$bitmap;$window.TaskbarItemInfo.Description=$window.Title;$window.Add_Closing({[System.Windows.Forms.Application]::Exit();Stop-Process $pid});$b=$Window.FindName("^""Start"^"");$b.Background = "^""#333333"^"";$b.Foreground="^""#eeeeee"^"";$b.FontSize="^""12"^"";$b.FontWeight="^""Bold"^"";$b.Add_MouseEnter({$b.Background="^""#eeeeee"^"";$b.Foreground="^""#333333"^""});$b.Add_MouseLeave({$b.Background="^""#333333"^"";$b.Foreground="^""#eeeeee"^""});$b.Add_Click({write-host 'Start';Exit});$b2=$Window.FindName("^""Quit"^"");$b2.Background="^""#333333"^"";$b2.Foreground="^""#eeeeee"^"";$b2.FontSize="^""12"^"";$b2.FontWeight="^""Bold"^"";$b2.Add_MouseEnter({$b2.Background="^""#eeeeee"^"";$b2.Foreground="^""#333333"^""});$b2.Add_MouseLeave({$b2.Background="^""#333333"^"";$b2.Foreground="^""#eeeeee"^""});$b2.Add_Click({write-host 'Quit';Exit});$b3=$Window.FindName("^""Offline"^"");$b3.Opacity="^""0"^"";$b3.Add_Click({$b3m=New-Object -ComObject Wscript.Shell;$b3a=$b3m.Popup("^""Close the script and create [zr-offline.txt]?"^"",0,'Create Resource File',0x1);if($b3a -eq 1){irm -Uri https://raw.githubusercontent.com/illsk1lls/ZipRipper/main/.resources/zr-offline-builder.ps1|iex}});$b4=$Window.FindName("^""Cleanup"^"");$b4.Opacity="^""0"^"";$b4.Add_Click({$b4m=New-Object -ComObject Wscript.Shell;$b4a=$b4m.Popup("^""Cleanup ALL resume data?"^"",0,'Clear InProgress Jobs',0x1);if($b4a -eq 1){if(Test-Path -Path '%AppData:'=''%\ZR-InProgress'){Remove-Item '%AppData:'=''%\ZR-InProgress' -Recurse -force -ErrorAction SilentlyContinue;$b4m2=New-Object -ComObject Wscript.Shell;$b4m2.Popup("^""ALL Jobs Cleared"^"",0,'Clear InProgress Jobs',0x0)} else {$b4m3=New-Object -ComObject Wscript.Shell;$b4m3.Popup('There are no jobs to clear',0,'Clear InProgress Jobs',0x0)}}});$window.Show();$appContext=New-Object System.Windows.Forms.ApplicationContext;[void][System.Windows.Forms.Application]::Run($appContext)"`) DO SET %1=%%#
 EXIT /b
 
 :CLEANEXIT
@@ -453,52 +444,8 @@ IF EXIST "%ProgramData%\7zr.exe" >nul 2>&1 DEL "%ProgramData%\7zr.exe" /F /Q
 IF EXIST "%ProgramData%\perlportable.zip" >nul 2>&1 DEL "%ProgramData%\perlportable.zip" /F /Q
 IF EXIST "%ProgramData%\winX64_1_JtR.7z" >nul 2>&1 DEL "%ProgramData%\winX64_1_JtR.7z" /F /Q
 IF EXIST "%ProgramData%\zipripper.png" >nul 2>&1 DEL "%ProgramData%\zipripper.png" /F /Q
-IF NOT "%BUILDING%"=="1" (
 IF EXIST "%ProgramData%\CreateOffline.cmd" >nul 2>&1 DEL "%ProgramData%\CreateOffline.cmd" /F /Q
 IF EXIST "%ProgramData%\launcher.ZipRipper" >nul 2>&1 DEL "%ProgramData%\launcher.ZipRipper" /F /Q
-IF EXIST "%ProgramData%\ZR-Temp\*" >nul 2>&1 RD "%ProgramData%\ZR-Temp" /S /Q
-)
+IF EXIST "%ProgramData%\ztmp\*" >nul 2>&1 RD "%ProgramData%\ztmp" /S /Q
 >nul 2>&1 REG DELETE HKCU\Software\classes\.ZipRipper\ /F
 (GOTO) 2>nul&DEL "%~f0"/F /Q>nul&EXIT
-
-:OFFLINECREATOR
-(
-ECHO @ECHO OFF
-ECHO PING -n 1 "google.com" ^| FINDSTR /r /c:"[0-9] *ms"^>nul
-ECHO IF NOT %%errorlevel%%==0 ^(
-ECHO TITLE Internet Not Detected!
-ECHO ECHO Internet connection required to create ^[zr-offline.txt^]
-ECHO ECHO/
-ECHO PAUSE
-ECHO EXIT /b
-ECHO ^)
-ECHO TITLE ^[zr-offline.txt^] ZipRipper Resource Creator
-ECHO PUSHD "%%UserProfile%%\Desktop"
-ECHO IF EXIST "%%ProgramData%%\ZR-Temp\*" ^>nul 2^>^&1 RD "%%ProgramData%%\ZR-Temp" /S /Q
-ECHO MD "%%ProgramData%%\ZR-Temp"
-ECHO PUSHD "%%ProgramData%%\ZR-Temp"
-ECHO ^<NUL set /p=Getting required dependencies, please wait...
-ECHO POWERSHELL -nop -c "Invoke-WebRequest -Uri https://www.7-zip.org/a/7zr.exe -o '%%ProgramData%%\ZR-Temp\7zr.exe';Invoke-WebRequest -Uri https://www.7-zip.org/a/7z2301-x64.exe -o '%%ProgramData%%\ZR-Temp\7z2301-x64.exe';Invoke-WebRequest -Uri https://www.7-zip.org/a/7z2300-extra.7z -o '%%ProgramData%%\ZR-Temp\7zExtra.7z';Invoke-WebRequest -Uri https://raw.githubusercontent.com/illsk1lls/ZipRipper/main/.resources/zipripper.png -o '%%ProgramData%%\ZR-Temp\zipripper.png';Start-BitsTransfer -Priority Foreground -Source https://github.com/openwall/john-packages/releases/download/jumbo-dev/winX64_1_JtR.7z -Destination '%%ProgramData%%\ZR-Temp\winX64_1_JtR.7z'";"Start-BitsTransfer -Priority Foreground -Source https://github.com/StrawberryPerl/Perl-Dist-Strawberry/releases/download/SP_5380_5361/strawberry-perl-5.38.0.1-64bit-portable.zip -Destination '%%ProgramData%%\ZR-Temp\perlportable.zip'"
-ECHO ^>nul 2^>^&1 7zr.exe x -y "%%ProgramData%%\ZR-Temp\7zExtra.7z" -o"%%ProgramData%%\ZR-Temp\"
-ECHO ^>nul 2^>^&1 7za.exe x -y "%%ProgramData%%\ZR-Temp\7z2301-x64.exe" -o"%%ProgramData%%\ZR-Temp\"
-ECHO ECHO Done
-ECHO ECHO/
-ECHO ^<NUL set /p=Building ^[zr-offline.txt^]...
-ECHO ^>nul 2^>^&1 7z a resources.exe "winX64_1_JtR.7z" "perlportable.zip" "7zr.exe" "7zExtra.7z" "zipripper.png" -sfx7zCon.sfx -pDependencies
-ECHO IF EXIST "zr-offline.txt" ^>nul 2^>^&1 DEL "zr-offline.txt" /F /Q
-ECHO ^>nul 2^>^&1 REN resources.exe zr-offline.txt
-ECHO POPD
-ECHO SET /p SAVETO=^<"%%ProgramData%%\launcher.ZipRipper"
-ECHO ^>nul 2^>^&1 MOVE /Y "%%ProgramData%%\ZR-Temp\zr-offline.txt" "%%SAVETO%%"
-ECHO ^>nul 2^>^&1 DEL "%%ProgramData%%\launcher.ZipRipper" /F /Q
-ECHO ^>nul 2^>^&1 RD "%%ProgramData%%\ZR-Temp" /S /Q
-ECHO ECHO Done
-ECHO ECHO/
-ECHO ECHO ^[zr-offline.txt^] has been created and is located in the same folder as ZipRipper. ;^^^)
-ECHO ECHO/
-ECHO ECHO Re-Launch ZipRipper with ^[zr-offline.txt^] in the same folder to enable Offline Mode...
-ECHO ECHO/
-ECHO PAUSE
-ECHO ^(GOTO^) 2^>nul^&DEL "%%~f0"/F /Q^>nul^&EXIT
-)>"%ProgramData%\CreateOffline.cmd"
-EXIT /b
