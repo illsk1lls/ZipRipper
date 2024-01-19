@@ -38,8 +38,6 @@ Only the script itself and an internet connection are required for this mode.<br
 **Offline Mode:** ZipRipper uses/requires a local resource file [zr-offline.txt]. **The presence of [zr-offline.txt] in<br>**
 **the same folder as the script is required and will force offline mode.** An internet connection is not needed for this mode.<br>
 
-**[zr-offline.txt] can be created by clicking the letters JtR on John's hat, when running on an internet connected machine**<br>
-
 **[zr-offline.txt] creator:** Click the letters JtR in John's hat to create [zr-offline.txt], you can then relaunch in offline mode, or package the offline/portable script for use at a later time.
 
 **[zr-offline.txt] archived resources:** <a href="https://github.com/illsk1lls/ZipRipper/raw/main/.resources/zr-offline.txt?download=">https://github.com/illsk1lls/ZipRipper/raw/main/.resources/zr-offline.txt?download=</a><br>
