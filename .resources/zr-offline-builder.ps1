@@ -24,7 +24,7 @@ $progressBarTotal=$window2.FindName("DownloadProgressTotal")
 $info=$window2.FindName("Info")
 
 function Update-Gui (){
-    $window2.Dispatcher.Invoke([Windows.Threading.DispatcherPriority]::Background, [action]{})
+    $window.Dispatcher.Invoke([Windows.Threading.DispatcherPriority]::Background, [action]{})
 }
 
 function Build () {
