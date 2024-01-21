@@ -28,7 +28,7 @@ CALL :CHECKCONNECTION
 )
 >nul 2>&1 REG ADD HKCU\Software\classes\.ZipRipper\shell\runas\command /f /ve /d "CMD /x /d /r SET \"f0=1\"&CALL \"%%2\" %%3"
 IF /I NOT "%~dp0" == "%ProgramData%\" (
-ECHO "%~dp0">"%ProgramData%\launcher.ZipRipper"
+ECHO|(SET /p="%~dp0")>"%ProgramData%\launcher.ZipRipper"
 >nul 2>&1 COPY /Y "%~f0" "%ProgramData%"
 IF EXIST "%~dp0zr-offline.txt" (
 >nul 2>&1 COPY /Y "%~dp0zr-offline.txt" "%ProgramData%"
@@ -61,7 +61,7 @@ ENDLOCAL
 CALL :BUILD RELAUNCH
 SETLOCAL ENABLEDELAYEDEXPANSION
 SET /p OFOLDER=<"%ProgramData%\launcher.ZipRipper"
-IF "!RELAUNCH!"=="1" START "USE THE GUI" /min "%ProgramData%\launcher.ZipRipper" "!OFOLDER:"=!\%~nx0"
+IF "!RELAUNCH!"=="1" START "USE THE GUI" /min "%ProgramData%\launcher.ZipRipper" "!OFOLDER!%~nx0"
 ENDLOCAL
 EXIT /b
 )
