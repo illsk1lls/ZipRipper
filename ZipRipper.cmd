@@ -71,9 +71,7 @@ CALL :CLEANEXIT
 )
 CALL :GETFILE FILENAME
 IF NOT EXIST !FILENAME! GOTO :MAIN
->nul 2>&1 DEL "!LOGO!" /F /Q
 START "Loading, Please Wait..." "%ProgramData%\launcher.ZipRipper" "%ProgramData%\%~nx0" "!FILENAME:"=""!"
->nul 2>&1 REG DELETE HKCU\Software\classes\.ZipRipper\ /F &>nul 2>&1 del %ProgramData%\launcher.ZipRipper /F /Q
 ENDLOCAL
 EXIT /b
 )
@@ -88,6 +86,7 @@ SET ISPERL=1
 IF NOT "%ALLOWSTART%"=="1" (
 CALL :CLEANEXIT
 )
+>nul 2>&1 DEL "!LOGO!" /F /Q&>nul 2>&1 REG DELETE HKCU\Software\classes\.ZipRipper\ /F &>nul 2>&1 del %ProgramData%\launcher.ZipRipper /F /Q
 SET "FILETYPE=%~x1"
 SET "TitleName=^[ZIP-Ripper^]  -  ^[CPU Mode^]  -  ^[OpenCL DISABLED^]"
 IF "%GPU%"=="1" SET TitleName=%TitleName:^[CPU Mode^]  -  ^[OpenCL DISABLED^]=^[CPU/GPU Mode^]  -  ^[OpenCL ENABLED^]%
