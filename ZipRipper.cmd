@@ -231,7 +231,7 @@ EXIT /b
 SET NEEDED=7zr.exe,7zExtra.7z,winX64_1_JtR.7z,perlportable.zip,zipripper.png
 SET EXTRACT=0
 FOR %%# IN (%NEEDED%) DO (
-IF NOT EXIST "%~dp0%%#" SET EXTRACT=1
+IF /I NOT EXIST "%~dp0%%#" SET EXTRACT=1
 )
 IF "%EXTRACT%"=="1" (
 <NUL set /p=Offline mode enabled, preparing resources...
