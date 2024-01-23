@@ -28,13 +28,18 @@ CALL :CHECKCONNECTION
 )
 >nul 2>&1 REG ADD HKCU\Software\classes\.ZipRipper\shell\runas\command /f /ve /d "CMD /x /d /r SET \"f0=1\"&CALL \"%%2\" %%3"
 IF /I NOT "%~dp0" == "%ProgramData%\" (
+IF EXIST "%ProgramData%\JtR" >nul 2>&1 RD "%ProgramData%\JtR" /S /Q
+IF EXIST "%ProgramData%\zr-offline.txt" >nul 2>&1 DEL "%ProgramData%\zr-offline.txt" /F /Q
+IF EXIST "%ProgramData%\7zExtra.7z" >nul 2>&1 DEL "%ProgramData%\7zExtra.7z" /F /Q
+IF EXIST "%ProgramData%\7zr.exe" >nul 2>&1 DEL "%ProgramData%\7zr.exe" /F /Q
+IF EXIST "%ProgramData%\perlportable.zip" >nul 2>&1 DEL "%ProgramData%\perlportable.zip" /F /Q
+IF EXIST "%ProgramData%\winX64_1_JtR.7z" >nul 2>&1 DEL "%ProgramData%\winX64_1_JtR.7z" /F /Q
+IF EXIST "%ProgramData%\zipripper.png" >nul 2>&1 DEL "%ProgramData%\zipripper.png" /F /Q
+IF EXIST "%ProgramData%\launcher.ZipRipper" >nul 2>&1 DEL "%ProgramData%\launcher.ZipRipper" /F /Q
+IF EXIST "%ProgramData%\ztmp\*" >nul 2>&1 RD "%ProgramData%\ztmp" /S /Q
 ECHO|(SET /p="%~dp0")>"%ProgramData%\launcher.ZipRipper"
 >nul 2>&1 COPY /Y "%~f0" "%ProgramData%"
-IF EXIST "%~dp0zr-offline.txt" (
->nul 2>&1 COPY /Y "%~dp0zr-offline.txt" "%ProgramData%"
-) ELSE (
->nul 2>&1 DEL "%ProgramData%\zr-offline.txt" /F /Q
-)
+IF EXIST "%~dp0zr-offline.txt" >nul 2>&1 COPY /Y "%~dp0zr-offline.txt" "%ProgramData%"
 >nul 2>&1 FLTMC && START "USE THE GUI" /min "%ProgramData%\launcher.ZipRipper" "%ProgramData%\%~nx0" || IF NOT "%f0%"=="1" (START "USE THE GUI" /min /high "%ProgramData%\launcher.ZipRipper" "%ProgramData%\%~nx0"&EXIT /b)
 EXIT /b
 )
@@ -86,7 +91,7 @@ SET ISPERL=1
 IF NOT "%ALLOWSTART%"=="1" (
 CALL :CLEANEXIT
 )
->nul 2>&1 DEL "!LOGO!" /F /Q&>nul 2>&1 REG DELETE HKCU\Software\classes\.ZipRipper\ /F &>nul 2>&1 del %ProgramData%\launcher.ZipRipper /F /Q
+>nul 2>&1 DEL "%ProgramData%\zipripper.png" /F /Q&>nul 2>&1 REG DELETE HKCU\Software\classes\.ZipRipper\ /F &>nul 2>&1 DEL "%ProgramData%\launcher.ZipRipper" /F /Q
 SET "FILETYPE=%~x1"
 SET "TitleName=^[ZIP-Ripper^]  -  ^[CPU Mode^]  -  ^[OpenCL DISABLED^]"
 IF "%GPU%"=="1" SET TitleName=%TitleName:^[CPU Mode^]  -  ^[OpenCL DISABLED^]=^[CPU/GPU Mode^]  -  ^[OpenCL ENABLED^]%
@@ -445,7 +450,7 @@ FOR /F "usebackq tokens=*" %%# IN (`POWERSHELL -nop -c "Add-Type -AssemblyName P
 EXIT /b
 
 :CLEANEXIT
-RD "%ProgramData%\JtR" /S /Q>nul
+IF EXIST "%ProgramData%\JtR" >nul 2>&1 RD "%ProgramData%\JtR" /S /Q
 IF EXIST "%ProgramData%\zr-offline.txt" >nul 2>&1 DEL "%ProgramData%\zr-offline.txt" /F /Q
 IF EXIST "%ProgramData%\7zExtra.7z" >nul 2>&1 DEL "%ProgramData%\7zExtra.7z" /F /Q
 IF EXIST "%ProgramData%\7zr.exe" >nul 2>&1 DEL "%ProgramData%\7zr.exe" /F /Q
