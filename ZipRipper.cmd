@@ -28,15 +28,7 @@ CALL :CHECKCONNECTION
 )
 >nul 2>&1 REG ADD HKCU\Software\classes\.ZipRipper\shell\runas\command /f /ve /d "CMD /x /d /r SET \"f0=1\"&CALL \"%%2\" %%3"
 IF /I NOT "%~dp0" == "%ProgramData%\" (
-IF EXIST "%ProgramData%\JtR" >nul 2>&1 RD "%ProgramData%\JtR" /S /Q
-IF EXIST "%ProgramData%\zr-offline.txt" >nul 2>&1 DEL "%ProgramData%\zr-offline.txt" /F /Q
-IF EXIST "%ProgramData%\7zExtra.7z" >nul 2>&1 DEL "%ProgramData%\7zExtra.7z" /F /Q
-IF EXIST "%ProgramData%\7zr.exe" >nul 2>&1 DEL "%ProgramData%\7zr.exe" /F /Q
-IF EXIST "%ProgramData%\perlportable.zip" >nul 2>&1 DEL "%ProgramData%\perlportable.zip" /F /Q
-IF EXIST "%ProgramData%\winX64_1_JtR.7z" >nul 2>&1 DEL "%ProgramData%\winX64_1_JtR.7z" /F /Q
-IF EXIST "%ProgramData%\zipripper.png" >nul 2>&1 DEL "%ProgramData%\zipripper.png" /F /Q
-IF EXIST "%ProgramData%\launcher.ZipRipper" >nul 2>&1 DEL "%ProgramData%\launcher.ZipRipper" /F /Q
-IF EXIST "%ProgramData%\ztmp\*" >nul 2>&1 RD "%ProgramData%\ztmp" /S /Q
+CALL :CLEANUP FRESHSTART
 ECHO|(SET /p="%~dp0")>"%ProgramData%\launcher.ZipRipper"
 >nul 2>&1 COPY /Y "%~f0" "%ProgramData%"
 IF EXIST "%~dp0zr-offline.txt" >nul 2>&1 COPY /Y "%~dp0zr-offline.txt" "%ProgramData%"
@@ -72,6 +64,7 @@ EXIT /b
 )
 IF NOT "!ACTION!"=="Start" (
 ENDLOCAL
+CALL :CLEANUP
 CALL :CLEANEXIT
 )
 CALL :GETFILE FILENAME
@@ -89,6 +82,7 @@ SET ALLOWSTART=1
 SET ISPERL=1
 )
 IF NOT "%ALLOWSTART%"=="1" (
+CALL :CLEANUP
 CALL :CLEANEXIT
 )
 >nul 2>&1 DEL "%ProgramData%\zipripper.png" /F /Q&>nul 2>&1 REG DELETE HKCU\Software\classes\.ZipRipper\ /F &>nul 2>&1 DEL "%ProgramData%\launcher.ZipRipper" /F /Q
@@ -184,6 +178,7 @@ CALL :DISPLAYINFOB
 ECHO/
 PAUSE
 POPD
+CALL :CLEANUP
 CALL :CLEANEXIT
 
 :GETMD5
@@ -449,7 +444,7 @@ IF "%OFFLINE%"=="0" POWERSHELL -nop -c "Add-Type -AssemblyName PresentationFrame
 FOR /F "usebackq tokens=*" %%# IN (`POWERSHELL -nop -c "Add-Type -AssemblyName PresentationFramework, System.Drawing, System.Windows.Forms, WindowsFormsIntegration;[xml]$xaml='<Window xmlns="^""http://schemas.microsoft.com/winfx/2006/xaml/presentation"^"" xmlns:x="^""http://schemas.microsoft.com/winfx/2006/xaml"^"" WindowStartupLocation="^""CenterScreen"^"" WindowStyle="^""None"^"" Background="^""Transparent"^"" AllowsTransparency="^""True"^"" Width="^""285"^"" Height="^""324"^""><Window.Resources><ControlTemplate x:Key="^""NoMouseOverButtonTemplate"^"" TargetType="^""Button"^""><Border Background="^""{TemplateBinding Background}"^"" BorderBrush="^""{TemplateBinding BorderBrush}"^"" BorderThickness="^""{TemplateBinding BorderThickness}"^""><ContentPresenter HorizontalAlignment="^""{TemplateBinding HorizontalContentAlignment}"^"" VerticalAlignment="^""{TemplateBinding VerticalContentAlignment}"^""/></Border><ControlTemplate.Triggers><Trigger Property="^""IsEnabled"^"" Value="^""False"^""><Setter Property="^""Background"^"" Value="^""{x:Static SystemColors.ControlLightBrush}"^""/><Setter Property="^""Foreground"^"" Value="^""{x:Static SystemColors.GrayTextBrush}"^""/></Trigger></ControlTemplate.Triggers></ControlTemplate></Window.Resources><Grid><Grid.RowDefinitions><RowDefinition Height="^""298"^""/><RowDefinition Height="^""*"^""/></Grid.RowDefinitions><Grid.Background><ImageBrush ImageSource="^""%LOGO%"^""/></Grid.Background><Grid.Triggers><EventTrigger RoutedEvent="^""Loaded"^""><BeginStoryboard><Storyboard><DoubleAnimation Storyboard.TargetProperty="^""Background.Opacity"^"" From="^""0"^"" To="^""1"^"" Duration="^""0:0:1"^""/></Storyboard></BeginStoryboard></EventTrigger></Grid.Triggers><Canvas Grid.Row="^""0"^""><Button x:Name="^""Offline"^"" Canvas.Left="^""141"^"" Canvas.Top="^""56"^"" Height="^""16"^"" Width="^""26"^"" ToolTip="^""Create [zr-offline.txt]"^"" Template="^""{StaticResource NoMouseOverButtonTemplate}"^""/><Button x:Name="^""Cleanup"^"" Canvas.Left="^""138"^"" Canvas.Top="^""154"^"" Height="^""20"^"" Width="^""20"^"" ToolTip="^""Clear Resume Cache"^"" Template="^""{StaticResource NoMouseOverButtonTemplate}"^""/></Canvas><Canvas Grid.Row="^""1"^""><Button x:Name="^""Start"^"" Height="^""22"^"" Width="^""65"^"" Content="^""Start"^"" ToolTip="^""Click to Begin..."^"" Template="^""{StaticResource NoMouseOverButtonTemplate}"^""><Button.Triggers><EventTrigger RoutedEvent="^""Loaded"^""><BeginStoryboard><Storyboard><DoubleAnimation From="^""40"^"" To="^""65"^"" Duration="^""0:0:1"^"" Storyboard.TargetProperty="^""(Canvas.Left)"^"" AutoReverse="^""False"^""/><DoubleAnimation Storyboard.TargetProperty="^""Opacity"^"" From="^""0"^"" To="^""1"^"" Duration="^""0:0:2"^""/></Storyboard></BeginStoryboard></EventTrigger></Button.Triggers></Button></Canvas><Canvas Grid.Row="^""1"^""><Button x:Name="^""Quit"^"" Height="^""22"^"" Width="^""65"^"" Content="^""Quit"^"" ToolTip="^""Click to Exit"^"" Template="^""{StaticResource NoMouseOverButtonTemplate}"^""><Button.Triggers><EventTrigger RoutedEvent="^""Loaded"^""><BeginStoryboard><Storyboard><DoubleAnimation From="^""40"^"" To="^""65"^"" Duration="^""0:0:1"^"" Storyboard.TargetProperty="^""(Canvas.Right)"^"" AutoReverse="^""False"^""/><DoubleAnimation Storyboard.TargetProperty="^""Opacity"^"" From="^""0"^"" To="^""1"^"" Duration="^""0:0:2"^""/></Storyboard></BeginStoryboard></EventTrigger></Button.Triggers></Button></Canvas></Grid><Window.TaskbarItemInfo><TaskbarItemInfo/></Window.TaskbarItemInfo></Window>';$reader=(New-Object System.Xml.XmlNodeReader $xaml);$window=[Windows.Markup.XamlReader]::Load($reader);$window.Title='ZipRipper';$bitmap=New-Object System.Windows.Media.Imaging.BitmapImage;$bitmap='%LOGO:'=''%';$window.Icon=$bitmap;$window.TaskbarItemInfo.Overlay=$bitmap;$window.TaskbarItemInfo.Description=$window.Title;$window.Add_Closing({[System.Windows.Forms.Application]::Exit();Stop-Process $pid});$b=$Window.FindName("^""Start"^"");$b.Background = "^""#333333"^"";$b.Foreground="^""#eeeeee"^"";$b.FontSize="^""12"^"";$b.FontWeight="^""Bold"^"";$b.Add_MouseEnter({$b.Background="^""#eeeeee"^"";$b.Foreground="^""#333333"^""});$b.Add_MouseLeave({$b.Background="^""#333333"^"";$b.Foreground="^""#eeeeee"^""});$b.Add_Click({write-host 'Start';Exit});$b2=$Window.FindName("^""Quit"^"");$b2.Background="^""#333333"^"";$b2.Foreground="^""#eeeeee"^"";$b2.FontSize="^""12"^"";$b2.FontWeight="^""Bold"^"";$b2.Add_MouseEnter({$b2.Background="^""#eeeeee"^"";$b2.Foreground="^""#333333"^""});$b2.Add_MouseLeave({$b2.Background="^""#333333"^"";$b2.Foreground="^""#eeeeee"^""});$b2.Add_Click({write-host 'Quit';Exit});$b3=$Window.FindName("^""Offline"^"");$b3.Opacity="^""0"^"";$b3.Add_Click({$b3m=New-Object -ComObject Wscript.Shell;$b3a=$b3m.Popup('Create [zr-offline.txt] for Offline Mode?',0,'Offline Mode Builder',0x1);if($b3a -eq 1){write-host 'Offline';Exit}});$b4=$Window.FindName("^""Cleanup"^"");$b4.Opacity="^""0"^"";$b4.Add_Click({$b4m=New-Object -ComObject Wscript.Shell;$b4a=$b4m.Popup("^""Cleanup ALL resume data?"^"",0,'Clear InProgress Jobs',0x1);if($b4a -eq 1){if(Test-Path -Path '%AppData:'=''%\ZR-InProgress'){Remove-Item '%AppData:'=''%\ZR-InProgress' -Recurse -force -ErrorAction SilentlyContinue;$b4m2=New-Object -ComObject Wscript.Shell;$b4m2.Popup("^""ALL Jobs Cleared"^"",0,'Clear InProgress Jobs',0x0)} else {$b4m3=New-Object -ComObject Wscript.Shell;$b4m3.Popup('There are no jobs to clear',0,'Clear InProgress Jobs',0x0)}}});$window.Show();$appContext=New-Object System.Windows.Forms.ApplicationContext;[void][System.Windows.Forms.Application]::Run($appContext)"`) DO SET %1=%%#
 EXIT /b
 
-:CLEANEXIT
+:CLEANUP
 IF EXIST "%ProgramData%\JtR" >nul 2>&1 RD "%ProgramData%\JtR" /S /Q
 IF EXIST "%ProgramData%\zr-offline.txt" >nul 2>&1 DEL "%ProgramData%\zr-offline.txt" /F /Q
 IF EXIST "%ProgramData%\7zExtra.7z" >nul 2>&1 DEL "%ProgramData%\7zExtra.7z" /F /Q
@@ -459,7 +454,10 @@ IF EXIST "%ProgramData%\winX64_1_JtR.7z" >nul 2>&1 DEL "%ProgramData%\winX64_1_J
 IF EXIST "%ProgramData%\zipripper.png" >nul 2>&1 DEL "%ProgramData%\zipripper.png" /F /Q
 IF EXIST "%ProgramData%\launcher.ZipRipper" >nul 2>&1 DEL "%ProgramData%\launcher.ZipRipper" /F /Q
 IF EXIST "%ProgramData%\ztmp\*" >nul 2>&1 RD "%ProgramData%\ztmp" /S /Q
->nul 2>&1 REG DELETE HKCU\Software\classes\.ZipRipper\ /F
+IF /I NOT "%~1"=="FRESHSTART" >nul 2>&1 REG DELETE HKCU\Software\classes\.ZipRipper\ /F
+EXIT /b
+
+:CLEANEXIT
 (GOTO) 2>nul&DEL "%~f0"/F /Q>nul&EXIT
 
 :BUILD
