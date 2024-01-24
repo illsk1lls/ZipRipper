@@ -224,14 +224,14 @@ EXIT /b
 :OFFLINEMODE
 SET NEEDED=7zr.exe,7zExtra.7z,winX64_1_JtR.7z,perlportable.zip,zipripper.png
 SET EXTRACT=0
-<NUL set /p=Offline mode enabled,
+<NUL set /p=Offline mode enabled
 FOR %%# IN (%NEEDED%) DO (
 IF /I NOT EXIST "%~dp0%%#" SET EXTRACT=1
 )
 IF NOT "%EXTRACT%"=="1" (
-<NUL set /p= checking resources...
+<NUL set /p=, checking resources...
 ) ELSE (
-<NUL set /p= preparing resources...
+<NUL set /p=, preparing resources...
 IF EXIST "%ProgramData%\.resources.exe" DEL "%ProgramData%\.resources.exe" /F /Q
 REN "%ProgramData%\zr-offline.txt" .resources.exe>nul
 POWERSHELL -nop -c "Add-Type -AssemblyName PresentationFramework, System.Drawing, System.Windows.Forms, WindowsFormsIntegration;[xml]$xaml='<Window xmlns="^""http://schemas.microsoft.com/winfx/2006/xaml/presentation"^"" xmlns:x="^""http://schemas.microsoft.com/winfx/2006/xaml"^"" Title="^"" Initializing..."^"" Height="^""37"^"" Width="^""210"^"" WindowStartupLocation="^""CenterScreen"^"" WindowStyle="^""None"^"" Topmost="^""True"^"" Background="^""#333333"^"" AllowsTransparency="^""True"^""><Canvas><TextBlock Name="^""Info"^"" Canvas.Top="^""3"^"" Text="^"" Initializing... (Offline Mode)"^"" Foreground="^""#eeeeee"^"" FontWeight="^""Bold"^""/><ProgressBar Canvas.Left="^""5"^"" Canvas.Top="^""28"^"" Width="^""200"^"" Height="^""3"^"" Name="^""Progress"^"" Foreground="^""#FF0000"^""/></Canvas></Window>';$reader=(New-Object System.Xml.XmlNodeReader $xaml);$form=[Windows.Markup.XamlReader]::Load($reader);$form.Add_Closing({[System.Windows.Forms.Application]::Exit();Stop-Process $pid});$progressBar=$form.FindName("^""Progress"^"");function Update-Gui (){$form.Dispatcher.Invoke([Windows.Threading.DispatcherPriority]::Background, [action]{})};function ExtractFile(){$progressBar.Value=0;Update-Gui;&'%ProgramData%\.resources.exe' -pDependencies -y '-o%ProgramData%'| out-string -stream | Select-String -Pattern "^""\d{1,3}%%"^"" -AllMatches | ForEach-Object { $_.Matches.Value } | foreach {$progressBar.Value=$_.Replace('%%','');Update-Gui};$progressBar.Value=100;Update-Gui};$form.Add_ContentRendered({ExtractFile;$form.Close()});$form.Show();$appContext=New-Object System.Windows.Forms.ApplicationContext;[void][System.Windows.Forms.Application]::Run($appContext)"
