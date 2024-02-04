@@ -1,4 +1,5 @@
 @ECHO OFF
+CALL :SINGLEINSTANCE
 IF NOT "%PROCESSOR_ARCHITECTURE%"=="AMD64" (
 IF NOT "%PROCESSOR_ARCHITEW6432%"=="AMD64" (
 CALL :CENTERWINDOW
@@ -32,7 +33,7 @@ CALL :CLEANUP STARTUP
 ECHO|(SET /p="%~dp0")>"%ProgramData%\launcher.ZipRipper"
 >nul 2>&1 COPY /Y "%~f0" "%ProgramData%"
 IF EXIST "%~dp0zr-offline.txt" >nul 2>&1 COPY /Y "%~dp0zr-offline.txt" "%ProgramData%"
->nul 2>&1 FLTMC && START "USE THE GUI" /min "%ProgramData%\launcher.ZipRipper" "%ProgramData%\%~nx0" || IF NOT "%f0%"=="1" (START "USE THE GUI" /min /high "%ProgramData%\launcher.ZipRipper" "%ProgramData%\%~nx0"&EXIT /b)
+>nul 2>&1 FLTMC && START "" /min "%ProgramData%\launcher.ZipRipper" "%ProgramData%\%~nx0" || IF NOT "%f0%"=="1" (START "" /min /high "%ProgramData%\launcher.ZipRipper" "%ProgramData%\%~nx0"&EXIT /b)
 EXIT /b
 )
 SET "NATIVE=ZIP,RAR"
@@ -47,7 +48,6 @@ IF EXIST "%ProgramData%\BIT*.tmp" >nul 2>&1 DEL "%ProgramData%\BIT*.tmp" /F /Q
 CALL :CENTERWINDOW
 IF "%OFFLINE%"=="1" CALL :OFFLINEMODE
 IF "%~1"=="" (
-TITLE GUI LOADER
 ECHO USE THE GUI TO PROCEED
 SETLOCAL ENABLEDELAYEDEXPANSION
 
@@ -59,7 +59,7 @@ CALL :BUILD RELAUNCH
 SETLOCAL ENABLEDELAYEDEXPANSION
 SET /p OFOLDER=<"%ProgramData%\launcher.ZipRipper"
 IF "!RELAUNCH!"=="1" (
-START "USE THE GUI" /min "%ProgramData%\launcher.ZipRipper" "!OFOLDER!%~nx0"
+START "" /min "%ProgramData%\launcher.ZipRipper" "!OFOLDER!%~nx0"
 ENDLOCAL
 EXIT /b
 ) ELSE (
@@ -73,7 +73,7 @@ CALL :CLEANUP
 )
 CALL :GETFILE FILENAME
 IF NOT EXIST !FILENAME! GOTO :MAIN
-START "Loading, Please Wait..." "%ProgramData%\launcher.ZipRipper" "%ProgramData%\%~nx0" "!FILENAME:"=""!"
+START "" "%ProgramData%\launcher.ZipRipper" "%ProgramData%\%~nx0" "!FILENAME:"=""!"
 ENDLOCAL
 EXIT /b
 )
@@ -91,8 +91,6 @@ SET "FILETYPE=%~x1"
 SET "TitleName=^[ZIP-Ripper^]  -  ^[CPU Mode^]  -  ^[OpenCL DISABLED^]"
 IF "%GPU%"=="1" SET TitleName=%TitleName:^[CPU Mode^]  -  ^[OpenCL DISABLED^]=^[CPU/GPU Mode^]  -  ^[OpenCL ENABLED^]  -  Offline Mode%
 IF "%OFFLINE%"=="0" SET TitleName=%TitleName:Offline=Online%
-TASKLIST /V /NH /FI "imagename eq cmd.exe"|FIND /I /C "%TitleName%">nul
-IF NOT %errorlevel%==1 (ECHO ERROR:&ECHO ZipRipper is already running!) |MSG *&EXIT
 TITLE %TitleName%
 IF "%OFFLINE%"=="0" CALL :ONLINEMODE
 CALL :GETJTRREADY
@@ -420,6 +418,12 @@ ECHO/
 PAUSE
 GOTO :EOF
 )
+EXIT /b
+
+:SINGLEINSTANCE
+TASKLIST /V /NH /FI "imagename eq cmd.exe"|FINDSTR /I /C:"ZIP-Ripper">nul
+IF NOT %errorlevel%==1 (ECHO ERROR:&ECHO ZipRipper is already running!) |MSG *&EXIT
+TITLE ^[ZIP-Ripper^] USE THE GUI
 EXIT /b
 
 :CENTERWINDOW
