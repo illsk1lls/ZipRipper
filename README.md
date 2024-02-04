@@ -19,7 +19,7 @@ $${\color{yellow}2.) \space Wait \space for \space password..}$$<br>
 When a password is found an alert window will appear, and the password(s) will be<br>
 saved to the users desktop as: ZipRipper-Passwords.txt
 
-*If the script is interrupted normally (by pressing the 'q' key to quit), resume will be enabled<br>.*
+*If the script is interrupted normally (by pressing the 'q' key to quit or the 'red x', once), resume will be enabled<br>.*
 *A MD5 hash is created for each job, that is used to store the resume data, in: %AppData%\ZR-InProgress\\[MD5HASH]<br>*
 *to ensure multiple files with the same name can have InProgress jobs simultaneously. If a pending job is found the<br>*
 *user is presented with the options of either resuming the job, or bypassing the resume feature and starting a new job.<br>*
