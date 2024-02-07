@@ -33,7 +33,7 @@ CALL :CLEANUP STARTUP
 ECHO|(SET /p="%~dp0")>"%ProgramData%\launcher.ZipRipper"
 >nul 2>&1 COPY /Y "%~f0" "%ProgramData%"
 IF EXIST "%~dp0zr-offline.txt" >nul 2>&1 COPY /Y "%~dp0zr-offline.txt" "%ProgramData%"
->nul 2>&1 FLTMC && START "" /min "%ProgramData%\launcher.ZipRipper" "%ProgramData%\%~nx0" || IF NOT "%f0%"=="1" (START "" /min /high "%ProgramData%\launcher.ZipRipper" "%ProgramData%\%~nx0"&EXIT /b)
+>nul 2>&1 FLTMC && (TITLE Re-Launching...&START "" /min "%ProgramData%\launcher.ZipRipper" "%ProgramData%\%~nx0") || IF NOT "%f0%"=="1" (TITLE Re-Launching...&START "" /min /high "%ProgramData%\launcher.ZipRipper" "%ProgramData%\%~nx0"&EXIT /b)
 EXIT /b
 )
 SET "NATIVE=ZIP,RAR"
@@ -59,6 +59,7 @@ CALL :BUILD RELAUNCH
 SETLOCAL ENABLEDELAYEDEXPANSION
 SET /p OFOLDER=<"%ProgramData%\launcher.ZipRipper"
 IF "!RELAUNCH!"=="1" (
+TITLE Re-Launching...
 START "" /min "%ProgramData%\launcher.ZipRipper" "!OFOLDER!%~nx0"
 ENDLOCAL
 EXIT /b
@@ -73,6 +74,7 @@ CALL :CLEANUP
 )
 CALL :GETFILE FILENAME
 IF NOT EXIST !FILENAME! GOTO :MAIN
+TITLE Re-Launching...
 START "" "%ProgramData%\launcher.ZipRipper" "%ProgramData%\%~nx0" "!FILENAME:"=""!"
 ENDLOCAL
 EXIT /b
