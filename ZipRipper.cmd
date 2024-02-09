@@ -427,7 +427,7 @@ EXIT /b
 :SINGLEINSTANCE
 TASKLIST /V /NH /FI "imagename eq cmd.exe"|FINDSTR /I /C:"ZIP-Ripper">nul
 IF NOT %errorlevel%==1 (ECHO ERROR:&ECHO ZipRipper is already running!) |MSG *&EXIT
-TITLE ^[ZIP-Ripper^] USE THE GUI
+TITLE ^[ZIP-Ripper^] Launching...
 EXIT /b
 
 :CENTERWINDOW
