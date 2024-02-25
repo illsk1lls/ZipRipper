@@ -23,7 +23,7 @@ saved to the users desktop as: ZipRipper-Passwords.txt
 *A MD5 hash is created for each job, that is used to store the resume data, in: %AppData%\ZR-InProgress\\[MD5HASH]<br>*
 *to ensure multiple files with the same name can have InProgress jobs simultaneously. If a pending job is found the<br>*
 *user is presented with the options of either resuming the job, or bypassing the resume feature and starting a new job.<br>*
-*Note: When a job is completed the resume data is removed, it can also be cleared by clicking the center of John's tie*
+*Note: When a job is completed the resume data is removed. All resume data can be cleared by clicking the center of John's tie*
 
 Current version provides support for hardware acceleration via OpenCL for:<br>
 nVidia "GeForce" & "Quadro" and AMD "Radeon RX" & "Radeon Pro" cards.<br>
