@@ -258,6 +258,7 @@ IF EXIST "%ProgramData%\zr-offline.txt" >nul 2>&1 DEL "%ProgramData%\zr-offline.
 >nul 2>&1 DEL "%ProgramData%\7zr.exe" /F /Q
 >nul 2>&1 DEL "%ProgramData%\7zExtra.7z" /F /Q
 IF "%GPU%"=="1" >nul 2>&1 COPY /Y "%WinDir%\System32\OpenCL.dll" "%ProgramData%\JtR\run\cygOpenCL-1.dll"
+IF "%GPU%"=="2" >nul 2>&1 COPY /Y "%WinDir%\System32\amdocl64.dll" "%ProgramData%\JtR\run\cygOpenCL-1.dll"
 EXIT /b
 
 :CHECKWIN
@@ -278,8 +279,8 @@ EXIT /b
 FOR /F "usebackq skip=1 tokens=2,3" %%# IN (`WMIC path Win32_VideoController get Name ^| findstr "."`) DO (
 IF /I "%%#"=="GeForce" SET GPU=1
 IF /I "%%#"=="Quadro" SET GPU=1
-IF /I "%%# %%$"=="Radeon RX" SET GPU=1
-IF /I "%%# %%$"=="Radeon Pro" SET GPU=1
+IF /I "%%# %%$"=="Radeon RX" SET GPU=2
+IF /I "%%# %%$"=="Radeon Pro" SET GPU=2
 IF NOT EXIST "%WinDir%\System32\OpenCL.dll" SET GPU=0
 )
 EXIT /b
