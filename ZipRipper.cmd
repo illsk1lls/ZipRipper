@@ -91,8 +91,8 @@ IF NOT "%ALLOWSTART%"=="1" CALL :CLEANUP
 >nul 2>&1 REG DELETE HKCU\Software\classes\.ZipRipper\ /F 
 >nul 2>&1 DEL "%ProgramData%\launcher.ZipRipper" /F /Q
 SET "FILETYPE=%~x1"
-SET "TitleName=^[ZIP-Ripper^]  -  ^[CPU Mode^]  -  ^[OpenCL DISABLED^]"
-IF "%GPU%"=="1" SET TitleName=%TitleName:^[CPU Mode^]  -  ^[OpenCL DISABLED^]=^[CPU/GPU Mode^]  -  ^[OpenCL ENABLED^]  -  Offline Mode%
+SET "TitleName=^[ZIP-Ripper^]  -  ^[CPU Mode^]  -  ^[OpenCL DISABLED^]  -  Offline Mode"
+IF %GPU% GEQ 1 SET TitleName=%TitleName:^[CPU Mode^]  -  ^[OpenCL DISABLED^]=^[CPU/GPU Mode^]  -  ^[OpenCL ENABLED^]%
 IF "%OFFLINE%"=="0" SET TitleName=%TitleName:Offline=Online%
 TITLE %TitleName%
 IF "%OFFLINE%"=="0" CALL :ONLINEMODE
@@ -257,8 +257,8 @@ IF EXIST "%ProgramData%\zr-offline.txt" >nul 2>&1 DEL "%ProgramData%\zr-offline.
 >nul 2>&1 DEL "%ProgramData%\winX64_1_JtR.7z" /F /Q
 >nul 2>&1 DEL "%ProgramData%\7zr.exe" /F /Q
 >nul 2>&1 DEL "%ProgramData%\7zExtra.7z" /F /Q
-IF "%GPU%"=="1" >nul 2>&1 COPY /Y "%WinDir%\System32\OpenCL.dll" "%ProgramData%\JtR\run\cygOpenCL-1.dll"
-IF "%GPU%"=="2" >nul 2>&1 COPY /Y "%WinDir%\System32\amdocl64.dll" "%ProgramData%\JtR\run\cygOpenCL-1.dll"
+IF %GPU% EQU 1 >nul 2>&1 COPY /Y "%WinDir%\System32\OpenCL.dll" "%ProgramData%\JtR\run\cygOpenCL-1.dll"
+IF %GPU% EQU 2 >nul 2>&1 COPY /Y "%WinDir%\System32\amdocl64.dll" "%ProgramData%\JtR\run\cygOpenCL-1.dll"
 EXIT /b
 
 :CHECKWIN
@@ -306,6 +306,9 @@ IF %GPU% GEQ 1 FOR /F "tokens=2 delims=$" %%# IN (pwhash) DO (
 IF "%%#"=="zip2" (
 SET "FLAG=--format=ZIP-opencl"
 SET ZIP2=1
+) ELSE (
+IF %GPU% GEQ 1 SET TitleName=%TitleName:[CPU/GPU Mode]  -  [OpenCL ENABLED]=^[CPU Mode^]  -  ^[OpenCL UNSUPPORTED Filetype^]%
+TITLE %TitleName%
 )
 )
 EXIT /b
@@ -313,7 +316,7 @@ EXIT /b
 :HASH.RAR
 rar2john "%~1">"%ProgramData%\JtR\run\pwhash" 2>"%ProgramData%\JtR\run\statusout"
 FOR /F "usebackq tokens=*" %%# IN (`TYPE "%ProgramData%\JtR\run\statusout" ^| findstr /I "Did not find"`) DO SET PROTECTED=0
-IF "%GPU%"=="1" FOR /F "tokens=2 delims=$" %%# IN (pwhash) DO (
+IF %GPU% GEQ 1 FOR /F "tokens=2 delims=$" %%# IN (pwhash) DO (
 IF /I "%%#"=="rar" SET "FLAG=--format=rar-opencl"
 IF /I "%%#"=="rar3" SET "FLAG=--format=rar-opencl"
 IF /I "%%#"=="rar5" SET "FLAG=--format=RAR5-opencl"
@@ -323,7 +326,7 @@ EXIT /b
 :HASH.7z
 CALL portableshell.bat 7z2john.pl "%~1">"%ProgramData%\JtR\run\pwhash" 2>"%ProgramData%\JtR\run\statusout"
 FOR /F "usebackq tokens=*" %%# IN (`TYPE statusout ^| findstr "no AES"`) DO SET PROTECTED=0
-IF "%GPU%"=="1" SET "FLAG=--format=7z-opencl"
+IF %GPU% GEQ 1 SET "FLAG=--format=7z-opencl"
 EXIT /b
 
 :HASH.PDF
@@ -331,6 +334,8 @@ CALL portableshell.bat pdf2john.pl "%~1">"%ProgramData%\JtR\run\pwhash" 2>nul
 POWERSHELL -nop -c "$^=[regex]::Match((gc pwhash),'^(.+\/)(?i)(.*\.pdf)(.+$)');$^.Groups[2].value+$^.Groups[3].value|sc pwhash">nul 2>&1
 FOR /F %%# IN ("%ProgramData%\JtR\run\pwhash") DO SET /A HSIZE=%%~z#
 IF %HSIZE% LSS 8000 FOR /F "usebackq tokens=*" %%# IN (`TYPE pwhash ^| findstr "not encrypted!"`) DO SET PROTECTED=0
+IF %GPU% GEQ 1 SET TitleName=%TitleName:[CPU/GPU Mode]  -  [OpenCL ENABLED]=^[CPU Mode^]  -  ^[OpenCL UNSUPPORTED Filetype^]%
+TITLE %TitleName%
 EXIT /b
 
 :GETSIZE
