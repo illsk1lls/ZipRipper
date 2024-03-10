@@ -170,7 +170,7 @@ CALL :SETRESUME %1
 SETLOCAL ENABLEDELAYEDEXPANSION
 IF NOT "!FOUND!"=="0" (
 CALL :GETSIZE "%UserProfile%\Desktop\ZipRipper-Passwords.txt" PWSIZE
-IF !PWSIZE! LEQ 1600 (
+IF !PWSIZE! LEQ 250 (
 ENDLOCAL
 CALL :DISPLAYINFOA
 ) ELSE (
@@ -390,25 +390,11 @@ ECHO ==============================
 EXIT /b
 
 :DISPLAYINFOA
-(
-TYPE "%UserProfile%\Desktop\ZipRipper-Passwords.txt"
-ECHO Save Location:
-ECHO "%UserProfile%\Desktop\ZipRipper-Passwords.txt"
-) |MSG * /time:999999
+FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "foreach($line in Get-Content '%UserProfile%\Desktop\ZipRipper-Passwords.txt'){if($null -eq $oneline){$oneline=$line}else{$oneline=$oneline + '"^"""^"" & vbcrlf & "^"""^""' + $line}}$oneline"`) DO MSHTA.EXE vbscript:Execute^("MsgBox ""%%#"" & vbcrlf & ""Save Location:"" & vbcrlf & """""""" & ""%UserProfile%\Desktop\ZipRipper-Passwords.txt"" & """""""", vbOKOnly, ""Message from ZIP-Ripper"""^)^(Window.Close^)>nul
 EXIT /b
 
 :DISPLAYINFOB
-(
-ECHO ^[ZIP-Ripper^] - FOUND PASSWORDS
-ECHO  %DATE% + %TIME%
-ECHO ==============================
-ECHO/
-ECHO TOO MANY TO LIST
-ECHO/
-ECHO ==============================
-ECHO Save Location:
-ECHO "%UserProfile%\Desktop\ZipRipper-Passwords.txt"
-) |MSG * /time:999999
+MSHTA.EXE vbscript:Execute^("MsgBox ""[ZIP-Ripper] - FOUND PASSWORDS"" & vbcrlf & "" %DATE% + %TIME%"" & vbcrlf & ""=============================="" & vbcrlf & """" & vbcrlf & ""MULTIPLE PASSWORDS FOUND"" & vbcrlf & """" & vbcrlf & ""=============================="" & vbcrlf & ""Save Location:"" & vbcrlf & """""""" & ""%UserProfile%\Desktop\ZipRipper-Passwords.txt"" & """""""", vbOKOnly, ""Message from ZIP-Ripper"""^)^(Window.Close^)>nul
 EXIT /b
 
 :CHECKCONNECTION
@@ -419,10 +405,8 @@ ECHO Internet connection not detected...
 ECHO/
 ECHO ^[zr-offline.txt^] must be in the same folder as ZipRipper for offline mode.
 ECHO/
-ECHO Click JtR on John's hat on an internet connected machine, or downloaded the archived
-ECHO version using the below address:
-ECHO/
-ECHO https://github.com/illsk1lls/ZipRipper/raw/main/.resources/zr-offline.txt?download=
+ECHO Click JtR on John's hat on an internet connected machine to create a local
+ECHO copy of ^[zr-offline.txt^]
 ECHO/
 PAUSE
 GOTO :EOF
