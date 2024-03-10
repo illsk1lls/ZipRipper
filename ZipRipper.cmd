@@ -257,7 +257,8 @@ IF EXIST "%ProgramData%\zr-offline.txt" >nul 2>&1 DEL "%ProgramData%\zr-offline.
 >nul 2>&1 DEL "%ProgramData%\winX64_1_JtR.7z" /F /Q
 >nul 2>&1 DEL "%ProgramData%\7zr.exe" /F /Q
 >nul 2>&1 DEL "%ProgramData%\7zExtra.7z" /F /Q
-IF %GPU% EQU 1 >nul 2>&1 COPY /Y "%WinDir%\System32\OpenCL.dll" "%ProgramData%\JtR\run\cygOpenCL-1.dll"
+IF "%GPU%"=="1" >nul 2>&1 COPY /Y "%WinDir%\System32\OpenCL.dll" "%ProgramData%\JtR\run\cygOpenCL-1.dll"
+IF "%GPU%"=="2" >nul 2>&1 COPY /Y "%WinDir%\System32\amdocl64.dll" "%ProgramData%\JtR\run\cygOpenCL-1.dll"
 EXIT /b
 
 :CHECKWIN
@@ -276,11 +277,10 @@ EXIT /b
 
 :CHECKGPU
 FOR /F "usebackq skip=1 tokens=2,3" %%# IN (`WMIC path Win32_VideoController get Name ^| findstr "."`) DO (
-IF /I "%%#"=="GeForce" SET GPU=1
-IF /I "%%#"=="Quadro" SET GPU=1
-IF /I "%%# %%$"=="Radeon RX" SET GPU=2
-IF /I "%%# %%$"=="Radeon Pro" SET GPU=2
-IF NOT EXIST "%WinDir%\System32\OpenCL.dll" SET GPU=0
+IF /I "%%#"=="GeForce" IF NOT EXIST "%WinDir%\System32\OpenCL.dll" (SET GPU=0) ELSE (SET GPU=1)
+IF /I "%%#"=="Quadro" IF NOT EXIST "%WinDir%\System32\OpenCL.dll" (SET GPU=0) ELSE (SET GPU=1)
+IF /I "%%# %%$"=="Radeon RX" IF NOT EXIST "%WinDir%\System32\amdocl64.dll" (SET GPU=0) ELSE (SET GPU=2)
+IF /I "%%# %%$"=="Radeon Pro" IF NOT EXIST "%WinDir%\System32\amdocl64.dll" (SET GPU=0) ELSE (SET GPU=2)
 )
 EXIT /b
 
@@ -301,15 +301,8 @@ EXIT /b
 zip2john "%~1">"%ProgramData%\JtR\run\pwhash" 2>nul
 FOR /F %%# IN ("%ProgramData%\JtR\run\pwhash") DO SET /A HSIZE=%%~z#
 IF %HSIZE% EQU 0 SET PROTECTED=0
-IF %GPU% GEQ 1 FOR /F "tokens=2 delims=$" %%# IN (pwhash) DO (
-IF "%%#"=="zip2" (
-SET "FLAG=--format=ZIP-opencl"
-SET ZIP2=1
-) ELSE (
-IF %GPU% GEQ 1 SET TitleName=%TitleName:[CPU/GPU Mode]  -  [OpenCL ENABLED]=^[CPU Mode^]  -  ^[OpenCL UNSUPPORTED Filetype^]%
-TITLE %TitleName%
-)
-)
+FOR /F "tokens=2 delims=$" %%# IN (pwhash) DO IF "%%#"=="zip2" SET ZIP2=1
+IF %GPU% GEQ 1 SET "FLAG=--format=ZIP-opencl"
 EXIT /b
 
 :HASH.RAR
