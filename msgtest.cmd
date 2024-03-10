@@ -1,1 +1,0 @@
-mshta.exe vbscript:Execute^("MsgBox ""ZipRipper is already running!"", vbCritical, ""ERROR:"""^)^(Window.Close^)
