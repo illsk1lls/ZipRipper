@@ -301,8 +301,7 @@ EXIT /b
 zip2john "%~1">"%ProgramData%\JtR\run\pwhash" 2>nul
 FOR /F %%# IN ("%ProgramData%\JtR\run\pwhash") DO SET /A HSIZE=%%~z#
 IF %HSIZE% EQU 0 SET PROTECTED=0
-FOR /F "tokens=2 delims=$" %%# IN (pwhash) DO IF "%%#"=="zip2" SET ZIP2=1
-IF %GPU% GEQ 1 SET "FLAG=--format=ZIP-opencl"
+FOR /F "tokens=2 delims=$" %%# IN (pwhash) DO IF "%%#"=="zip2" SET ZIP2=1 & IF %GPU% GEQ 1 SET "FLAG=--format=ZIP-opencl"
 EXIT /b
 
 :HASH.RAR
