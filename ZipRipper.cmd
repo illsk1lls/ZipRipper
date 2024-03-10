@@ -431,7 +431,7 @@ EXIT /b
 
 :SINGLEINSTANCE
 TASKLIST /V /NH /FI "imagename eq cmd.exe"|FINDSTR /I /C:"ZIP-Ripper">nul
-IF NOT %errorlevel%==1 (ECHO ERROR:&ECHO ZipRipper is already running!) |MSG *&EXIT
+IF NOT %errorlevel%==1 mshta.exe vbscript:Execute^("MsgBox ""ZipRipper is already running!"", vbCritical, ""ERROR:"""^)^(Window.Close^)&EXIT
 TITLE ^[ZIP-Ripper^] Launching GUI...
 EXIT /b
 
