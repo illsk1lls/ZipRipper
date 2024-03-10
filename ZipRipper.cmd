@@ -170,7 +170,7 @@ CALL :SETRESUME %1
 SETLOCAL ENABLEDELAYEDEXPANSION
 IF NOT "!FOUND!"=="0" (
 CALL :GETSIZE "%UserProfile%\Desktop\ZipRipper-Passwords.txt" PWSIZE
-IF !PWSIZE! LEQ 250 (
+IF !PWSIZE! LEQ 1600 (
 ENDLOCAL
 CALL :DISPLAYINFOA
 ) ELSE (
@@ -390,11 +390,11 @@ ECHO ==============================
 EXIT /b
 
 :DISPLAYINFOA
-FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "foreach($line in Get-Content '%UserProfile%\Desktop\ZipRipper-Passwords.txt'){if($null -eq $oneline){$oneline=$line}else{$oneline=$oneline + '"^"""^"" & vbcrlf & "^"""^""' + $line}}$oneline"`) DO MSHTA.EXE vbscript:Execute^("MsgBox ""%%#"" & vbcrlf & ""Save Location:"" & vbcrlf & """""""" & ""%UserProfile%\Desktop\ZipRipper-Passwords.txt"" & """""""", vbOKOnly, ""Message from ZIP-Ripper"""^)^(Window.Close^)>nul
+POWERSHELL -nop -c "$alertsound={$notifybeep=[PowerShell]::Create().AddScript({$NotifyAudio=New-Object System.Media.SoundPlayer;$NotifyAudio.SoundLocation=$env:WinDir + '\Media\Windows Notify System Generic.wav';$NotifyAudio.playsync()});$runspace=[RunspaceFactory]::CreateRunspace();$runspace.ApartmentState="^""STA"^"";$runspace.ThreadOptions="^""ReuseThread"^"";$runspace.Open();$notifybeep.Runspace=$runspace;$notifybeep.BeginInvoke()};&$alertsound;$Msg=@();foreach($line in Get-Content '%UserProfile%\Desktop\ZipRipper-Passwords.txt'){if($null -eq $Msg){$Msg+=$line}else{$Msg+=$line + "^""`n"^""}};$Msg+="^""Save Location:`n"^"";$Msg+="^"""^"""^""%UserProfile%\Desktop\ZipRipper-Passwords.txt"^"""^"""^"";$PopUp=New-Object -ComObject Wscript.Shell;$PopUp.Popup($Msg,0,'Message from ZIP-Ripper',0x0)">nul
 EXIT /b
 
 :DISPLAYINFOB
-MSHTA.EXE vbscript:Execute^("MsgBox ""[ZIP-Ripper] - FOUND PASSWORDS"" & vbcrlf & "" %DATE% + %TIME%"" & vbcrlf & ""=============================="" & vbcrlf & """" & vbcrlf & ""MULTIPLE PASSWORDS FOUND"" & vbcrlf & """" & vbcrlf & ""=============================="" & vbcrlf & ""Save Location:"" & vbcrlf & """""""" & ""%UserProfile%\Desktop\ZipRipper-Passwords.txt"" & """""""", vbOKOnly, ""Message from ZIP-Ripper"""^)^(Window.Close^)>nul
+POWERSHELL -nop -c "$alertsound={$notifybeep=[PowerShell]::Create().AddScript({$NotifyAudio=New-Object System.Media.SoundPlayer;$NotifyAudio.SoundLocation=$env:WinDir + '\Media\Windows Notify System Generic.wav';$NotifyAudio.playsync()});$runspace=[RunspaceFactory]::CreateRunspace();$runspace.ApartmentState="^""STA"^"";$runspace.ThreadOptions="^""ReuseThread"^"";$runspace.Open();$notifybeep.Runspace=$runspace;$notifybeep.BeginInvoke()};&$alertsound;$Msg=@();$Msg+="^""[ZIP-Ripper] - FOUND PASSWORDS`n"^"";$Msg+="^"" %DATE% + %TIME%`n"^"";$Msg+="^""==============================`n"^"";$Msg+="^""`n"^"";$Msg+="^""TOO MANY TO LIST`n"^"";$Msg+="^""`n"^"";$Msg+="^""==============================`n"^"";$Msg+="^""Save Location:`n"^"";$Msg+="^"""^"""^""%UserProfile%\Desktop\ZipRipper-Passwords.txt"^"""^"""^"";$PopUp=New-Object -ComObject Wscript.Shell;$PopUp.Popup($Msg,0,'Message from ZIP-Ripper',0x0)">nul
 EXIT /b
 
 :CHECKCONNECTION
@@ -415,7 +415,7 @@ EXIT /b
 
 :SINGLEINSTANCE
 TASKLIST /V /NH /FI "imagename eq cmd.exe"|FINDSTR /I /C:"ZIP-Ripper">nul
-IF NOT %errorlevel%==1 mshta.exe vbscript:Execute^("MsgBox ""ZipRipper is already running!"", vbCritical, ""ERROR:"""^)^(Window.Close^)&EXIT
+IF NOT %errorlevel%==1 POWERSHELL -nop -c "$alertsound={$notifybeep=[PowerShell]::Create().AddScript({$NotifyAudio=New-Object System.Media.SoundPlayer;$NotifyAudio.SoundLocation=$env:WinDir + '\Media\Windows Notify System Generic.wav';$NotifyAudio.playsync()});$runspace=[RunspaceFactory]::CreateRunspace();$runspace.ApartmentState="^""STA"^"";$runspace.ThreadOptions="^""ReuseThread"^"";$runspace.Open();$notifybeep.Runspace=$runspace;$notifybeep.BeginInvoke()};&$alertsound;$PopUp=New-Object -ComObject Wscript.Shell;$PopUp.Popup("^""ZipRipper is already running!"^"",0,'ERROR:',0x10)">nul&EXIT
 TITLE ^[ZIP-Ripper^] Launching GUI...
 EXIT /b
 
