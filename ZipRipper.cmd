@@ -33,7 +33,7 @@ CALL :CLEANUP STARTUP
 ECHO|(SET /p="%~dp0")>"%ProgramData%\launcher.ZipRipper"
 >nul 2>&1 COPY /Y "%~f0" "%ProgramData%"
 IF EXIST "%~dp0zr-offline.txt" >nul 2>&1 COPY /Y "%~dp0zr-offline.txt" "%ProgramData%"
->nul 2>&1 FLTMC && (IF NOT "%f0%"=="1" (TITLE Re-Launching...&START "" /min "%ProgramData%\launcher.ZipRipper" "%ProgramData%\%~nx0")) || IF NOT "%f0%"=="1" (TITLE Re-Launching...&START "" /min /high "%ProgramData%\launcher.ZipRipper" "%ProgramData%\%~nx0"&EXIT /b)
+>nul 2>&1 FLTMC && (TITLE Re-Launching...&START "" /min "%ProgramData%\launcher.ZipRipper" "%ProgramData%\%~nx0") || IF NOT "%f0%"=="1" (TITLE Re-Launching...&START "" /min /high "%ProgramData%\launcher.ZipRipper" "%ProgramData%\%~nx0"&EXIT /b)
 EXIT /b
 )
 SET "NATIVE=ZIP,RAR"
