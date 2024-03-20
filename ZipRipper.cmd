@@ -91,8 +91,8 @@ IF NOT "%ALLOWSTART%"=="1" CALL :CLEANUP
 >nul 2>&1 REG DELETE HKCU\Software\classes\.ZipRipper\ /F 
 >nul 2>&1 DEL "%ProgramData%\launcher.ZipRipper" /F /Q
 SET "FILETYPE=%~x1"
-SET "TitleName=^[ZIP-Ripper^]  -  ^[CPU Mode^]  -  ^[OpenCL DISABLED^]  -  Offline Mode"
-IF %GPU% GEQ 1 SET TitleName=%TitleName:^[CPU Mode^]  -  ^[OpenCL DISABLED^]=^[CPU/GPU Mode^]  -  ^[OpenCL ENABLED^]%
+SET "TitleName=^[ZIP-Ripper^]  -  ^[CPU Mode^]  -  ^[OpenCL UNAVAILABLE^]  -  Offline Mode"
+IF %GPU% GEQ 1 SET TitleName=%TitleName:^[CPU Mode^]  -  ^[OpenCL UNAVAILABLE^]=^[CPU/GPU Mode^]  -  ^[OpenCL AVAILABLE^]%
 IF "%OFFLINE%"=="0" SET TitleName=%TitleName:Offline=Online%
 TITLE %TitleName%
 IF "%OFFLINE%"=="0" CALL :ONLINEMODE
@@ -134,7 +134,8 @@ CALL :HASH%FILETYPE% %1
 ECHO Done
 ECHO/
 SETLOCAL ENABLEDELAYEDEXPANSION
-IF "!PROTECTED!"=="0" CALL :NOTPROTECTED %1&EXIT /b
+IF "!PROTECTED!"=="0" CALL :NOTPROTECTED %1&CALL :CLEANUP&GOTO :EOF
+IF "!PROTECTED!"=="2" CALL :NOTSUPPORTED %1&CALL :CLEANUP&GOTO :EOF
 ENDLOCAL
 
 :STARTJTR
@@ -211,6 +212,13 @@ EXIT /b
 :NOTPROTECTED
 CLS
 ECHO "%~1" is not password protected..
+ECHO/
+PAUSE
+EXIT /b 
+
+:NOTSUPPORTED
+CLS
+ECHO "%~1" encryption type is not supported..
 ECHO/
 PAUSE
 EXIT /b 
@@ -301,35 +309,57 @@ EXIT /b
 zip2john "%~1">"%ProgramData%\JtR\run\pwhash" 2>nul
 FOR /F %%# IN ("%ProgramData%\JtR\run\pwhash") DO SET /A HSIZE=%%~z#
 IF %HSIZE% EQU 0 SET PROTECTED=0
-FOR /F "tokens=2 delims=$" %%# IN (pwhash) DO IF "%%#"=="zip2" (
-SET ZIP2=1
-IF %GPU% GEQ 1 SET "FLAG=--format=ZIP-opencl"
+FOR /F "tokens=2 delims=$" %%# IN (pwhash) DO (
+IF /I "%%#"=="zip2" SET ZIP2=1 & IF %GPU% GEQ 1 SET "FLAG=--format=ZIP-opencl"&CALL :OPENCLENABLED
+IF /I "%%#"=="pkzip" (
+SETLOCAL ENABLEDELAYEDEXPANSION
+SET TitleName=!TitleName:[CPU/GPU Mode]  -  [OpenCL AVAILABLE]=^[CPU Mode^]  -  ^[OpenCL UNSUPPORTED Filetype^]!
+TITLE !TitleName!
+ENDLOCAL
+)
 )
 EXIT /b
 
 :HASH.RAR
 rar2john "%~1">"%ProgramData%\JtR\run\pwhash" 2>"%ProgramData%\JtR\run\statusout"
-FOR /F "usebackq tokens=*" %%# IN (`TYPE "%ProgramData%\JtR\run\statusout" ^| findstr /I "Did not find"`) DO SET PROTECTED=0
-IF %GPU% GEQ 1 FOR /F "tokens=2 delims=$" %%# IN (pwhash) DO (
-IF /I "%%#"=="rar" SET "FLAG=--format=rar-opencl"
-IF /I "%%#"=="rar3" SET "FLAG=--format=rar-opencl"
-IF /I "%%#"=="rar5" SET "FLAG=--format=RAR5-opencl"
+FOR /F %%# IN ("%ProgramData%\JtR\run\pwhash") DO SET /A HSIZE=%%~z#
+IF %HSIZE% EQU 0 (
+FOR /F "usebackq tokens=*" %%# IN (`TYPE "%ProgramData%\JtR\run\statusout" ^| findstr /I /C:"Did not find"`) DO SET PROTECTED=0
+FOR /F "usebackq tokens=*" %%# IN (`TYPE "%ProgramData%\JtR\run\statusout" ^| findstr /I /C:"not supported"`) DO SET PROTECTED=2
+) ELSE (
+FOR /F "usebackq tokens=4 delims=*" %%# IN (pwhash) DO IF "%%#"=="00000000" SET PROTECTED=2
 )
+IF %GPU% GEQ 1 FOR /F "tokens=2 delims=$" %%# IN (pwhash) DO (
+IF /I "%%#"=="rar" SET "FLAG=--format=rar-opencl"&CALL :OPENCLENABLED
+IF /I "%%#"=="rar3" SET "FLAG=--format=rar-opencl"&CALL :OPENCLENABLED
+IF /I "%%#"=="rar5" SET "FLAG=--format=RAR5-opencl"&CALL :OPENCLENABLED
+)
+EXIT /b
+
+:OPENCLENABLED
+SETLOCAL ENABLEDELAYEDEXPANSION
+SET TitleName=!TitleName:OpenCL AVAILABLE=OpenCL ENABLED!
+TITLE !TitleName!
+ENDLOCAL
 EXIT /b
 
 :HASH.7z
 CALL portableshell.bat 7z2john.pl "%~1">"%ProgramData%\JtR\run\pwhash" 2>"%ProgramData%\JtR\run\statusout"
-FOR /F "usebackq tokens=*" %%# IN (`TYPE statusout ^| findstr "no AES"`) DO SET PROTECTED=0
-IF %GPU% GEQ 1 SET "FLAG=--format=7z-opencl"
+FOR /F "usebackq tokens=*" %%# IN (`TYPE statusout ^| findstr /I /C:"no AES"`) DO SET PROTECTED=0
+IF %GPU% GEQ 1 SET "FLAG=--format=7z-opencl"&CALL :OPENCLENABLED
 EXIT /b
 
 :HASH.PDF
 CALL portableshell.bat pdf2john.pl "%~1">"%ProgramData%\JtR\run\pwhash" 2>nul
 POWERSHELL -nop -c "$^=[regex]::Match((gc pwhash),'^(.+\/)(?i)(.*\.pdf)(.+$)');$^.Groups[2].value+$^.Groups[3].value|sc pwhash">nul 2>&1
 FOR /F %%# IN ("%ProgramData%\JtR\run\pwhash") DO SET /A HSIZE=%%~z#
-IF %HSIZE% LSS 8000 FOR /F "usebackq tokens=*" %%# IN (`TYPE pwhash ^| findstr "not encrypted!"`) DO SET PROTECTED=0
-IF %GPU% GEQ 1 SET TitleName=%TitleName:[CPU/GPU Mode]  -  [OpenCL ENABLED]=^[CPU Mode^]  -  ^[OpenCL UNSUPPORTED Filetype^]%
-TITLE %TitleName%
+IF %HSIZE% LSS 8000 FOR /F "usebackq tokens=*" %%# IN (`TYPE pwhash ^| findstr /I /C:"not encrypted!"`) DO SET PROTECTED=0
+IF %GPU% GEQ 1 (
+SETLOCAL ENABLEDELAYEDEXPANSION
+SET TitleName=!TitleName:[CPU/GPU Mode]  -  [OpenCL AVAILABLE]=^[CPU Mode^]  -  ^[OpenCL UNSUPPORTED Filetype^]!
+TITLE !TitleName!
+ENDLOCAL
+)
 EXIT /b
 
 :GETSIZE
@@ -344,7 +374,9 @@ EXIT /b
 :MULTI
 FOR /F "usebackq tokens=1,5 delims=*" %%# IN (pwhash) DO ECHO %%#%%$>>pwhash.x1
 FOR /F "usebackq tokens=1,3 delims=$" %%# IN (pwhash.x1) DO ECHO %%#%%$>>pwhash.x2
-POWERSHELL -nop -c "$^=gc john.pot|%%{$_ -Replace '^.+?\*.\*([a-z\d]{32})\*.+:(.*)$',"^""`$1:`$2"^""}|sc pwhash.x3">nul 2>&1
+FOR /F "usebackq tokens=2 delims=:" %%# IN (pwhash.x2) DO SET FILEHASH=%%#
+CALL :CHECKSIZE FILEHASH HASHLENGTH
+POWERSHELL -nop -c "$^=gc john.pot|%%{$_ -Replace '^.+?\*.\*([a-z\d]{%HASHLENGTH%})\*.+:(.*)$',"^""`$1:`$2"^""}|sc pwhash.x3">nul 2>&1
 FOR /F "usebackq tokens=1,2 delims=:" %%# IN (pwhash.x2) DO (
 FOR /F "usebackq tokens=1* delims=:" %%X IN (pwhash.x3) DO (
 IF "%%$"=="%%X" ECHO|(SET /p="%%Y - [%%#]"&ECHO/)>>"%UserProfile%\Desktop\ZipRipper-Passwords.txt"
@@ -352,6 +384,28 @@ IF "%%$"=="%%X" ECHO|(SET /p="%%Y - [%%#]"&ECHO/)>>"%UserProfile%\Desktop\ZipRip
 )
 DEL /f /q pwhash.x*
 EXIT /b
+
+:CHECKSIZE
+(   
+SETLOCAL EnableDelayedExpansion
+(SET^ S=!%~1!)
+IF DEFINED S (
+SET "size=1"
+FOR %%P IN (4096 2048 1024 512 256 128 64 32 16 8 4 2 1) do (
+IF "!S:~%%P,1!" NEQ "" ( 
+SET /a "size+=%%P"
+SET "S=!S:~%%P!"
+)
+)
+) ELSE (
+SET size=0
+)
+)
+( 
+ENDLOCAL
+SET "%~2=%size%"
+EXIT /b
+)
 
 :RENAMEOLD
 IF EXIST "%UserProfile%\Desktop\ZipRipper-Passwords.%R%.txt" (
