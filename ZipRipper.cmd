@@ -275,15 +275,6 @@ GOTO :EOF
 )
 EXIT /b
 
-:CHECKGPU
-FOR /F "usebackq skip=1 tokens=2,3" %%# IN (`WMIC path Win32_VideoController get Name ^| findstr "."`) DO (
-IF /I "%%#"=="GeForce" IF NOT EXIST "%WinDir%\System32\OpenCL.dll" (SET GPU=0) ELSE (SET GPU=1)
-IF /I "%%#"=="Quadro" IF NOT EXIST "%WinDir%\System32\OpenCL.dll" (SET GPU=0) ELSE (SET GPU=1)
-IF /I "%%# %%$"=="Radeon RX" IF NOT EXIST "%WinDir%\System32\amdocl64.dll" (SET GPU=0) ELSE (SET GPU=2)
-IF /I "%%# %%$"=="Radeon Pro" IF NOT EXIST "%WinDir%\System32\amdocl64.dll" (SET GPU=0) ELSE (SET GPU=2)
-)
-EXIT /b
-
 :CHECKRESUMENAME
 FOR /F "usebackq tokens=1 delims=:/" %%# IN (pwhash) DO (
 IF NOT "%~nx1"=="%%#" (
@@ -532,4 +523,13 @@ POWERSHELL -nop -c "Add-Type -AssemblyName PresentationFramework, System.Drawing
 POPD
 >nul 2>&1 RD "%ProgramData%\ztmp" /S /Q
 FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "$^=New-Object -ComObject Wscript.Shell;$^.Popup('Click OK to re-launch ZipRipper in Offline Mode, or Cancel to quit',0,'Re-Launch ZipRipper?',0x1)"`) DO SET %1=%%#
+EXIT /b
+
+:CHECKGPU
+FOR /F "usebackq skip=1 tokens=2,3" %%# IN (`WMIC path Win32_VideoController get Name ^| findstr "."`) DO (
+IF /I "%%#"=="GeForce" IF NOT EXIST "%WinDir%\System32\OpenCL.dll" (SET GPU=0) ELSE (SET GPU=1)
+IF /I "%%#"=="Quadro" IF NOT EXIST "%WinDir%\System32\OpenCL.dll" (SET GPU=0) ELSE (SET GPU=1)
+IF /I "%%# %%$"=="Radeon RX" IF NOT EXIST "%WinDir%\System32\amdocl64.dll" (SET GPU=0) ELSE (SET GPU=2)
+IF /I "%%# %%$"=="Radeon Pro" IF NOT EXIST "%WinDir%\System32\amdocl64.dll" (SET GPU=0) ELSE (SET GPU=2)
+)
 EXIT /b
