@@ -134,8 +134,7 @@ CALL :HASH%FILETYPE% %1
 ECHO Done
 ECHO/
 SETLOCAL ENABLEDELAYEDEXPANSION
-IF "!PROTECTED!"=="0" CALL :NOTPROTECTED %1&CALL :CLEANUP&GOTO :EOF
-IF "!PROTECTED!"=="2" CALL :NOTSUPPORTED %1&CALL :CLEANUP&GOTO :EOF
+IF NOT "!PROTECTED!"=="1" CALL :NOTSUPPORTED %1 "!ERRORMSG!"&ENDLOCAL&CALL :CLEANUP&GOTO :EOF
 ENDLOCAL
 
 :STARTJTR
@@ -209,16 +208,9 @@ ENDLOCAL
 )
 EXIT /b
 
-:NOTPROTECTED
-CLS
-ECHO "%~1" is not password protected..
-ECHO/
-PAUSE
-EXIT /b 
-
 :NOTSUPPORTED
 CLS
-ECHO "%~1" encryption type is not supported..
+ECHO "%~1" %~2
 ECHO/
 PAUSE
 EXIT /b 
@@ -306,9 +298,12 @@ IF "%ALT%"=="1" POWERSHELL -nop -c "$^=New-Object -ComObject Wscript.Shell;$^.Po
 EXIT /b
 
 :HASH.ZIP
-zip2john "%~1">"%ProgramData%\JtR\run\pwhash" 2>nul
+zip2john "%~1">"%ProgramData%\JtR\run\pwhash" 2>"%ProgramData%\JtR\run\statusout"
 FOR /F %%# IN ("%ProgramData%\JtR\run\pwhash") DO SET /A HSIZE=%%~z#
-IF %HSIZE% EQU 0 SET PROTECTED=0
+IF %HSIZE% EQU 0 (
+SET PROTECTED=0&SET "ERRORMSG=is not password protected.."
+FOR /F "usebackq tokens=*" %%# IN (`TYPE "%ProgramData%\JtR\run\statusout" ^| findstr /I /C:"Did not find"`) DO SET PROTECTED=2&SET "ERRORMSG=encryption type is not supported.. (not a ZIPfile)"
+)
 FOR /F "tokens=2 delims=$" %%# IN (pwhash) DO (
 IF /I "%%#"=="zip2" SET ZIP2=1 & IF %GPU% GEQ 1 SET "FLAG=--format=ZIP-opencl"&CALL :OPENCLENABLED
 IF /I "%%#"=="pkzip" (
@@ -324,10 +319,10 @@ EXIT /b
 rar2john "%~1">"%ProgramData%\JtR\run\pwhash" 2>"%ProgramData%\JtR\run\statusout"
 FOR /F %%# IN ("%ProgramData%\JtR\run\pwhash") DO SET /A HSIZE=%%~z#
 IF %HSIZE% EQU 0 (
-FOR /F "usebackq tokens=*" %%# IN (`TYPE "%ProgramData%\JtR\run\statusout" ^| findstr /I /C:"Did not find"`) DO SET PROTECTED=0
-FOR /F "usebackq tokens=*" %%# IN (`TYPE "%ProgramData%\JtR\run\statusout" ^| findstr /I /C:"not supported"`) DO SET PROTECTED=2
+FOR /F "usebackq tokens=*" %%# IN (`TYPE "%ProgramData%\JtR\run\statusout" ^| findstr /I /C:"Did not find"`) DO SET PROTECTED=0&SET "ERRORMSG=is not password protected.."
+FOR /F "usebackq tokens=*" %%# IN (`TYPE "%ProgramData%\JtR\run\statusout" ^| findstr /I /C:"not supported"`) DO SET PROTECTED=2&SET "ERRORMSG=encryption type is not supported.. (old filetype)"
 ) ELSE (
-FOR /F "usebackq tokens=4 delims=*" %%# IN (pwhash) DO IF "%%#"=="00000000" SET PROTECTED=2
+FOR /F "usebackq tokens=4 delims=*" %%# IN (pwhash) DO IF "%%#"=="00000000" SET PROTECTED=2&SET "ERRORMSG=encryption type is not supported.."
 )
 IF %GPU% GEQ 1 FOR /F "tokens=2 delims=$" %%# IN (pwhash) DO (
 IF /I "%%#"=="rar" SET "FLAG=--format=rar-opencl"&CALL :OPENCLENABLED
@@ -345,7 +340,7 @@ EXIT /b
 
 :HASH.7z
 CALL portableshell.bat 7z2john.pl "%~1">"%ProgramData%\JtR\run\pwhash" 2>"%ProgramData%\JtR\run\statusout"
-FOR /F "usebackq tokens=*" %%# IN (`TYPE statusout ^| findstr /I /C:"no AES"`) DO SET PROTECTED=0
+FOR /F "usebackq tokens=*" %%# IN (`TYPE statusout ^| findstr /I /C:"no AES"`) DO SET PROTECTED=0&SET "ERRORMSG=is not password protected.."
 IF %GPU% GEQ 1 SET "FLAG=--format=7z-opencl"&CALL :OPENCLENABLED
 EXIT /b
 
@@ -353,7 +348,7 @@ EXIT /b
 CALL portableshell.bat pdf2john.pl "%~1">"%ProgramData%\JtR\run\pwhash" 2>nul
 POWERSHELL -nop -c "$^=[regex]::Match((gc pwhash),'^(.+\/)(?i)(.*\.pdf)(.+$)');$^.Groups[2].value+$^.Groups[3].value|sc pwhash">nul 2>&1
 FOR /F %%# IN ("%ProgramData%\JtR\run\pwhash") DO SET /A HSIZE=%%~z#
-IF %HSIZE% LSS 8000 FOR /F "usebackq tokens=*" %%# IN (`TYPE pwhash ^| findstr /I /C:"not encrypted!"`) DO SET PROTECTED=0
+IF %HSIZE% LSS 8000 FOR /F "usebackq tokens=*" %%# IN (`TYPE pwhash ^| findstr /I /C:"not encrypted!"`) DO SET PROTECTED=0&SET "ERRORMSG=is not password protected.."
 IF %GPU% GEQ 1 (
 SETLOCAL ENABLEDELAYEDEXPANSION
 SET TitleName=!TitleName:[CPU/GPU Mode]  -  [OpenCL AVAILABLE]=^[CPU Mode^]  -  ^[OpenCL UNSUPPORTED Filetype^]!
