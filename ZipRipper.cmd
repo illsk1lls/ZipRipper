@@ -275,6 +275,15 @@ GOTO :EOF
 )
 EXIT /b
 
+:CHECKGPU
+FOR /F "usebackq skip=1 tokens=2,3" %%# IN (`WMIC path Win32_VideoController get Name ^| findstr "."`) DO (
+IF /I "%%#"=="GeForce" IF NOT EXIST "%WinDir%\System32\OpenCL.dll" (SET GPU=0) ELSE (SET GPU=1)
+IF /I "%%#"=="Quadro" IF NOT EXIST "%WinDir%\System32\OpenCL.dll" (SET GPU=0) ELSE (SET GPU=1)
+IF /I "%%# %%$"=="Radeon RX" IF NOT EXIST "%WinDir%\System32\amdocl64.dll" (SET GPU=0) ELSE (SET GPU=2)
+IF /I "%%# %%$"=="Radeon Pro" IF NOT EXIST "%WinDir%\System32\amdocl64.dll" (SET GPU=0) ELSE (SET GPU=2)
+)
+EXIT /b
+
 :CHECKRESUMENAME
 FOR /F "usebackq tokens=1 delims=:/" %%# IN (pwhash) DO (
 IF NOT "%~nx1"=="%%#" (
@@ -293,7 +302,7 @@ zip2john "%~1">"%ProgramData%\JtR\run\pwhash" 2>"%ProgramData%\JtR\run\statusout
 FOR /F %%# IN ("%ProgramData%\JtR\run\pwhash") DO SET /A HSIZE=%%~z#
 IF %HSIZE% EQU 0 (
 SET PROTECTED=0&SET "ERRORMSG=is not password protected.."
-FOR /F "usebackq tokens=*" %%# IN (`TYPE "%ProgramData%\JtR\run\statusout" ^| findstr /I /C:"Did not find"`) DO SET PROTECTED=2&SET "ERRORMSG=encryption type is not supported.. (not a ZIPfile)"
+FOR /F "usebackq tokens=*" %%# IN (`TYPE "%ProgramData%\JtR\run\statusout" ^| findstr /I /C^:"Did not find"`) DO SET PROTECTED=2&SET "ERRORMSG=encryption type is not supported.. (not a ZIPfile)"
 )
 FOR /F "tokens=2 delims=$" %%# IN (pwhash) DO (
 IF /I "%%#"=="zip2" SET ZIP2=1 & IF %GPU% GEQ 1 SET "FLAG=--format=ZIP-opencl"&CALL :OPENCLENABLED
@@ -310,8 +319,8 @@ EXIT /b
 rar2john "%~1">"%ProgramData%\JtR\run\pwhash" 2>"%ProgramData%\JtR\run\statusout"
 FOR /F %%# IN ("%ProgramData%\JtR\run\pwhash") DO SET /A HSIZE=%%~z#
 IF %HSIZE% EQU 0 (
-FOR /F "usebackq tokens=*" %%# IN (`TYPE "%ProgramData%\JtR\run\statusout" ^| findstr /I /C:"Did not find"`) DO SET PROTECTED=0&SET "ERRORMSG=is not password protected.."
-FOR /F "usebackq tokens=*" %%# IN (`TYPE "%ProgramData%\JtR\run\statusout" ^| findstr /I /C:"not supported"`) DO SET PROTECTED=2&SET "ERRORMSG=encryption type is not supported.. (old filetype)"
+FOR /F "usebackq tokens=*" %%# IN (`TYPE "%ProgramData%\JtR\run\statusout" ^| findstr /I /C^:"Did not find"`) DO SET PROTECTED=0&SET "ERRORMSG=is not password protected.."
+FOR /F "usebackq tokens=*" %%# IN (`TYPE "%ProgramData%\JtR\run\statusout" ^| findstr /I /C^:"not supported"`) DO SET PROTECTED=2&SET "ERRORMSG=encryption type is not supported.. (old filetype)"
 ) ELSE (
 FOR /F "usebackq tokens=4 delims=*" %%# IN (pwhash) DO IF "%%#"=="00000000" SET PROTECTED=2&SET "ERRORMSG=encryption type is not supported.."
 )
@@ -331,7 +340,12 @@ EXIT /b
 
 :HASH.7z
 CALL portableshell.bat 7z2john.pl "%~1">"%ProgramData%\JtR\run\pwhash" 2>"%ProgramData%\JtR\run\statusout"
-FOR /F "usebackq tokens=*" %%# IN (`TYPE statusout ^| findstr /I /C:"no AES"`) DO SET PROTECTED=0&SET "ERRORMSG=is not password protected.."
+FOR /F %%# IN ("%ProgramData%\JtR\run\pwhash") DO SET /A HSIZE=%%~z#
+IF %HSIZE% EQU 0 (
+SET PROTECTED=0&SET "ERRORMSG=is not password protected.."
+) ELSE (
+FOR /F "usebackq tokens=*" %%# IN (`TYPE statusout ^| findstr /I /C^:"not supported"`) DO SET PROTECTED=2&SET "ERRORMSG=encryption type is not supported.."
+)
 IF %GPU% GEQ 1 SET "FLAG=--format=7z-opencl"&CALL :OPENCLENABLED
 EXIT /b
 
@@ -339,7 +353,7 @@ EXIT /b
 CALL portableshell.bat pdf2john.pl "%~1">"%ProgramData%\JtR\run\pwhash" 2>nul
 POWERSHELL -nop -c "$^=[regex]::Match((gc pwhash),'^(.+\/)(?i)(.*\.pdf)(.+$)');$^.Groups[2].value+$^.Groups[3].value|sc pwhash">nul 2>&1
 FOR /F %%# IN ("%ProgramData%\JtR\run\pwhash") DO SET /A HSIZE=%%~z#
-IF %HSIZE% LSS 8000 FOR /F "usebackq tokens=*" %%# IN (`TYPE pwhash ^| findstr /I /C:"not encrypted!"`) DO SET PROTECTED=0&SET "ERRORMSG=is not password protected.."
+IF %HSIZE% LSS 8000 FOR /F "usebackq tokens=*" %%# IN (`TYPE pwhash ^| findstr /I /C^:"not encrypted!"`) DO SET PROTECTED=0&SET "ERRORMSG=is not password protected.."
 IF %GPU% GEQ 1 (
 SETLOCAL ENABLEDELAYEDEXPANSION
 SET TitleName=!TitleName:[CPU/GPU Mode]  -  [OpenCL AVAILABLE]=^[CPU Mode^]  -  ^[OpenCL UNSUPPORTED Filetype^]!
@@ -433,7 +447,7 @@ POWERSHELL -nop -c "$^={$Notify=[PowerShell]::Create().AddScript({$Audio=New-Obj
 EXIT /b
 
 :CHECKCONNECTION
-PING -n 1 "google.com" | FINDSTR /r /c:"[0-9] *ms">nul
+PING -n 1 "google.com" | FINDSTR /r /C^:"[0-9] *ms">nul
 IF NOT %errorlevel%==0 (
 CALL :CENTERWINDOW
 ECHO Internet connection not detected...
@@ -449,7 +463,7 @@ GOTO :EOF
 EXIT /b
 
 :SINGLEINSTANCE
-TASKLIST /V /NH /FI "imagename eq cmd.exe"|FINDSTR /I /C:"ZIP-Ripper">nul
+TASKLIST /V /NH /FI "imagename eq cmd.exe"|FINDSTR /I /C^:"ZIP-Ripper">nul
 IF NOT %errorlevel%==1 POWERSHELL -nop -c "$^={$Notify=[PowerShell]::Create().AddScript({$Audio=New-Object System.Media.SoundPlayer;$Audio.SoundLocation=$env:WinDir + '\Media\Windows Notify System Generic.wav';$Audio.playsync()});$rs=[RunspaceFactory]::CreateRunspace();$rs.ApartmentState="^""STA"^"";$rs.ThreadOptions="^""ReuseThread"^"";$rs.Open();$Notify.Runspace=$rs;$Notify.BeginInvoke()};&$^;$PopUp=New-Object -ComObject Wscript.Shell;$PopUp.Popup("^""ZipRipper is already running!"^"",0,'ERROR:',0x10)">nul&EXIT
 TITLE ^[ZIP-Ripper^] Launching GUI...
 EXIT /b
@@ -523,13 +537,4 @@ POWERSHELL -nop -c "Add-Type -AssemblyName PresentationFramework, System.Drawing
 POPD
 >nul 2>&1 RD "%ProgramData%\ztmp" /S /Q
 FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "$^=New-Object -ComObject Wscript.Shell;$^.Popup('Click OK to re-launch ZipRipper in Offline Mode, or Cancel to quit',0,'Re-Launch ZipRipper?',0x1)"`) DO SET %1=%%#
-EXIT /b
-
-:CHECKGPU
-FOR /F "usebackq skip=1 tokens=2,3" %%# IN (`WMIC path Win32_VideoController get Name ^| findstr "."`) DO (
-IF /I "%%#"=="GeForce" IF NOT EXIST "%WinDir%\System32\OpenCL.dll" (SET GPU=0) ELSE (SET GPU=1)
-IF /I "%%#"=="Quadro" IF NOT EXIST "%WinDir%\System32\OpenCL.dll" (SET GPU=0) ELSE (SET GPU=1)
-IF /I "%%# %%$"=="Radeon RX" IF NOT EXIST "%WinDir%\System32\amdocl64.dll" (SET GPU=0) ELSE (SET GPU=2)
-IF /I "%%# %%$"=="Radeon Pro" IF NOT EXIST "%WinDir%\System32\amdocl64.dll" (SET GPU=0) ELSE (SET GPU=2)
-)
 EXIT /b
