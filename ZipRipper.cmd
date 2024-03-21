@@ -542,7 +542,7 @@ EXIT /b
 SET "LEGACY={B23D10C0-E52E-411E-9D5B-C09FDF709C7D}"
 SET "TERMINAL={2EACA947-7F5F-4CFA-BA87-8F7FBEEFBE69}"
 SET "TERMINAL2={E12CFF52-A866-4C77-9A90-F570A7AA2C6B}"
-POWERSHELL "Get-WmiObject -Class Win32_OperatingSystem | Select -ExpandProperty Caption | Find 'Windows 11'">nul && (
+POWERSHELL -nop -c "Get-WmiObject -Class Win32_OperatingSystem | Select -ExpandProperty Caption | Find 'Windows 11'">nul && (
 SET isEleven=1
 FOR /F "usebackq tokens=3" %%# IN (`REG QUERY "HKCU\Console\%%%%Startup" /v DelegationConsole 2^>nul`) DO (
 IF NOT "%%#"=="%LEGACY%" (
