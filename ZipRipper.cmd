@@ -2,13 +2,11 @@
 CALL :SINGLEINSTANCE
 IF NOT "%PROCESSOR_ARCHITECTURE%"=="AMD64" (
 IF NOT "%PROCESSOR_ARCHITEW6432%"=="AMD64" (
-CALL :CENTERWINDOW
 ECHO FOR USE WITH x64 SYSTEMS ONLY
 ECHO/
 PAUSE
 GOTO :EOF
 ) ELSE (
-CALL :CENTERWINDOW
 ECHO UNABLE TO LAUNCH IN x86 MODE
 ECHO/
 PAUSE
@@ -16,7 +14,6 @@ GOTO :EOF
 )
 )
 IF NOT "%~2"=="" (
-CALL :CENTERWINDOW
 ECHO Multiple files are not supported. Double-click the script and use the GUI to select a file...
 ECHO/
 PAUSE
@@ -75,7 +72,9 @@ CALL :CLEANUP
 CALL :GETFILE FILENAME
 IF NOT EXIST !FILENAME! GOTO :MAIN
 TITLE Re-Launching...
+CALL :SETTERMINAL
 START "" "%ProgramData%\launcher.ZipRipper" "%ProgramData%\%~nx0" "!FILENAME:"=""!"
+CALL :RESTORETERMINAL
 ENDLOCAL
 EXIT /b
 )
@@ -537,4 +536,43 @@ IF /I "%%#"=="Quadro" IF NOT EXIST "%WinDir%\System32\OpenCL.dll" (SET GPU=0) EL
 IF /I "%%# %%$"=="Radeon RX" IF NOT EXIST "%WinDir%\System32\amdocl64.dll" (SET GPU=0) ELSE (SET GPU=2)
 IF /I "%%# %%$"=="Radeon Pro" IF NOT EXIST "%WinDir%\System32\amdocl64.dll" (SET GPU=0) ELSE (SET GPU=2)
 )
+EXIT /b
+
+:SETTERMINAL
+SET "LEGACY={B23D10C0-E52E-411E-9D5B-C09FDF709C7D}"
+SET "TERMINAL={2EACA947-7F5F-4CFA-BA87-8F7FBEEFBE69}"
+SET "TERMINAL2={E12CFF52-A866-4C77-9A90-F570A7AA2C6B}"
+POWERSHELL "Get-WmiObject -Class Win32_OperatingSystem | Select -ExpandProperty Caption | Find 'Windows 11'">nul && (
+SET isEleven=1
+FOR /F "usebackq tokens=3" %%# IN (`REG QUERY "HKCU\Console\%%%%Startup" /v DelegationConsole 2^>nul`) DO (
+IF NOT "%%#"=="%LEGACY%" (
+SET "DEFAULTCONSOLE=%%#"
+REG ADD "HKCU\Console\%%%%Startup" /v DelegationConsole /t REG_SZ /d "%LEGACY%" /f>nul
+REG ADD "HKCU\Console\%%%%Startup" /v DelegationTerminal /t REG_SZ /d "%LEGACY%" /f>nul
+)
+)
+)
+FOR /F "usebackq tokens=3" %%# IN (`REG QUERY "HKCU\Console" /v ForceV2 2^>nul`) DO (
+IF NOT "%%#"=="0x1" (
+SET LEGACYTERM=0
+REG ADD "HKCU\Console" /v ForceV2 /t REG_DWORD /d 1 /f>nul
+) ELSE (
+SET LEGACYTERM=1
+)
+)
+EXIT /b
+
+:RESTORETERMINAL
+IF "%isEleven%"=="1" (
+IF DEFINED DEFAULTCONSOLE (
+IF "%DEFAULTCONSOLE%"=="%TERMINAL%" (
+REG ADD "HKCU\Console\%%%%Startup" /v DelegationConsole /t REG_SZ /d "%TERMINAL%" /f>nul
+REG ADD "HKCU\Console\%%%%Startup" /v DelegationTerminal /t REG_SZ /d "%TERMINAL2%" /f>nul
+) ELSE (
+REG ADD "HKCU\Console\%%%%Startup" /v DelegationConsole /t REG_SZ /d "%DEFAULTCONSOLE%" /f>nul
+REG ADD "HKCU\Console\%%%%Startup" /v DelegationTerminal /t REG_SZ /d "%DEFAULTCONSOLE%" /f>nul
+)
+)
+)
+IF "%LEGACYTERM%"=="0" REG ADD "HKCU\Console" /v ForceV2 /t REG_DWORD /d 0 /f>nul
 EXIT /b
