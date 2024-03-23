@@ -295,7 +295,11 @@ SET PROTECTED=0&SET "ERRORMSG=is not password protected.."
 FOR /F "usebackq tokens=*" %%# IN (`TYPE "%ProgramData%\JtR\run\statusout" ^| findstr /I /C^:"Did not find"`) DO SET PROTECTED=2&SET "ERRORMSG=encryption type is not supported.. (not a ZIPfile)"
 )
 FOR /F "tokens=2 delims=$" %%# IN (pwhash) DO (
-IF /I "%%#"=="zip2" SET ZIP2=1 & IF %GPU% GEQ 1 SET "FLAG=--format=ZIP-opencl"&CALL :OPENCLENABLED
+IF /I "%%#"=="zip2" (
+SET ZIP2=1
+IF %GPU% GEQ 1 SET "FLAG=--format=ZIP-opencl"
+CALL :OPENCLENABLED
+)
 IF /I "%%#"=="pkzip" (
 SETLOCAL ENABLEDELAYEDEXPANSION
 SET TitleName=!TitleName:[CPU/GPU Mode]  -  [OpenCL AVAILABLE]=^[CPU Mode^]  -  ^[OpenCL UNSUPPORTED Filetype^]!
