@@ -1,6 +1,6 @@
 @echo off
 cls
-echo OpenCL Driver (ICD) Fix for AMD GPU's
+echo OpenCL Driver (ICD) Fix for AMD GPUs
 echo By Patrick Trumpis (https://github.com/ptrumpis/OpenCL-AMD-GPU)
 echo Inspired by https://stackoverflow.com/a/28407851
 echo:
@@ -13,7 +13,7 @@ echo:
     echo =================
     echo This script requires administrator rights.
     echo Please run it again as administrator.
-    echo You can right click the file and select 'Run as administrator'
+    echo You can right-click the file and select 'Run as administrator'
 
     echo:
     pause
@@ -23,19 +23,19 @@ echo:
 :run
 SETLOCAL EnableDelayedExpansion
 
-SET ROOTKEY64=HKEY_LOCAL_MACHINE\SOFTWARE\Khronos\OpenCL\Vendors
-SET ROOTKEY32=HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Khronos\OpenCL\Vendors
+SET "ROOTKEY64=HKEY_LOCAL_MACHINE\SOFTWARE\Khronos\OpenCL\Vendors"
+SET "ROOTKEY32=HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Khronos\OpenCL\Vendors"
 
-echo Currently installed OpenCL Client Driver's - 64bit
+echo Currently installed OpenCL Client Drivers - 64bit
 echo ==================================================
-for /f "tokens=1,*" %%A in ('reg query %ROOTKEY64%') do (
+for /f "tokens=1,*" %%A in ('reg query "%ROOTKEY64%"') do (
     echo %%A - %%B
 )
 echo:
 
-echo Currently installed OpenCL Client Driver's - 32bit
+echo Currently installed OpenCL Client Drivers - 32bit
 echo ==================================================
-for /f "tokens=1,*" %%A in ('reg query %ROOTKEY32%') do (
+for /f "tokens=1,*" %%A in ('reg query "%ROOTKEY32%"') do (
     echo %%A - %%B
 )
 echo:
@@ -64,7 +64,7 @@ echo:
 echo Scanning '%SYSTEMROOT%\system32' for 'amdocl*.dll' files, please wait...
 echo:
 
-cd /d %SYSTEMROOT%\system32
+cd /d "%SYSTEMROOT%\system32"
 call :registerMissingClientDriver
 
 echo:
@@ -94,7 +94,7 @@ echo:
 
 for %%A in ("%path:;=";"%") do (
     if "%%~A" neq "" (
-        cd /d %%A
+        cd /d "%%A"
         call :registerMissingClientDriver
     )
 )
@@ -113,18 +113,18 @@ pause
 exit /b 0
 
 :registerMissingClientDriver
-for /r %%f in (amdocl*dll) do (
-    set FILE="%%~dpnxf"
+for /r %%f in (amdocl*.dll) do (
+    set "FILE=%%~dpnxf"
 
     for %%A in (amdocl.dll amdocl12cl.dll amdocl12cl64.dll amdocl32.dll amdocl64.dll) do (
-        if "%%~nxf"=="%%A" (
+        if /I "%%~nxf"=="%%A" (
             echo Found: !FILE!
 
             echo !FILE! | findstr /C:"_amd64_" >nul
             if !ERRORLEVEL! == 0 (
                 set "ROOTKEY=!ROOTKEY64!"
             ) else (
-                set FILE_BIT=!FILE:~-7,-5!
+                set "FILE_BIT=!FILE:~-7,-5!"
                 if !FILE_BIT! == 64 (
                     set "ROOTKEY=!ROOTKEY64!"
                 ) else (
@@ -132,16 +132,16 @@ for /r %%f in (amdocl*dll) do (
                 )
             )
 
-            reg query !ROOTKEY! >nul 2>&1
+            reg query "!ROOTKEY!" >nul 2>&1
             if !ERRORLEVEL! neq 0 (
-                reg add !ROOTKEY! /f
+                reg add "!ROOTKEY!" /f
                 echo Added Key: !ROOTKEY!
             )
 
-            reg query !ROOTKEY! /v !FILE! >nul 2>&1
+            reg query "!ROOTKEY!" /v "!FILE!" >nul 2>&1
 
             if !ERRORLEVEL! neq 0 (
-                reg add !ROOTKEY! /v !FILE! /t REG_DWORD /d 0 /f >nul 2>&1
+                reg add "!ROOTKEY!" /v "!FILE!" /t REG_DWORD /d 0 /f >nul 2>&1
 
                 if !ERRORLEVEL! == 0 (
                     echo Installed: !FILE!
