@@ -32,7 +32,7 @@ nVidia "GeForce" & "Quadro" and AMD "Radeon RX" & "Radeon Pro" cards.<br>
 
 ZipRipper is portable, there are two different running modes; Online Mode, and Offline mode...
 
-**Online Mode:** ZipRipper gathers its resources from the web (JohnTheRipper,7zip, and Portable Perl).<br>
+**Online Mode:** ZipRipper gathers its resources from the web (JohnTheRipper, 7zip, and Portable Perl).<br>
 Only the script itself and an internet connection are required for this mode.<br>
 
 **Offline Mode:** ZipRipper uses/requires a local resource file [zr-offline.txt]. **The presence of [zr-offline.txt] in<br>**
@@ -40,4 +40,4 @@ Only the script itself and an internet connection are required for this mode.<br
 
 **[zr-offline.txt] creator:** Click the letters JtR in John's hat to create [zr-offline.txt], you can then relaunch in offline mode, or package the offline/portable script for use at a later time.
 
-*UNC Paths are supported.*
+*UNC Paths and redirected folders are supported.*
