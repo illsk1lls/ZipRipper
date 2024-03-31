@@ -90,8 +90,8 @@ IF NOT "%ALLOWSTART%"=="1" CALL :CLEANUP
 >nul 2>&1 REG DELETE HKCU\Software\classes\.ZipRipper\ /F 
 >nul 2>&1 DEL "%ProgramData%\launcher.ZipRipper" /F /Q
 SET "FILETYPE=%~x1"
-SET "TitleName=^[ZIP-Ripper^]  -  ^[CPU Mode^]  -  ^[OpenCL UNAVAILABLE^]  -  Offline Mode"
-IF %GPU% GEQ 1 SET TitleName=%TitleName:^[CPU Mode^]  -  ^[OpenCL UNAVAILABLE^]=^[CPU/GPU Mode^]  -  ^[OpenCL AVAILABLE^]%
+SET "TitleName=[ZIP-Ripper]  -  [CPU Mode]  -  [OpenCL UNAVAILABLE]  -  Offline Mode"
+IF %GPU% GEQ 1 SET TitleName=%TitleName:[CPU Mode]  -  [OpenCL UNAVAILABLE]=[CPU/GPU Mode]  -  [OpenCL AVAILABLE]%
 IF "%OFFLINE%"=="0" SET TitleName=%TitleName:Offline=Online%
 TITLE %TitleName%
 IF "%OFFLINE%"=="0" CALL :ONLINEMODE
@@ -146,7 +146,7 @@ ECHO/
 john --restore
 ) ELSE (
 SETLOCAL ENABLEDELAYEDEXPANSION
-john "%ProgramData%\JtR\run\pwhash" --wordlist="%ProgramData%\JtR\run\password.lst" --rules=single,all !FLAG!
+john --wordlist="%ProgramData%\JtR\run\password.lst" --rules=single,all "%ProgramData%\JtR\run\pwhash" !FLAG!
 ENDLOCAL
 )
 CALL :GETSIZE "%ProgramData%\JtR\run\john.pot" POTSIZE
@@ -302,7 +302,7 @@ CALL :OPENCLENABLED
 )
 IF /I "%%#"=="pkzip" (
 SETLOCAL ENABLEDELAYEDEXPANSION
-SET TitleName=!TitleName:[CPU/GPU Mode]  -  [OpenCL AVAILABLE]=^[CPU Mode^]  -  ^[OpenCL UNSUPPORTED Filetype^]!
+SET TitleName=!TitleName:[CPU/GPU Mode]  -  [OpenCL AVAILABLE]=[CPU Mode]  -  [OpenCL UNSUPPORTED Filetype]!
 TITLE !TitleName!
 ENDLOCAL
 )
@@ -350,7 +350,7 @@ FOR /F %%# IN ("%ProgramData%\JtR\run\pwhash") DO SET /A HSIZE=%%~z#
 IF %HSIZE% LSS 8000 FOR /F "usebackq tokens=*" %%# IN (`TYPE pwhash ^| findstr /I /C^:"not encrypted!"`) DO SET PROTECTED=0&SET "ERRORMSG=is not password protected.."
 IF %GPU% GEQ 1 (
 SETLOCAL ENABLEDELAYEDEXPANSION
-SET TitleName=!TitleName:[CPU/GPU Mode]  -  [OpenCL AVAILABLE]=^[CPU Mode^]  -  ^[OpenCL UNSUPPORTED Filetype^]!
+SET TitleName=!TitleName:[CPU/GPU Mode]  -  [OpenCL AVAILABLE]=[CPU Mode]  -  [OpenCL UNSUPPORTED Filetype]!
 TITLE !TitleName!
 ENDLOCAL
 )
@@ -459,7 +459,7 @@ EXIT /b
 :SINGLEINSTANCE
 TASKLIST /V /NH /FI "imagename eq cmd.exe"|FINDSTR /I /C^:"ZIP-Ripper">nul
 IF NOT %errorlevel%==1 POWERSHELL -nop -c "$^={$Notify=[PowerShell]::Create().AddScript({$Audio=New-Object System.Media.SoundPlayer;$Audio.SoundLocation=$env:WinDir + '\Media\Windows Notify System Generic.wav';$Audio.playsync()});$rs=[RunspaceFactory]::CreateRunspace();$rs.ApartmentState="^""STA"^"";$rs.ThreadOptions="^""ReuseThread"^"";$rs.Open();$Notify.Runspace=$rs;$Notify.BeginInvoke()};&$^;$PopUp=New-Object -ComObject Wscript.Shell;$PopUp.Popup("^""ZipRipper is already running!"^"",0,'ERROR:',0x10)">nul&EXIT
-TITLE ^[ZIP-Ripper^] Launching GUI...
+TITLE [ZIP-Ripper] Launching GUI...
 EXIT /b
 
 :CENTERWINDOW
