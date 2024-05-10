@@ -424,28 +424,6 @@ REN "%UserProfile%\Desktop\ZipRipper-Passwords.txt" "ZipRipper-Passwords.%R%.txt
 )
 EXIT /b
 
-:SAVEFILE
-IF EXIST "%UserProfile%\Desktop\ZipRipper-Passwords.txt" (
-SET /A R=0
-CALL :RENAMEOLD
-)
-(
-ECHO ^[ZIP-Ripper^] - FOUND PASSWORDS
-ECHO  %DATE% + %TIME%
-ECHO ==============================
-ECHO/
-)>"%UserProfile%\Desktop\ZipRipper-Passwords.txt"
-IF "%ZIP2%"=="1" (
-CALL :MULTI
-) ELSE (
-CALL :SINGLE %1
-)
-(
-ECHO/
-ECHO ==============================
-)>>"%UserProfile%\Desktop\ZipRipper-Passwords.txt"
-EXIT /b
-
 :DISPLAYINFOA
 POWERSHELL -nop -c "$^={$Notify=[PowerShell]::Create().AddScript({$Audio=New-Object System.Media.SoundPlayer;$Audio.SoundLocation=$env:WinDir + '\Media\Windows Notify System Generic.wav';$Audio.playsync()});$rs=[RunspaceFactory]::CreateRunspace();$runspace.ApartmentState="^""STA"^"";$rs.ThreadOptions="^""ReuseThread"^"";$rs.Open();$Notify.Runspace=$rs;$Notify.BeginInvoke()};&$^;$Msg=@();foreach($line in Get-Content '%UserProfile%\Desktop\ZipRipper-Passwords.txt'){if($null -eq $Msg){$Msg+=$line}else{$Msg+=$line + "^""`n"^""}};$Msg+="^""Save Location:`n"^"";$Msg+="^"""^"""^""%UserProfile%\Desktop\ZipRipper-Passwords.txt"^"""^"""^"";$PopUp=New-Object -ComObject Wscript.Shell;$PopUp.Popup($Msg,0,'Message from ZIP-Ripper',0x0)">nul
 EXIT /b
@@ -606,4 +584,26 @@ REG ADD "HKCU\Console\%%%%Startup" /v DelegationTerminal /t REG_SZ /d "%DEFAULTC
 )
 )
 IF "%LEGACYTERM%"=="0" REG ADD "HKCU\Console" /v ForceV2 /t REG_DWORD /d 0 /f>nul
+EXIT /b
+
+:SAVEFILE
+IF EXIST "%UserProfile%\Desktop\ZipRipper-Passwords.txt" (
+SET /A R=0
+CALL :RENAMEOLD
+)
+(
+ECHO ^[ZIP-Ripper^] - FOUND PASSWORDS
+ECHO  %DATE% + %TIME%
+ECHO ==============================
+ECHO/
+)>"%UserProfile%\Desktop\ZipRipper-Passwords.txt"
+IF "%ZIP2%"=="1" (
+CALL :MULTI
+) ELSE (
+CALL :SINGLE %1
+)
+(
+ECHO/
+ECHO ==============================
+)>>"%UserProfile%\Desktop\ZipRipper-Passwords.txt"
 EXIT /b
