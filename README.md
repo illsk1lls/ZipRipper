@@ -25,6 +25,8 @@ saved to the users desktop as: ZipRipper-Passwords.txt
 *user is presented with the options of either resuming the job, or bypassing the resume feature and starting a new job.<br>*
 *Note: When a job is completed the resume data is removed. All resume data can be cleared by clicking the center of John's tie*
 
+To use an alternate wordlist, click John's mouth
+
 Current version provides support for hardware acceleration via OpenCL for:<br>
 nVidia "GeForce" & "Quadro" and AMD "Radeon RX" & "Radeon Pro" cards.<br>
 
