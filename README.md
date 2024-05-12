@@ -37,8 +37,11 @@ SET WORDLISTADDR="https://github.com/brannondorsey/naive-hashcat/releases/downlo
 SET WORDLIST7z=""
 SET WORDLISTTXT="RockYou.txt"
 ```
-The built in alternate wordlist supports direct download links to 7z archives or raw txt files.<br>
+The built in alternate wordlist supports direct download links to:<br>
+-7z archives containing a text file<br>
+-Raw unarchived txt files.<br>
 If a raw text file is used, leave WORDLIST7z="" as shown here, otherwise WORDLIST7z="DownloadedArchiveName.7z" as shown in the script.<br>
+
 A Custom wordlist option is also available to select a local file.<br>
 
 **Current version provides support for hardware acceleration via OpenCL for:**<br>
