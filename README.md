@@ -26,7 +26,20 @@ saved to the users desktop as: ZipRipper-Passwords.txt
 *user is presented with the options of either resuming the job, or bypassing the resume feature and starting a new job.<br>*
 *Note: When a job is completed the resume data is removed. All resume data can be cleared by clicking the center of John's tie*
 
-To set an alternate wordlist, click John's mouth and select an option before starting the session. (Clicking an option will register your selection and quietly dismiss the menu)
+Alternate wordlist options:<br>
+Click John's mouth and select an option before starting the session. (Clicking an option will register your selection and quietly dismiss the menu)<br>
+
+It is possible to change the built in additional wordlist.<br>
+e.g. For RockYou wordlist you would change lines 52-55 to the following<br>
+```
+SET WORDLISTNAME="RockYou"
+SET WORDLISTADDR="https://github.com/brannondorsey/naive-hashcat/releases/download/data/rockyou.txt"
+SET WORDLIST7z=""
+SET WORDLISTTXT="RockYou.txt"
+```
+The built in alternate wordlist supports direct download links to 7z archives or raw txt files.<br>
+If a raw text file is used, leave WORDLIST7z="" as shown here, otherwise WORDLIST7z="DownloadedArchiveName.7z" as shown in the script.<br>
+A Custom wordlist option is also available to select a local file.<br>
 
 Current version provides support for hardware acceleration via OpenCL for:<br>
 nVidia "GeForce" & "Quadro" and AMD "Radeon RX" & "Radeon Pro" cards.<br>
