@@ -59,7 +59,7 @@ SET WORDLISTADDR="https://download.weakpass.com/wordlists/1927/cyclone.hashesorg
 SET WORDLIST7z="cyclone.hashesorg.hashkiller.combined.txt.7z"
 SET WORDLISTTXT="cyclone.hashesorg.hashkiller.combined.txt"
 ```
--Etc...
+-Etc...<br>
 More wordlists can be found at <a href="https://weakpass.com/wordlist">https://weakpass.com/wordlist</a> and various other<br>
 places around the web..<br>
 
