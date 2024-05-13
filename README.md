@@ -17,8 +17,8 @@ $${\color{yellow}1.) \space Double-click \space the \space script, \space and \s
 
 $${\color{yellow}2.) \space Wait \space for \space password..}$$<br>
 
-*When a password is found an alert window will appear, and the password(s) will be<br>*
-*saved to the users desktop as:* ZipRipper-Passwords.txt<br>
+*<p align="center">When a password is found an alert window will appear, and the password(s) will be</p><br>*
+*<p align="center">saved to the users desktop as:* ZipRipper-Passwords.txt</p><br>
 
 **ZipRipper is portable, there are two different running modes; Online Mode, and Offline mode...**
 
