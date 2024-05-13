@@ -32,8 +32,8 @@ Click John's mouth and select an option before starting the session. (Clicking a
 It is possible to change the built in additional wordlist. The included cyclone_hk alternate<br>
 wordlist is an optional 667MB download, and 2.3GB expanded on disk.<br>
 
--For RockYou wordlist(optional 133MB uncompressed download, and<br>
-133MB on disk) you would change lines 52-55 to the following<br>
+-For a lightweight variant of the RockYou wordlist(optional 133MB uncompressed<br>
+download, and 133MB on disk) you would change lines 52-55 to the following<br>
 ```
 SET WORDLISTNAME="RockYou"
 SET WORDLISTADDR="https://github.com/brannondorsey/naive-hashcat/releases/download/data/rockyou.txt"
