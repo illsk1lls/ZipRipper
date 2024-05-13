@@ -17,9 +17,10 @@ $${\color{yellow}1.) \space Double-click \space the \space script, \space and \s
 
 $${\color{yellow}2.) \space Wait \space for \space password..}$$<br>
 
-**ZIP, RAR, 7z, and PDF filetypes are supported**
+*When a password is found an alert window will appear, and the password(s) will be<br>*
+*saved to the users desktop as:* ZipRipper-Passwords.txt<br>
 
-ZipRipper is portable, there are two different running modes; Online Mode, and Offline mode...
+**ZipRipper is portable, there are two different running modes; Online Mode, and Offline mode...**
 
 **Online Mode:** ZipRipper gathers its resources from the web (JohnTheRipper, 7zip, and Portable Perl).<br>
 Only the script itself and an internet connection are required for this mode.<br>
@@ -28,9 +29,6 @@ Only the script itself and an internet connection are required for this mode.<br
 **the same folder as the script is required and will force offline mode.** An internet connection is not needed for this mode.<br>
 
 **[zr-offline.txt] creator:** Click the letters JtR in John's hat to create [zr-offline.txt], you can then relaunch in offline mode, or package the offline/portable script for use at a later time.<br>
-
-When a password is found an alert window will appear, and the password(s) will be<br>
-saved to the users desktop as: ZipRipper-Passwords.txt<br>
 
 *If the script is interrupted normally (by pressing the 'q' key to quit or the 'red x', once), resume will be enabled<br>.*
 *A MD5 hash is created for each job that is used to store the resume data in: %AppData%\ZR-InProgress\\[MD5HASH]<br>*
