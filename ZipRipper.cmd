@@ -49,10 +49,10 @@ IF EXIST "%~dp0zr-offline.txt" >nul 2>&1 COPY /Y "%~dp0zr-offline.txt" "%Program
 EXIT /b
 )
 REM Begin Dynamic alternate wordlist info - Expected format is UTF-8 text file inside a 7z archive - If using an unarchived text file; SET WORDLIST7z=""
-SET WORDLISTNAME="Combined"
-SET WORDLISTADDR="https://download.weakpass.com/wordlists/1927/cyclone.hashesorg.hashkiller.combined.txt.7z"
-SET WORDLIST7z="cyclone.hashesorg.hashkiller.combined.txt.7z"
-SET WORDLISTTXT="cyclone.hashesorg.hashkiller.combined.txt"
+SET WORDLISTNAME="Cyclone"
+SET WORDLISTADDR="https://download.weakpass.com/wordlists/1928/cyclone_hk.txt.7z"
+SET WORDLIST7z="cyclone_hk.txt.7z"
+SET WORDLISTTXT="cyclone_hk.txt"
 REM End Dynamic alternate wordlist info
 IF NOT %WORDLIST7z%=="" SET WORDLIST7z="%ProgramData%\%WORDLIST7z:"=%"
 SET "NATIVE=ZIP,RAR"
