@@ -411,9 +411,13 @@ FOR /F "tokens=2 delims=$" %%# IN (pwhash) DO (
 IF /I "%%#"=="zip2" (
 SET ZIP2=1
 SETLOCAL ENABLEDELAYEDEXPANSION
-IF !GPU! GEQ 1 SET "FLAG=--format=ZIP-opencl"
+IF !GPU! GEQ 1 (
 ENDLOCAL
+SET "FLAG=--format=ZIP-opencl"
 CALL :OPENCLENABLED
+) ELSE (
+ENDLOCAL
+)
 )
 IF /I "%%#"=="pkzip" (
 SETLOCAL ENABLEDELAYEDEXPANSION
@@ -452,7 +456,7 @@ EXIT /b
 
 :OPENCLENABLED
 SETLOCAL ENABLEDELAYEDEXPANSION
-SET "TitleName=!TitleName:#PROC=CPU/GPU!"
+SET "TitleName=!TitleName:#PROC=GPU!"
 SET TitleName=!TitleName:#STATUS=ENABLED!
 IF !OFFLINE! EQU 0 (
 SET "TitleName=!TitleName:#RUNMODE=Online!"
@@ -472,8 +476,13 @@ SET PROTECTED=0&SET "ERRORMSG=is not password protected.."
 FOR /F "usebackq tokens=*" %%# IN (`TYPE statusout ^| findstr /I /C^:"not supported"`) DO SET PROTECTED=2&SET "ERRORMSG=encryption type is not supported.."
 )
 SETLOCAL ENABLEDELAYEDEXPANSION
-IF !GPU! GEQ 1 SET "FLAG=--format=7z-opencl"&CALL :OPENCLENABLED
+IF !GPU! GEQ 1 (
 ENDLOCAL
+SET "FLAG=--format=7z-opencl"
+CALL :OPENCLENABLED
+) ELSE (
+ENDLOCAL
+)
 EXIT /b
 
 :HASH.PDF
