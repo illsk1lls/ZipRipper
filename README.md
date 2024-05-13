@@ -29,20 +29,36 @@ saved to the users desktop as: ZipRipper-Passwords.txt
 **Alternate wordlist options:**<br>
 Click John's mouth and select an option before starting the session. (Clicking an option will register your selection and quietly dismiss the menu)<br>
 
-It is possible to change the built in additional wordlist.<br>
-e.g. For RockYou wordlist you would change lines 52-55 to the following<br>
+It is possible to change the built in additional wordlist. The included cyclone_hk alternate<br>
+wordlist is an optional 667MB download, and 2.3GB expanded on disk.<br>
+
+-For RockYou wordlist(optional 133MB uncompressed download, and<br>
+133MB on disk) you would change lines 52-55 to the following<br>
 ```
 SET WORDLISTNAME="RockYou"
 SET WORDLISTADDR="https://github.com/brannondorsey/naive-hashcat/releases/download/data/rockyou.txt"
 SET WORDLIST7z=""
 SET WORDLISTTXT="RockYou.txt"
 ```
+-For Cyclone.hashesorg.hashkiller.combined wordlist(optional 6.53GB download,<br>
+and 15.02GB expanded on disk) you would change lines 52-55 to the following<br>
+```
+SET WORDLISTNAME="Combined"
+SET WORDLISTADDR="https://download.weakpass.com/wordlists/1927/cyclone.hashesorg.hashkiller.combined.txt.7z"
+SET WORDLIST7z="cyclone.hashesorg.hashkiller.combined.txt.7z"
+SET WORDLISTTXT="cyclone.hashesorg.hashkiller.combined.txt"
+```
+-Etc...
+More wordlists can be found at <a href="https://weakpass.com/wordlist">https://weakpass.com/wordlist</a> and various other<br>
+places around the web..<br>
+
 The built in alternate wordlist supports direct download links to:<br>
 -7z archives containing a text file<br>
 -Raw unarchived txt files.<br>
 If a raw text file is used, leave WORDLIST7z="" as shown here, otherwise WORDLIST7z="DownloadedArchiveName.7z" as shown in the script.<br>
 
-A Custom wordlist option is also available to select a local file.<br>
+**Although the easiest way to use an additional wordfile other than the built in Cyclone alternate, is the Custom wordlist option, which**<br>
+**allows you to select a local file.**<br>
 
 **Current version provides support for hardware acceleration via OpenCL for:**<br>
 nVidia "GeForce" & "Quadro" and AMD "Radeon RX" & "Radeon Pro" cards.<br>
