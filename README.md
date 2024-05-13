@@ -32,6 +32,7 @@ Click John's mouth and select an option before starting the session. (Clicking a
 It is possible to change the built in additional wordlist. The included cyclone_hk alternate<br>
 wordlist is an optional 667MB download, and 2.3GB expanded on disk. **Although the easiest way to use an additional wordlist other than the built in Cyclone alternate, is the Custom wordlist option, which allows you to select a local file.**<br>
 
+Examples of how to change the built in alternate;
 -For a lightweight variant of the RockYou wordlist(optional 133MB uncompressed<br>
 download, and 133MB on disk) you would change lines 52-55 to the following<br>
 ```
