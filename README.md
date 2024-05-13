@@ -55,7 +55,8 @@ places around the web..<br>
 The built in alternate wordlist supports direct download links to:<br>
 -7z archives containing a text file<br>
 -Raw unarchived txt files.<br>
-If a raw text file is used, leave WORDLIST7z="" as shown here, otherwise WORDLIST7z="DownloadedArchiveName.7z" as shown in the script.<br>
+If a raw text file is used, leave WORDLIST7z="" as shown in the RockYou variant above,<br>
+otherwise WORDLIST7z="DownloadedArchiveName.7z" as shown in the Combined option above.<br>
 
 **Although the easiest way to use an additional wordfile other than the built in Cyclone alternate, is the Custom wordlist option, which**<br>
 **allows you to select a local file.**<br>
