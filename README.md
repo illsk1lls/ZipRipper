@@ -29,10 +29,10 @@ saved to the users desktop as: ZipRipper-Passwords.txt
 **Alternate wordlist options:**<br>
 Click John's mouth and select an option before starting the session. (Clicking an option will register your selection and quietly dismiss the menu)<br>
 
-It is possible to change the built in additional wordlist. The included cyclone_hk alternate<br>
+It is possible to change the built in alternate wordlist. The included cyclone_hk alternate<br>
 wordlist is an optional 667MB download, and 2.3GB expanded on disk. **Although the easiest way to use an additional wordlist other than the built in Cyclone alternate, is the Custom wordlist option, which allows you to select a local file.**<br>
 
-Examples of how to change the built in alternate;<br>
+Examples of how to change the built in alternate wordlist;<br>
 -For a lightweight variant of the RockYou wordlist(optional 133MB uncompressed<br>
 download, and 133MB on disk) you would change lines 52-55 to the following<br>
 ```
