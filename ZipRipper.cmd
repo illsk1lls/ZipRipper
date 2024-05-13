@@ -99,7 +99,7 @@ SET "LMSG=%WORDLISTNAME:"=% wordlist selected - The wordlist will be included in
 CALL :LISTMESSAGE "!LMSG!"
 SET LISTNAME="%ProgramData%\%WORDLISTTXT:"=%"
 ) ELSE (
-SET "LMSG=Internet connection unavailable - Automatic retrieval of %WORDLISTNAME% wordlist is not possible. Default and Custom wordlist options are available."
+SET "LMSG=Internet connection unavailable - Automatic retrieval of %WORDLISTNAME:"=% wordlist is not possible. Default and Custom wordlist options are available."
 CALL :LISTMESSAGE "!LMSG!"
 CALL :RESETWORDLIST
 GOTO :MAIN
