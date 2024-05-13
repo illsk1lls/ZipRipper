@@ -1,4 +1,11 @@
 @ECHO OFF
+REM Begin dynamic alternate wordlist info - Expected format is UTF-8 text file inside a 7z archive - If using an unarchived text file; SET WORDLIST7z=""
+SET WORDLISTNAME="Cyclone"
+SET WORDLISTADDR="https://download.weakpass.com/wordlists/1928/cyclone_hk.txt.7z"
+SET WORDLIST7z="cyclone_hk.txt.7z"
+SET WORDLISTTXT="cyclone_hk.txt"
+REM End dynamic alternate wordlist info -> Click John's mouth on the GUI to access this option <-
+IF NOT %WORDLIST7z%=="" SET WORDLIST7z="%ProgramData%\%WORDLIST7z:"=%"
 CALL :SINGLEINSTANCE
 IF NOT "%PROCESSOR_ARCHITECTURE%"=="AMD64" (
 IF NOT "%PROCESSOR_ARCHITEW6432%"=="AMD64" (
@@ -48,13 +55,6 @@ IF EXIST "%~dp0zr-offline.txt" >nul 2>&1 COPY /Y "%~dp0zr-offline.txt" "%Program
 >nul 2>&1 FLTMC && (TITLE Re-Launching...&START "" /min "%ProgramData%\launcher.ZipRipper" "%ProgramData%\%~nx0") || IF NOT "%f0%"=="1" (TITLE Re-Launching...&START "" /min /high "%ProgramData%\launcher.ZipRipper" "%ProgramData%\%~nx0"&EXIT /b)
 EXIT /b
 )
-REM Begin Dynamic alternate wordlist info - Expected format is UTF-8 text file inside a 7z archive - If using an unarchived text file; SET WORDLIST7z=""
-SET WORDLISTNAME="Cyclone"
-SET WORDLISTADDR="https://download.weakpass.com/wordlists/1928/cyclone_hk.txt.7z"
-SET WORDLIST7z="cyclone_hk.txt.7z"
-SET WORDLISTTXT="cyclone_hk.txt"
-REM End Dynamic alternate wordlist info - Click John's mouth on the GUI to access this option
-IF NOT %WORDLIST7z%=="" SET WORDLIST7z="%ProgramData%\%WORDLIST7z:"=%"
 SET "NATIVE=ZIP,RAR"
 SET "PERL=7z,PDF"
 SET GPU=0
@@ -143,11 +143,23 @@ IF NOT "%ALLOWSTART%"=="1" CALL :CLEANUP
 >nul 2>&1 REG DELETE HKCU\Software\classes\.ZipRipper\ /F 
 >nul 2>&1 DEL "%ProgramData%\launcher.ZipRipper" /F /Q
 SET "FILETYPE=%~x1"
-SET "TitleName=[ZIP-Ripper]  -  [CPU Mode]  -  [OpenCL UNAVAILABLE]  -  Offline Mode"
-IF %GPU% GEQ 1 SET TitleName=%TitleName:[CPU Mode]  -  [OpenCL UNAVAILABLE]=[CPU/GPU Mode]  -  [OpenCL AVAILABLE]%
-IF "%OFFLINE%"=="0" SET TitleName=%TitleName:Offline=Online%
-TITLE %TitleName%
-IF "%OFFLINE%"=="0" (
+SET "TitleName=[ZIP-Ripper]  -  [#PROC Mode]  -  [OpenCL #STATUS]  -  #RUNMODE Mode"
+SETLOCAL ENABLEDELAYEDEXPANSION
+IF !GPU! GEQ 1 (
+SET "TitleName=!TitleName:#PROC=CPU/GPU!"
+SET "TitleName=!TitleName:#STATUS=AVAILABLE!"
+) ELSE (
+SET "TitleName=!TitleName:#PROC=CPU!"
+SET "TitleName=!TitleName:#STATUS=UNAVAILABLE!"
+)
+IF !OFFLINE! EQU 0 (
+SET "TitleName=!TitleName:#RUNMODE=Online!"
+) ELSE (
+SET "TitleName=!TitleName:#RUNMODE=Offline!"
+)
+TITLE !TitleName!
+ENDLOCAL
+IF %OFFLINE% EQU 0 (
 SETLOCAL ENABLEDELAYEDEXPANSION
 IF !WORDLIST! EQU 1 (
 <NUL set /p=Please Wait...
@@ -355,8 +367,10 @@ IF EXIST "%ProgramData%\zr-offline.txt" >nul 2>&1 DEL "%ProgramData%\zr-offline.
 >nul 2>&1 DEL "%ProgramData%\winX64_1_JtR.7z" /F /Q
 >nul 2>&1 DEL "%ProgramData%\7zr.exe" /F /Q
 >nul 2>&1 DEL "%ProgramData%\7zExtra.7z" /F /Q
-IF "%GPU%"=="1" >nul 2>&1 COPY /Y "%WinDir%\System32\OpenCL.dll" "%ProgramData%\JtR\run\cygOpenCL-1.dll"
-IF "%GPU%"=="2" >nul 2>&1 COPY /Y "%WinDir%\System32\amdocl64.dll" "%ProgramData%\JtR\run\cygOpenCL-1.dll"
+SETLOCAL ENABLEDELAYEDEXPANSION
+IF !GPU! EQU 1 >nul 2>&1 COPY /Y "%WinDir%\System32\OpenCL.dll" "%ProgramData%\JtR\run\cygOpenCL-1.dll"
+IF !GPU! EQU 2 >nul 2>&1 COPY /Y "%WinDir%\System32\amdocl64.dll" "%ProgramData%\JtR\run\cygOpenCL-1.dll"
+ENDLOCAL
 EXIT /b
 
 :CHECKWIN
@@ -396,12 +410,20 @@ FOR /F "usebackq tokens=*" %%# IN (`TYPE "%ProgramData%\JtR\run\statusout" ^| fi
 FOR /F "tokens=2 delims=$" %%# IN (pwhash) DO (
 IF /I "%%#"=="zip2" (
 SET ZIP2=1
-IF %GPU% GEQ 1 SET "FLAG=--format=ZIP-opencl"
+SETLOCAL ENABLEDELAYEDEXPANSION
+IF !GPU! GEQ 1 SET "FLAG=--format=ZIP-opencl"
+ENDLOCAL
 CALL :OPENCLENABLED
 )
 IF /I "%%#"=="pkzip" (
 SETLOCAL ENABLEDELAYEDEXPANSION
-SET TitleName=!TitleName:[CPU/GPU Mode]  -  [OpenCL AVAILABLE]=[CPU Mode]  -  [OpenCL UNSUPPORTED Filetype]!
+SET "TitleName=!TitleName:#PROC=CPU!"
+SET "TitleName=!TitleName:#STATUS=UNSUPPORTED Filetype!"
+IF !OFFLINE! EQU 0 (
+SET "TitleName=!TitleName:#RUNMODE=Online!"
+) ELSE (
+SET "TitleName=!TitleName:#RUNMODE=Offline!"
+)
 TITLE !TitleName!
 ENDLOCAL
 )
@@ -417,16 +439,26 @@ FOR /F "usebackq tokens=*" %%# IN (`TYPE "%ProgramData%\JtR\run\statusout" ^| fi
 ) ELSE (
 FOR /F "usebackq tokens=4 delims=*" %%# IN (pwhash) DO IF "%%#"=="00000000" SET PROTECTED=2&SET "ERRORMSG=encryption type is not supported.."
 )
-IF %GPU% GEQ 1 FOR /F "tokens=2 delims=$" %%# IN (pwhash) DO (
+SETLOCAL ENABLEDELAYEDEXPANSION
+IF !GPU! GEQ 1 FOR /F "tokens=2 delims=$" %%# IN (pwhash) DO (
+ENDLOCAL
 IF /I "%%#"=="rar" SET "FLAG=--format=rar-opencl"&CALL :OPENCLENABLED
 IF /I "%%#"=="rar3" SET "FLAG=--format=rar-opencl"&CALL :OPENCLENABLED
 IF /I "%%#"=="rar5" SET "FLAG=--format=RAR5-opencl"&CALL :OPENCLENABLED
+) ELSE (
+ENDLOCAL
 )
 EXIT /b
 
 :OPENCLENABLED
 SETLOCAL ENABLEDELAYEDEXPANSION
-SET TitleName=!TitleName:OpenCL AVAILABLE=OpenCL ENABLED!
+SET "TitleName=!TitleName:#PROC=CPU/GPU!"
+SET TitleName=!TitleName:#STATUS=ENABLED!
+IF !OFFLINE! EQU 0 (
+SET "TitleName=!TitleName:#RUNMODE=Online!"
+) ELSE (
+SET "TitleName=!TitleName:#RUNMODE=Offline!"
+)
 TITLE !TitleName!
 ENDLOCAL
 EXIT /b
@@ -439,7 +471,9 @@ SET PROTECTED=0&SET "ERRORMSG=is not password protected.."
 ) ELSE (
 FOR /F "usebackq tokens=*" %%# IN (`TYPE statusout ^| findstr /I /C^:"not supported"`) DO SET PROTECTED=2&SET "ERRORMSG=encryption type is not supported.."
 )
-IF %GPU% GEQ 1 SET "FLAG=--format=7z-opencl"&CALL :OPENCLENABLED
+SETLOCAL ENABLEDELAYEDEXPANSION
+IF !GPU! GEQ 1 SET "FLAG=--format=7z-opencl"&CALL :OPENCLENABLED
+ENDLOCAL
 EXIT /b
 
 :HASH.PDF
@@ -447,10 +481,18 @@ CALL portableshell.bat pdf2john.pl "%~1">"%ProgramData%\JtR\run\pwhash" 2>nul
 POWERSHELL -nop -c "$^=[regex]::Match((gc pwhash),'^(.+\/)(?i)(.*\.pdf)(.+$)');$^.Groups[2].value+$^.Groups[3].value|sc pwhash">nul 2>&1
 FOR /F %%# IN ("%ProgramData%\JtR\run\pwhash") DO SET /A HSIZE=%%~z#
 IF %HSIZE% LSS 8000 FOR /F "usebackq tokens=*" %%# IN (`TYPE pwhash ^| findstr /I /C^:"not encrypted!"`) DO SET PROTECTED=0&SET "ERRORMSG=is not password protected.."
-IF %GPU% GEQ 1 (
 SETLOCAL ENABLEDELAYEDEXPANSION
-SET TitleName=!TitleName:[CPU/GPU Mode]  -  [OpenCL AVAILABLE]=[CPU Mode]  -  [OpenCL UNSUPPORTED Filetype]!
+IF !GPU! GEQ 1 (
+SET "TitleName=!TitleName:#PROC=CPU!"
+SET "TitleName=!TitleName:#STATUS=UNSUPPORTED Filetype!"
+IF !OFFLINE! EQU 0 (
+SET "TitleName=!TitleName:#RUNMODE=Online!"
+) ELSE (
+SET "TitleName=!TitleName:#RUNMODE=Offline!"
+)
 TITLE !TitleName!
+ENDLOCAL
+) ELSE (
 ENDLOCAL
 )
 EXIT /b
@@ -486,7 +528,7 @@ IF DEFINED S (
 SET "size=1"
 FOR %%P IN (4096 2048 1024 512 256 128 64 32 16 8 4 2 1) do (
 IF "!S:~%%P,1!" NEQ "" ( 
-SET /a "size+=%%P"
+SET /A "size+=%%P"
 SET "S=!S:~%%P!"
 )
 )
@@ -619,10 +661,10 @@ EXIT /b
 
 :CHECKGPU
 FOR /F "usebackq skip=1 tokens=2,3" %%# IN (`WMIC path Win32_VideoController get Name ^| findstr "."`) DO (
-IF /I "%%#"=="GeForce" IF NOT EXIST "%WinDir%\System32\OpenCL.dll" (SET GPU=0) ELSE (SET GPU=1)
-IF /I "%%#"=="Quadro" IF NOT EXIST "%WinDir%\System32\OpenCL.dll" (SET GPU=0) ELSE (SET GPU=1)
-IF /I "%%# %%$"=="Radeon RX" IF NOT EXIST "%WinDir%\System32\amdocl64.dll" (SET GPU=0) ELSE (SET GPU=2)
-IF /I "%%# %%$"=="Radeon Pro" IF NOT EXIST "%WinDir%\System32\amdocl64.dll" (SET GPU=0) ELSE (SET GPU=2)
+IF /I "%%#"=="GeForce" IF NOT EXIST "%WinDir%\System32\OpenCL.dll" (SET /A GPU=0) ELSE (SET /A GPU=1)
+IF /I "%%#"=="Quadro" IF NOT EXIST "%WinDir%\System32\OpenCL.dll" (SET /A GPU=0) ELSE (SET /A GPU=1)
+IF /I "%%# %%$"=="Radeon RX" IF NOT EXIST "%WinDir%\System32\amdocl64.dll" (SET /A GPU=0) ELSE (SET /A GPU=2)
+IF /I "%%# %%$"=="Radeon Pro" IF NOT EXIST "%WinDir%\System32\amdocl64.dll" (SET /A GPU=0) ELSE (SET /A GPU=2)
 )
 EXIT /b
 
