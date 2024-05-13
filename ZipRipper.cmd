@@ -53,7 +53,7 @@ SET WORDLISTNAME="Cyclone"
 SET WORDLISTADDR="https://download.weakpass.com/wordlists/1928/cyclone_hk.txt.7z"
 SET WORDLIST7z="cyclone_hk.txt.7z"
 SET WORDLISTTXT="cyclone_hk.txt"
-REM End Dynamic alternate wordlist info
+REM End Dynamic alternate wordlist info - Click John's mouth on the GUI to access this option
 IF NOT %WORDLIST7z%=="" SET WORDLIST7z="%ProgramData%\%WORDLIST7z:"=%"
 SET "NATIVE=ZIP,RAR"
 SET "PERL=7z,PDF"
