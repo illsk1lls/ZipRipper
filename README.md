@@ -30,7 +30,7 @@ saved to the users desktop as: ZipRipper-Passwords.txt
 Click John's mouth and select an option before starting the session. (Clicking an option will register your selection and quietly dismiss the menu)<br>
 
 It is possible to change the built in additional wordlist. The included cyclone_hk alternate<br>
-wordlist is an optional 667MB download, and 2.3GB expanded on disk. **Although the easiest way to use an additional wordfile other than the built in Cyclone alternate, is the Custom wordlist option, which allows you to select a local file.**<br>
+wordlist is an optional 667MB download, and 2.3GB expanded on disk. **Although the easiest way to use an additional wordlist other than the built in Cyclone alternate, is the Custom wordlist option, which allows you to select a local file.**<br>
 
 -For a lightweight variant of the RockYou wordlist(optional 133MB uncompressed<br>
 download, and 133MB on disk) you would change lines 52-55 to the following<br>
@@ -61,7 +61,7 @@ otherwise WORDLIST7z="DownloadedArchiveName.7z" as shown in the Combined option 
 **Current version provides support for hardware acceleration via OpenCL for:**<br>
 nVidia "GeForce" & "Quadro" and AMD "Radeon RX" & "Radeon Pro" cards.<br>
 
-*ZIP, RAR, 7z, and PDF filetypes are supported
+**ZIP, RAR, 7z, and PDF filetypes are supported**
 
 ZipRipper is portable, there are two different running modes; Online Mode, and Offline mode...
 
