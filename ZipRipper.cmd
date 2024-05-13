@@ -221,7 +221,7 @@ IF !WORDLIST! EQU 2 (
 ECHO Done
 ECHO/
 ) ELSE (
-<NUL set /p=Preparing %WORDLISTNAME% wordlist...
+<NUL set /p=Preparing %WORDLISTNAME:"=% wordlist...
 >nul 2>&1 MOVE /Y !LISTNAME! "%ProgramData%\JtR\run\password.lst"
 ECHO Done
 ECHO/
