@@ -43,7 +43,7 @@ It is possible to change the built in alternate wordlist. The included cyclone_h
 
 Examples of how to change the built in alternate wordlist;<br>
 -For a lightweight variant of the RockYou wordlist(optional 133MB uncompressed<br>
-download, and 133MB on disk) you would change lines 52-55 to the following<br>
+download, and 133MB on disk) you would change the section at the top of the script to the following<br>
 ```
 SET WORDLISTNAME="RockYou"
 SET WORDLISTADDR="https://github.com/brannondorsey/naive-hashcat/releases/download/data/rockyou.txt"
@@ -51,7 +51,7 @@ SET WORDLIST7z=""
 SET WORDLISTTXT="RockYou.txt"
 ```
 -For Cyclone.hashesorg.hashkiller.combined wordlist(optional 6.53GB download,<br>
-and 15.02GB expanded on disk) you would change lines 52-55 to the following<br>
+and 15.02GB expanded on disk) you would change the section at the top of the script to the following<br>
 ```
 SET WORDLISTNAME="Combined"
 SET WORDLISTADDR="https://download.weakpass.com/wordlists/1927/cyclone.hashesorg.hashkiller.combined.txt.7z"
