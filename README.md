@@ -40,14 +40,14 @@ It is possible to change the built in alternate wordlist. The included cyclone_h
 
 **Examples of how to change the built in alternate wordlist:**<br>
 
--For a lightweight variant of the RockYou wordlist(optional 133MB uncompressed download, and 133MB on disk) you would change the section at the top of the script to the following<br>
+-A lightweight/robust wordlist based on RockYou (optional 133MB uncompressed download, and 133MB on disk) you would change the section at the top of the script to the following<br>
 ```
 SET WORDLISTNAME="RockYou"
 SET WORDLISTADDR="https://github.com/brannondorsey/naive-hashcat/releases/download/data/rockyou.txt"
 SET WORDLIST7z=""
 SET WORDLISTTXT="RockYou.txt"
 ```
--For Cyclone.hashesorg.hashkiller.combined wordlist(optional 6.53GB download, and 15.02GB expanded on disk) you would change the section at the top of the script to the following<br>
+-Cyclone/HashesOrg/HashKiller[combined] wordlist (optional 6.53GB download, and 15.02GB expanded on disk) you would change the section at the top of the script to the following<br>
 ```
 SET WORDLISTNAME="Combined"
 SET WORDLISTADDR="https://download.weakpass.com/wordlists/1927/cyclone.hashesorg.hashkiller.combined.txt.7z"
@@ -63,7 +63,7 @@ More wordlists can be found at <a href="https://weakpass.com/wordlist">https://w
 -7z archives containing a text file<br>
 -Raw unarchived txt files.<br>
 
-*If a raw text file is used, leave* **WORDLIST7z=""** *as shown in the RockYou variant above, otherwise* **WORDLIST7z="DownloadedArchiveName.7z"** *as shown in the Combined option above.*<br>
+*If a raw text file is used, leave* **WORDLIST7z=""** *as shown in the RockYou option above, otherwise* **WORDLIST7z="DownloadedArchiveName.7z"** *as shown in the Combined option above.*<br>
 
 **Current version provides support for hardware acceleration via OpenCL for:**<br>
 nVidia "GeForce" & "Quadro" and AMD "Radeon RX" & "Radeon Pro" cards.<br>
