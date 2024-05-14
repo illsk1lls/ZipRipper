@@ -13,8 +13,8 @@ StarwberryPerl(Portable) - <a href="https://strawberryperl.com/releases.html">ht
 
 **<p align="center">Instructions:</p>**
 
-<p align="center">Double-click the script, and select a password protected ZIP, RAR, 7z, or PDF file<br>
-Wait  for  password..</p>
+**<p align="center">1.) Double-click the script, and select a password protected ZIP, RAR, 7z, or PDF file**<br>
+**2.) Wait  for  password..**</p>
 
 *<p align="center">When a password is found an alert window will appear, and the password(s) will be<br>*
 *saved to the users desktop as:* ZipRipper-Passwords.txt</p>
