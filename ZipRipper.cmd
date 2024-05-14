@@ -235,13 +235,11 @@ IF !WORDLIST! EQU 2 (
 >nul 2>&1 MOVE /Y !LISTNAME! "%ProgramData%\JtR\run\password.lst"
 )
 ECHO Loaded
-ECHO/
 CALL :WAIT 2
 ) ELSE (
 <NUL set /p=Using Default wordlist...
 CALL :WAIT 1
 ECHO Loaded
-ECHO/
 CALL :WAIT 2
 )
 ENDLOCAL
