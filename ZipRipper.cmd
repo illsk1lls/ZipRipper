@@ -523,7 +523,7 @@ EXIT /b
 FOR /F "usebackq tokens=1,5 delims=*" %%# IN (pwhash) DO ECHO %%#%%$>>pwhash.x1
 FOR /F "usebackq tokens=1,3 delims=$" %%# IN (pwhash.x1) DO ECHO %%#%%$>>pwhash.x2
 FOR /F "usebackq tokens=2 delims=:" %%# IN (pwhash.x2) DO SET FILEHASH=%%#
-CALL :CHECKSIZE FILEHASH HASHLENGTH
+CALL :CHECKLENGTH FILEHASH HASHLENGTH
 POWERSHELL -nop -c "$^=gc john.pot|%%{$_ -Replace '^.+?\*.\*([a-z\d]{%HASHLENGTH%})\*.+:(.*)$',"^""`$1:`$2"^""}|sc pwhash.x3">nul 2>&1
 FOR /F "usebackq tokens=1,2 delims=:" %%# IN (pwhash.x2) DO (
 FOR /F "usebackq tokens=1* delims=:" %%X IN (pwhash.x3) DO (
@@ -533,25 +533,25 @@ IF "%%$"=="%%X" ECHO|(SET /p="%%Y - [%%#]"&ECHO/)>>"%SystemDrive%\Users\%UserNam
 DEL /f /q pwhash.x*
 EXIT /b
 
-:CHECKSIZE
+:CHECKLENGTH
 (   
 SETLOCAL EnableDelayedExpansion
-(SET^ S=!%~1!)
-IF DEFINED S (
-SET "size=1"
+(SET^ L=!%~1!)
+IF DEFINED L (
+SET "LENGTH=1"
 FOR %%P IN (4096 2048 1024 512 256 128 64 32 16 8 4 2 1) do (
-IF "!S:~%%P,1!" NEQ "" ( 
-SET /A "size+=%%P"
-SET "S=!S:~%%P!"
+IF "!L:~%%P,1!" NEQ "" ( 
+SET /A "LENGTH+=%%P"
+SET "L=!L:~%%P!"
 )
 )
 ) ELSE (
-SET size=0
+SET LENGTH=0
 )
 )
 ( 
 ENDLOCAL
-SET "%~2=%size%"
+SET "%~2=%LENGTH%"
 EXIT /b
 )
 
