@@ -14,7 +14,9 @@ StarwberryPerl(Portable) - <a href="https://strawberryperl.com/releases.html">ht
 **<p align="center">Instructions:**</p>
 
 **<p align="center">1.) Double-click the script, and click the Start button to begin**<br>
+
 **2.) Choose a password protected ZIP, RAR, 7z, or PDF file**<br>
+
 **3.) Wait  for  password..**</p>
 
 *<p align="center">When a password is found an alert window will appear, and the password(s) will be<br>*
@@ -22,18 +24,13 @@ StarwberryPerl(Portable) - <a href="https://strawberryperl.com/releases.html">ht
 
 **ZipRipper is portable, there are two different running modes; Online Mode, and Offline mode...**<br>
 
-**Online Mode:** ZipRipper gathers its resources from the web (JohnTheRipper, 7zip, and Portable Perl).<br>
-Only the script itself and an internet connection are required for this mode.<br>
+**Online Mode:** ZipRipper gathers its resources from the web (JohnTheRipper, 7zip, and Portable Perl). Only the script itself and an internet connection are required for this mode.<br>
 
-**Offline Mode:** ZipRipper uses/requires a local resource file [zr-offline.txt]. **The presence of [zr-offline.txt] in<br>**
-**the same folder as the script is required and will force offline mode.** An internet connection is not needed for this mode.<br>
+**Offline Mode:** ZipRipper uses/requires a local resource file [zr-offline.txt]. **The presence of [zr-offline.txt] in the same folder as the script is required and will force offline mode.** An internet connection is not needed for this mode.<br>
 
 **[zr-offline.txt] creator:** Click the letters JtR in John's hat to create [zr-offline.txt], you can then relaunch in offline mode, or package the offline/portable script for use at a later time.<br>
 
-*If the script is interrupted normally (by pressing the 'q' key to quit or the 'red x', once), resume will be enabled*<br>.
-*A MD5 hash is created for each job that is used to store the resume data in: %AppData%\ZR-InProgress\\[MD5HASH]*<br>
-*to ensure multiple files with the same name can have InProgress jobs simultaneously. If a pending job is found the*<br>
-*user is presented with the options of either resuming the job, or bypassing the resume feature and starting a new job.*<br>
+*If the script is interrupted normally (by pressing the 'q' key to quit or the 'red x', once), resume will be enabled. A MD5 hash is created for each job that is used to store the resume data in: %AppData%\ZR-InProgress\\[MD5HASH] to ensure multiple files with the same name can have InProgress jobs simultaneously. If a pending job is found the user is presented with the options of either resuming the job, or bypassing the resume feature and starting a new job.*<br>
 *Note: When a job is completed the resume data is removed. All resume data can be cleared by clicking the center of John's tie.*<br>
 
 **Alternate wordlist options:**<br>
@@ -42,16 +39,14 @@ Click John's mouth and select an option before starting the session. (Clicking a
 It is possible to change the built in alternate wordlist. The included cyclone_hk alternate wordlist is an optional 667MB download, and 2.3GB expanded on disk. **Although the easiest way to use an additional wordlist other than the built in Cyclone alternate, is the Custom wordlist option, which allows you to select a local file.**<br>
 
 Examples of how to change the built in alternate wordlist;<br>
--For a lightweight variant of the RockYou wordlist(optional 133MB uncompressed<br>
-download, and 133MB on disk) you would change the section at the top of the script to the following<br>
+-For a lightweight variant of the RockYou wordlist(optional 133MB uncompressed download, and 133MB on disk) you would change the section at the top of the script to the following<br>
 ```
 SET WORDLISTNAME="RockYou"
 SET WORDLISTADDR="https://github.com/brannondorsey/naive-hashcat/releases/download/data/rockyou.txt"
 SET WORDLIST7z=""
 SET WORDLISTTXT="RockYou.txt"
 ```
--For Cyclone.hashesorg.hashkiller.combined wordlist(optional 6.53GB download,<br>
-and 15.02GB expanded on disk) you would change the section at the top of the script to the following<br>
+-For Cyclone.hashesorg.hashkiller.combined wordlist(optional 6.53GB download, and 15.02GB expanded on disk) you would change the section at the top of the script to the following<br>
 ```
 SET WORDLISTNAME="Combined"
 SET WORDLISTADDR="https://download.weakpass.com/wordlists/1927/cyclone.hashesorg.hashkiller.combined.txt.7z"
@@ -59,14 +54,12 @@ SET WORDLIST7z="cyclone.hashesorg.hashkiller.combined.txt.7z"
 SET WORDLISTTXT="cyclone.hashesorg.hashkiller.combined.txt"
 ```
 -Etc..<br>
-More wordlists can be found at <a href="https://weakpass.com/wordlist">https://weakpass.com/wordlist</a> and various other<br>
-places around the web..<br>
+More wordlists can be found at <a href="https://weakpass.com/wordlist">https://weakpass.com/wordlist</a> and various other places around the web..<br>
 
 The built in alternate wordlist supports direct download links to:<br>
 -7z archives containing a text file<br>
 -Raw unarchived txt files.<br>
-If a raw text file is used, leave WORDLIST7z="" as shown in the RockYou variant above,<br>
-otherwise WORDLIST7z="DownloadedArchiveName.7z" as shown in the Combined option above.<br>
+If a raw text file is used, leave WORDLIST7z="" as shown in the RockYou variant above, otherwise WORDLIST7z="DownloadedArchiveName.7z" as shown in the Combined option above.<br>
 
 **Current version provides support for hardware acceleration via OpenCL for:**<br>
 nVidia "GeForce" & "Quadro" and AMD "Radeon RX" & "Radeon Pro" cards.<br>
