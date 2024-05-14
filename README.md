@@ -11,9 +11,9 @@ cyclone_hk Wordlist(Hosted by Weakpass) - <a href="https://github.com/cyclone-gi
 7zip - <a href="https://www.7-zip.org/">https://www.7-zip.org/</a><br>
 StarwberryPerl(Portable) - <a href="https://strawberryperl.com/releases.html">https://strawberryperl.com/releases.html</a><br>
 
-<p align="center">**Instructions:**</p>
+**<p align="center">Instructions:**</p>
 
-<p align="center">**1.) Double-click the script, and click the Start button to begin**<br>
+**<p align="center">1.) Double-click the script, and click the Start button to begin**<br>
 **2.) Choose a password protected ZIP, RAR, 7z, or PDF file**<br>
 **3.) Wait  for  password..**</p>
 
