@@ -11,10 +11,11 @@ cyclone_hk Wordlist(Hosted by Weakpass) - <a href="https://github.com/cyclone-gi
 7zip - <a href="https://www.7-zip.org/">https://www.7-zip.org/</a><br>
 StarwberryPerl(Portable) - <a href="https://strawberryperl.com/releases.html">https://strawberryperl.com/releases.html</a><br>
 
-**<p align="center">Instructions:</p>**
+<p align="center">**Instructions:**</p>
 
-**<p align="center">1.) Double-click the script, and select a password protected ZIP, RAR, 7z, or PDF file**<br>
-**2.) Wait  for  password..**</p>
+<p align="center">**1.) Double-click the script, and click the Start button to begin**<br>
+**2.) Choose a password protected ZIP, RAR, 7z, or PDF file**<br>
+**3.) Wait  for  password..**</p>
 
 *<p align="center">When a password is found an alert window will appear, and the password(s) will be<br>*
 *saved to the users desktop as:* ZipRipper-Passwords.txt</p>
@@ -29,11 +30,11 @@ Only the script itself and an internet connection are required for this mode.<br
 
 **[zr-offline.txt] creator:** Click the letters JtR in John's hat to create [zr-offline.txt], you can then relaunch in offline mode, or package the offline/portable script for use at a later time.<br>
 
-*If the script is interrupted normally (by pressing the 'q' key to quit or the 'red x', once), resume will be enabled<br>.*
-*A MD5 hash is created for each job that is used to store the resume data in: %AppData%\ZR-InProgress\\[MD5HASH]<br>*
-*to ensure multiple files with the same name can have InProgress jobs simultaneously. If a pending job is found the<br>*
-*user is presented with the options of either resuming the job, or bypassing the resume feature and starting a new job.<br>*
-*Note: When a job is completed the resume data is removed. All resume data can be cleared by clicking the center of John's tie*
+*If the script is interrupted normally (by pressing the 'q' key to quit or the 'red x', once), resume will be enabled*<br>.
+*A MD5 hash is created for each job that is used to store the resume data in: %AppData%\ZR-InProgress\\[MD5HASH]*<br>
+*to ensure multiple files with the same name can have InProgress jobs simultaneously. If a pending job is found the*<br>
+*user is presented with the options of either resuming the job, or bypassing the resume feature and starting a new job.*<br>
+*Note: When a job is completed the resume data is removed. All resume data can be cleared by clicking the center of John's tie.*<br>
 
 **Alternate wordlist options:**<br>
 Click John's mouth and select an option before starting the session. (Clicking an option will register your selection and quietly dismiss the menu, selecting no option will use the default JtR wordlist)<br>
@@ -57,7 +58,7 @@ SET WORDLISTADDR="https://download.weakpass.com/wordlists/1927/cyclone.hashesorg
 SET WORDLIST7z="cyclone.hashesorg.hashkiller.combined.txt.7z"
 SET WORDLISTTXT="cyclone.hashesorg.hashkiller.combined.txt"
 ```
--Etc...<br>
+-Etc..<br>
 More wordlists can be found at <a href="https://weakpass.com/wordlist">https://weakpass.com/wordlist</a> and various other<br>
 places around the web..<br>
 
