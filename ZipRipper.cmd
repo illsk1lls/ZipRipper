@@ -230,18 +230,19 @@ IF DEFINED LISTNAME (
 IF !WORDLIST! EQU 2 (
 <NUL set /p=Preparing Custom wordlist...
 >nul 2>&1 COPY /Y !LISTNAME! "%ProgramData%\JtR\run\password.lst"
-ECHO Done
-ECHO/
 ) ELSE (
 <NUL set /p=Preparing %WORDLISTNAME:"=% wordlist...
 >nul 2>&1 MOVE /Y !LISTNAME! "%ProgramData%\JtR\run\password.lst"
-ECHO Done
-ECHO/
 )
-) ELSE (
-ECHO Using Default wordlist...
+ECHO Loaded
 ECHO/
->nul 2>&1 PING 127.0.0.1 -n 2
+CALL :WAIT 2
+) ELSE (
+<NUL set /p=Using Default wordlist...
+CALL :WAIT 1
+ECHO Loaded
+ECHO/
+CALL :WAIT 2
 )
 ENDLOCAL
 
@@ -315,6 +316,11 @@ IF NOT EXIST "%AppData%\ZR-InProgress\!MD5!" MD "%AppData%\ZR-InProgress\!MD5!"
 >nul 2>&1 MOVE /Y "%ProgramData%\JtR\run\password.lst" "%AppData%\ZR-InProgress\!MD5!"
 ENDLOCAL
 )
+EXIT /b
+
+:WAIT
+SET /A TIMER=%~1+1
+>nul 2>&1 PING 127.0.0.1 -n %TIMER%
 EXIT /b
 
 :NOTSUPPORTED
