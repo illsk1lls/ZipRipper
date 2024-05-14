@@ -38,7 +38,7 @@ Click John's mouth and select an option before starting the session. (Clicking a
 
 It is possible to change the built in alternate wordlist. The included cyclone_hk alternate wordlist is an optional 667MB download, and 2.3GB expanded on disk. **Although the easiest way to use an additional wordlist other than the built in Cyclone alternate, is the Custom wordlist option, which allows you to select a local file.**<br>
 
-Examples of how to change the built in alternate wordlist:<br>
+**Examples of how to change the built in alternate wordlist:**<br>
 
 -For a lightweight variant of the RockYou wordlist(optional 133MB uncompressed download, and 133MB on disk) you would change the section at the top of the script to the following<br>
 ```
@@ -58,7 +58,7 @@ SET WORDLISTTXT="cyclone.hashesorg.hashkiller.combined.txt"
 
 More wordlists can be found at <a href="https://weakpass.com/wordlist">https://weakpass.com/wordlist</a> and various other places around the web..<br>
 
-The built in alternate wordlist supports direct download links to:<br>
+**The built in alternate wordlist supports direct download links to:**<br>
 
 -7z archives containing a text file<br>
 -Raw unarchived txt files.<br>
