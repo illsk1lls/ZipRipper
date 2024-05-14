@@ -63,7 +63,7 @@ More wordlists can be found at <a href="https://weakpass.com/wordlist">https://w
 -7z archives containing a text file<br>
 -Raw unarchived txt files.<br>
 
-If a raw text file is used, leave WORDLIST7z="" as shown in the RockYou variant above, otherwise WORDLIST7z="DownloadedArchiveName.7z" as shown in the Combined option above.<br>
+*If a raw text file is used, leave* **WORDLIST7z=""** *as shown in the RockYou variant above, otherwise* **WORDLIST7z="DownloadedArchiveName.7z"** *as shown in the Combined option above.*<br>
 
 **Current version provides support for hardware acceleration via OpenCL for:**<br>
 nVidia "GeForce" & "Quadro" and AMD "Radeon RX" & "Radeon Pro" cards.<br>
