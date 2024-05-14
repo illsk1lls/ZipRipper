@@ -573,11 +573,10 @@ POWERSHELL -nop -c "$^={$Notify=[PowerShell]::Create().AddScript({$Audio=New-Obj
 EXIT /b
 
 :CHECKCONNECTION
-PING -n 1 "google.com" | FINDSTR /r /C^:"[0-9] *ms">nul
-IF NOT %errorlevel%==0 (
-SET "%1=0"
-) ELSE (
+FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "$ProgressPreference='SilentlyContinue';irm http://www.msftncsi.com/ncsi.txt;$ProgressPreference='Continue'"`) DO IF "%%#"=="Microsoft NCSI" (
 SET "%1=1"
+) ELSE (
+SET "%1=0"
 )
 EXIT /b
 
