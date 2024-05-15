@@ -371,10 +371,6 @@ IF EXIST "%ProgramData%\zr-offline.txt" >nul 2>&1 DEL "%ProgramData%\zr-offline.
 >nul 2>&1 DEL "%ProgramData%\winX64_1_JtR.7z" /F /Q
 >nul 2>&1 DEL "%ProgramData%\7zr.exe" /F /Q
 >nul 2>&1 DEL "%ProgramData%\7zExtra.7z" /F /Q
-SETLOCAL ENABLEDELAYEDEXPANSION
-IF !GPU! EQU 1 >nul 2>&1 COPY /Y "%WinDir%\System32\OpenCL.dll" "%ProgramData%\JtR\run\cygOpenCL-1.dll"
-IF !GPU! EQU 2 >nul 2>&1 COPY /Y "%WinDir%\System32\amdocl64.dll" "%ProgramData%\JtR\run\cygOpenCL-1.dll"
-ENDLOCAL
 EXIT /b
 
 :CHECKWIN
