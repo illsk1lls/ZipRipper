@@ -669,10 +669,46 @@ EXIT /b
 
 :CHECKGPU
 FOR /F "usebackq skip=1 tokens=2,3" %%# IN (`WMIC path Win32_VideoController get Name ^| findstr "."`) DO (
-IF /I "%%#"=="GeForce" IF NOT EXIST "%WinDir%\System32\OpenCL.dll" (SET /A GPU=0) ELSE (SET /A GPU=1)
-IF /I "%%#"=="Quadro" IF NOT EXIST "%WinDir%\System32\OpenCL.dll" (SET /A GPU=0) ELSE (SET /A GPU=1)
-IF /I "%%# %%$"=="Radeon RX" IF NOT EXIST "%WinDir%\System32\amdocl64.dll" (SET /A GPU=0) ELSE (SET /A GPU=2)
-IF /I "%%# %%$"=="Radeon Pro" IF NOT EXIST "%WinDir%\System32\amdocl64.dll" (SET /A GPU=0) ELSE (SET /A GPU=2)
+IF /I "%%#"=="GeForce" IF NOT EXIST "%WinDir%\System32\OpenCL.dll" (
+IF EXIST "%WinDir%\System32\DriverStore\FileRepository\nvamig.inf_amd64_72a8482547fd21bc\OpenCL64.dll" (
+>nul 2>&1 COPY /Y "%WinDir%\System32\DriverStore\FileRepository\nvamig.inf_amd64_72a8482547fd21bc\OpenCL64.dll" "%WinDir%\System32\OpenCL.dll"
+SET /A GPU=1
+) ELSE (
+SET /A GPU=0
+)
+) ELSE (
+SET /A GPU=1
+)
+IF /I "%%#"=="Quadro" IF NOT EXIST "%WinDir%\System32\OpenCL.dll" (
+IF EXIST "%WinDir%\System32\DriverStore\FileRepository\nvamig.inf_amd64_72a8482547fd21bc\OpenCL64.dll" (
+>nul 2>&1 COPY /Y "%WinDir%\System32\DriverStore\FileRepository\nvamig.inf_amd64_72a8482547fd21bc\OpenCL64.dll" "%WinDir%\System32\OpenCL.dll"
+SET /A GPU=1
+) ELSE (
+SET /A GPU=0
+)
+) ELSE (
+SET /A GPU=1
+)
+IF /I "%%# %%$"=="Radeon RX" IF NOT EXIST "%WinDir%\System32\amdocl64.dll" (
+IF EXIST "%WinDir%\System32\DriverStore\FileRepository\u0392568.inf_amd64_4d803585226e44c6\B390452\amdocl64.dll" (
+>nul 2>&1 COPY /Y "%WinDir%\System32\DriverStore\FileRepository\u0392568.inf_amd64_4d803585226e44c6\B390452\amdocl64.dll" "%WinDir%\System32\amdocl64.dll"
+SET /A GPU=2
+) ELSE (
+SET /A GPU=0
+)
+) ELSE (
+SET /A GPU=2
+)
+IF /I "%%# %%$"=="Radeon Pro" IF NOT EXIST "%WinDir%\System32\amdocl64.dll" (
+IF EXIST "%WinDir%\System32\DriverStore\FileRepository\u0392568.inf_amd64_4d803585226e44c6\B390452\amdocl64.dll" (
+>nul 2>&1 COPY /Y "%WinDir%\System32\DriverStore\FileRepository\u0392568.inf_amd64_4d803585226e44c6\B390452\amdocl64.dll" "%WinDir%\System32\amdocl64.dll"
+SET /A GPU=2
+) ELSE (
+SET /A GPU=0
+)
+) ELSE (
+SET /A GPU=2
+)
 )
 EXIT /b
 
