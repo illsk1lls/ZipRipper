@@ -690,22 +690,12 @@ SET /A GPU=0
 SET /A GPU=1
 )
 IF /I "%%# %%$"=="Radeon RX" IF NOT EXIST "%WinDir%\System32\amdocl64.dll" (
-IF EXIST "%WinDir%\System32\DriverStore\FileRepository\u0392568.inf_amd64_4d803585226e44c6\B390452\amdocl64.dll" (
->nul 2>&1 COPY /Y "%WinDir%\System32\DriverStore\FileRepository\u0392568.inf_amd64_4d803585226e44c6\B390452\amdocl64.dll" "%WinDir%\System32\amdocl64.dll"
-SET /A GPU=2
-) ELSE (
 SET /A GPU=0
-)
 ) ELSE (
 SET /A GPU=2
 )
 IF /I "%%# %%$"=="Radeon Pro" IF NOT EXIST "%WinDir%\System32\amdocl64.dll" (
-IF EXIST "%WinDir%\System32\DriverStore\FileRepository\u0392568.inf_amd64_4d803585226e44c6\B390452\amdocl64.dll" (
->nul 2>&1 COPY /Y "%WinDir%\System32\DriverStore\FileRepository\u0392568.inf_amd64_4d803585226e44c6\B390452\amdocl64.dll" "%WinDir%\System32\amdocl64.dll"
-SET /A GPU=2
-) ELSE (
 SET /A GPU=0
-)
 ) ELSE (
 SET /A GPU=2
 )
