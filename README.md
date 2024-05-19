@@ -61,14 +61,14 @@ More wordlists can be found at <a href="https://weakpass.com/wordlist">https://w
 **The built in alternate wordlist supports direct download links to:**<br>
 
 -7z archives containing a text file<br>
--Raw unarchived txt files.<br>
+-Raw unarchived txt files<br>
 
 *If a raw text file is used, leave* **WORDLIST7z=""** *as shown in the RockYou option above, otherwise* **WORDLIST7z="DownloadedArchiveName.7z"** *as shown in the Combined option above.*<br>
 
 **Current version provides support for hardware acceleration via OpenCL for:**<br>
-nVidia "GeForce" & "Quadro" and AMD "Radeon RX" & "Radeon Pro" cards.<br>
+nVidia "GeForce" & "Quadro" and AMD "Radeon RX" & "Radeon Pro" cards<br>
 
 **All GPU users:** Ensure you have the latest GPU drivers installed.<br>
-**AMD users:**  For GPU support you may need to use <a href="https://github.com/illsk1lls/ZipRipper/blob/main/.resources/FixOpenCLforAMD.bat">the script located in the .resources folder</a> to enable OpenCL on your system<br>
+**AMD GPU users:** For GPU support you may need to use <a href="https://github.com/illsk1lls/ZipRipper/blob/main/.resources/FixOpenCLforAMD.bat">the script located in the .resources folder</a> to enable OpenCL on your system.<br>
 
 *UNC Paths and redirected folders are supported.*<br>
