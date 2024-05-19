@@ -69,6 +69,6 @@ More wordlists can be found at <a href="https://weakpass.com/wordlist">https://w
 nVidia "GeForce" & "Quadro" and AMD "Radeon RX" & "Radeon Pro" cards.<br>
 
 All GPU users: Ensure you have the latest GPU drivers installed.<br>
-AMD users:  For GPU support you may need to use <a href="https://github.com/illsk1lls/ZipRipper/blob/main/.resources/FixOpenCLforAMD.bat">the script located in the .resources folder</a> to enable OpenCL support:<br>
+AMD users:  For GPU support you may need to use <a href="https://github.com/illsk1lls/ZipRipper/blob/main/.resources/FixOpenCLforAMD.bat">the script located in the .resources folder</a> to enable OpenCL<br>
 
 *UNC Paths and redirected folders are supported.*<br>
