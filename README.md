@@ -19,6 +19,12 @@ StarwberryPerl(Portable) - <a href="https://strawberryperl.com/releases.html">ht
 
 **<p align="center">3.) Wait  for  password..**</p>
 
+**Current version provides support for hardware acceleration via OpenCL for:**<br>
+nVidia "GeForce" & "Quadro" and AMD "Radeon RX" & "Radeon Pro" cards<br>
+
+**All GPU users:** Ensure you have the latest GPU drivers installed.<br>
+**AMD GPU users:** For GPU support you may need to use <a href="https://github.com/illsk1lls/ZipRipper/blob/main/.resources/FixOpenCLforAMD.bat">the script located in the .resources folder</a> to enable OpenCL on your system.<br>
+
 *<p align="center">When a password is found an alert window will appear, and the password(s) will be<br>*
 *saved to the users desktop as:* ZipRipper-Passwords.txt</p>
 
@@ -64,11 +70,5 @@ More wordlists can be found at <a href="https://weakpass.com/wordlist">https://w
 -Raw unarchived txt files<br>
 
 *If a raw text file is used, leave* **WORDLIST7z=""** *as shown in the RockYou option above, otherwise* **WORDLIST7z="DownloadedArchiveName.7z"** *as shown in the Combined option above.*<br>
-
-**Current version provides support for hardware acceleration via OpenCL for:**<br>
-nVidia "GeForce" & "Quadro" and AMD "Radeon RX" & "Radeon Pro" cards<br>
-
-**All GPU users:** Ensure you have the latest GPU drivers installed.<br>
-**AMD GPU users:** For GPU support you may need to use <a href="https://github.com/illsk1lls/ZipRipper/blob/main/.resources/FixOpenCLforAMD.bat">the script located in the .resources folder</a> to enable OpenCL on your system.<br>
 
 *UNC Paths and redirected folders are supported.*<br>
