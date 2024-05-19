@@ -68,8 +68,8 @@ More wordlists can be found at <a href="https://weakpass.com/wordlist">https://w
 **Current version provides support for hardware acceleration via OpenCL for:**<br>
 nVidia "GeForce" & "Quadro" and AMD "Radeon RX" & "Radeon Pro" cards.<br>
 
-All users, please ensure you have the latest GPU drivers installed.<br>
-AMD users may need to use the script located in the .resources folder to enable OpenCL support:<br>
-<a href="https://github.com/illsk1lls/ZipRipper/blob/main/.resources/FixOpenCLforAMD.bat">AMD OpenCL Fix</a>
+All GPU users, please ensure you have the latest GPU drivers installed.<br>
+AMD users, may need to use the script located in the .resources folder to enable OpenCL support:<br>
+<a href="https://github.com/illsk1lls/ZipRipper/blob/main/.resources/FixOpenCLforAMD.bat">-AMD OpenCL Fix</a>
 
 *UNC Paths and redirected folders are supported.*<br>
