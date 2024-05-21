@@ -1,11 +1,8 @@
 @ECHO OFF
-REM Begin dynamic alternate wordlist info - Expected format is UTF-8 text file inside a 7z archive - If using an unarchived text file; SET WORDLIST7z=""
-SET WORDLISTNAME="Cyclone"
-SET WORDLISTADDR="https://download.weakpass.com/wordlists/1928/cyclone_hk.txt.7z"
-SET WORDLIST7z="cyclone_hk.txt.7z"
-SET WORDLISTTXT="cyclone_hk.txt"
+REM Begin dynamic alternate wordlist info - Expected format is UTF-8 text file inside a 7z archive -or- Direct link to unarchived UTF-8 .txt file
+SET WORDLISTNAME="RockYou"
+SET WORDLISTADDR="https://github.com/brannondorsey/naive-hashcat/releases/download/data/rockyou.txt"
 REM End dynamic alternate wordlist info -> Click John's mouth on the GUI to access this option <-
-IF NOT %WORDLIST7z%=="" SET WORDLIST7z="%ProgramData%\%WORDLIST7z:"=%"
 CALL :SINGLEINSTANCE
 IF NOT "%PROCESSOR_ARCHITECTURE%"=="AMD64" (
 IF NOT "%PROCESSOR_ARCHITEW6432%"=="AMD64" (
@@ -74,9 +71,7 @@ SETLOCAL ENABLEDELAYEDEXPANSION
 SET "ACTION="&SET "WORDLIST="
 CALL :MAINMENU ACTION WORDLIST
 IF "!ACTION!"=="Offline" (
-ENDLOCAL
 CALL :BUILD RELAUNCH
-SETLOCAL ENABLEDELAYEDEXPANSION
 SET /p OFOLDER=<"%ProgramData%\launcher.ZipRipper"
 IF "!RELAUNCH!"=="1" (
 TITLE Re-Launching...
@@ -84,12 +79,10 @@ START "" /min "%ProgramData%\launcher.ZipRipper" "!OFOLDER!%~nx0"
 ENDLOCAL
 EXIT /b
 ) ELSE (
-ENDLOCAL
 CALL :CLEANUP
 )
 )
 IF NOT "!ACTION!"=="Start" (
-ENDLOCAL
 CALL :CLEANUP
 )
 IF !WORDLIST! EQU 1 (
@@ -97,7 +90,6 @@ CALL :CHECKCONNECTION ONLINE
 IF !ONLINE! EQU 1 (
 SET "LMSG=%WORDLISTNAME:"=% wordlist selected - The wordlist will be included in the resume data"
 CALL :LISTMESSAGE "!LMSG!"
-SET LISTNAME="%ProgramData%\%WORDLISTTXT:"=%"
 ) ELSE (
 SET "LMSG=Internet connection unavailable - Automatic retrieval of %WORDLISTNAME:"=% wordlist is not possible. Default and Custom wordlist options are available."
 CALL :LISTMESSAGE "!LMSG!"
@@ -140,7 +132,9 @@ SET ALLOWSTART=1
 SET ISPERL=1
 )
 IF NOT "%ALLOWSTART%"=="1" CALL :CLEANUP
+
 >nul 2>&1 REG DELETE HKCU\Software\classes\.ZipRipper\ /F 
+IF EXIST "%ProgramData%\ignore.Radeon" >nul 2>&1 DEL "%ProgramData%\ignore.Radeon" /F /Q
 >nul 2>&1 DEL "%ProgramData%\launcher.ZipRipper" /F /Q
 SET "FILETYPE=%~x1"
 SET "TitleName=[ZIP-Ripper]  -  [#PROC Mode]  -  [OpenCL #STATUS]  -  #RUNMODE Mode"
@@ -159,14 +153,13 @@ SET "TitleName=!TitleName:#RUNMODE=Offline!"
 )
 TITLE !TitleName!
 ENDLOCAL
-IF %OFFLINE% EQU 0 (
 SETLOCAL ENABLEDELAYEDEXPANSION
+IF %OFFLINE% EQU 0 (
 IF !WORDLIST! EQU 1 (
 <NUL set /p=Please Wait...
-IF %WORDLIST7z%=="" (
-SET WORDLIST7z=!LISTNAME!
-)
-CALL :SINGLEDOWNLOAD %WORDLISTADDR% !WORDLIST7z! "Downloading %WORDLISTNAME:"=% wordlist..."
+CALL :WORDLISTFILEINFO
+IF !wListOuter!=="" SET wListOuter=!LISTNAME!
+CALL :SINGLEDOWNLOAD %WORDLISTADDR% !wListOuter! "Downloading %WORDLISTNAME:"=% wordlist..."
 CALL :ONLINEMODE
 ECHO Ready
 ECHO/
@@ -176,16 +169,13 @@ CALL :ONLINEMODE
 ECHO Ready
 ECHO/
 )
-ENDLOCAL
 ) ELSE (
-SETLOCAL ENABLEDELAYEDEXPANSION
 IF !WORDLIST! EQU 1 (
-IF %WORDLIST7z%=="" (
-SET WORDLIST7z=!LISTNAME!
+CALL :WORDLISTFILEINFO
+IF !wListOuter!=="" SET wListOuter=!LISTNAME!
+CALL :SINGLEDOWNLOAD %WORDLISTADDR% !wListOuter! "Downloading %WORDLISTNAME:"=% wordlist..."
 )
-CALL :SINGLEDOWNLOAD %WORDLISTADDR% !WORDLIST7z! "Downloading %WORDLISTNAME:"=% wordlist..."
 )
-ENDLOCAL
 )
 CALL :GETJTRREADY
 ECHO Done
@@ -201,30 +191,23 @@ IF %~z1 GEQ 200000000 (
 )
 SET RESUME=0
 CALL :GETMD5 %1 MD5
-SETLOCAL ENABLEDELAYEDEXPANSION
 IF EXIST "%AppData%\ZR-InProgress\!MD5!" (
-ENDLOCAL
 CALL :RESUMEDECIDE ISRESUME
-SETLOCAL ENABLEDELAYEDEXPANSION
 IF "!ISRESUME!"=="1" (
 >nul 2>&1 MOVE /Y "%AppData%\ZR-InProgress\!MD5!\*.*" "%ProgramData%\JtR\run\"
-ENDLOCAL
 CALL :CHECKRESUMENAME %1
 SET RESUME=1
 GOTO :STARTJTR
 ) ELSE (
 >nul 2>&1 RD "%AppData%\ZR-InProgress\!MD5!" /S /Q
-ENDLOCAL
 )
 )
-ENDLOCAL
 SET ZIP2=0
 SET PROTECTED=1
 SET /A HSIZE=0
 CALL :HASH%FILETYPE% %1
 ECHO Done
 ECHO/
-SETLOCAL ENABLEDELAYEDEXPANSION
 IF NOT "!PROTECTED!"=="1" CALL :NOTSUPPORTED %1 "!ERRORMSG!"&ENDLOCAL&CALL :CLEANUP&GOTO :EOF
 IF DEFINED LISTNAME (
 IF !WORDLIST! EQU 2 (
@@ -242,7 +225,6 @@ CALL :WAIT 1
 ECHO Loaded
 CALL :WAIT 2
 )
-ENDLOCAL
 
 :STARTJTR
 CLS
@@ -253,38 +235,30 @@ ECHO Resuming Session...
 ECHO/
 john --restore
 ) ELSE (
-SETLOCAL ENABLEDELAYEDEXPANSION
 john --wordlist="%ProgramData%\JtR\run\password.lst" --rules=single,all "%ProgramData%\JtR\run\pwhash" !FLAG!
-ENDLOCAL
 )
 CALL :GETSIZE "%ProgramData%\JtR\run\john.pot" POTSIZE
 SETLOCAL ENABLEDELAYEDEXPANSION
 IF !POTSIZE! GEQ 1 (
-ENDLOCAL
 SET FOUND=1
 CALL :SAVEFILE %1
-SETLOCAL ENABLEDELAYEDEXPANSION
 IF EXIST "%AppData%\ZR-InProgress\!MD5!" >nul 2>&1 RD "%AppData%\ZR-InProgress\!MD5!" /S /Q
-ENDLOCAL
 ECHO/
 ECHO Passwords saved to: "%SystemDrive%\Users\%UserName%\Desktop\ZipRipper-Passwords.txt"
 ) ELSE (
-ENDLOCAL
 SET FOUND=0
 ECHO/
 CALL :SETRESUME %1
 )
-SETLOCAL ENABLEDELAYEDEXPANSION
 IF NOT "!FOUND!"=="0" (
 CALL :GETSIZE "%SystemDrive%\Users\%UserName%\Desktop\ZipRipper-Passwords.txt" PWSIZE
 IF !PWSIZE! LEQ 1600 (
-ENDLOCAL
 CALL :DISPLAYINFOA
 ) ELSE (
-ENDLOCAL
 CALL :DISPLAYINFOB
 )
 )
+ENDLOCAL
 ECHO/
 PAUSE
 POPD
@@ -361,9 +335,12 @@ IF "%ISPERL%"=="1" (
 )
 >nul 2>&1 "%ProgramData%\7zr.exe" x -y "%ProgramData%\winX64_1_JtR.7z" -o"%ProgramData%\"
 >nul 2>&1 "%ProgramData%\7zr.exe" x -y "%ProgramData%\7zExtra.7z" -o"%ProgramData%\JtR\"
-IF EXIST %WORDLIST7z% (
-"%ProgramData%\7zr.exe" x -y %WORDLIST7z% -o"%ProgramData%\">nul
->nul 2>&1 DEL %WORDLIST7z% /F /Q
+IF EXIST !wListOuter! (
+CALL :EXTENSION !wListOuter! WLEXT
+IF /I "!WLEXT!"==".7z" (
+"%ProgramData%\7zr.exe" x -y !wListOuter! -o"%ProgramData%\">nul
+>nul 2>&1 DEL !wListOuter! /F /Q
+)
 )
 IF "%ISPERL%"=="1" "%ProgramData%\JtR\7za.exe" x -y "%ProgramData%\perlportable.zip" -o"%ProgramData%\JtR\run">nul
 IF EXIST "%ProgramData%\perlportable.zip" >nul 2>&1 DEL "%ProgramData%\perlportable.zip" /F /Q
@@ -410,17 +387,12 @@ FOR /F "usebackq tokens=*" %%# IN (`TYPE "%ProgramData%\JtR\run\statusout" ^| fi
 FOR /F "tokens=2 delims=$" %%# IN (pwhash) DO (
 IF /I "%%#"=="zip2" (
 SET ZIP2=1
-SETLOCAL ENABLEDELAYEDEXPANSION
 IF !GPU! GEQ 1 (
-ENDLOCAL
 SET "FLAG=--format=ZIP-opencl"
 CALL :OPENCLENABLED
-) ELSE (
-ENDLOCAL
 )
 )
 IF /I "%%#"=="pkzip" (
-SETLOCAL ENABLEDELAYEDEXPANSION
 SET "TitleName=!TitleName:#PROC=CPU!"
 SET "TitleName=!TitleName:#STATUS=UNSUPPORTED Filetype!"
 IF !OFFLINE! EQU 0 (
@@ -429,7 +401,6 @@ SET "TitleName=!TitleName:#RUNMODE=Online!"
 SET "TitleName=!TitleName:#RUNMODE=Offline!"
 )
 TITLE !TitleName!
-ENDLOCAL
 )
 )
 EXIT /b
@@ -443,21 +414,18 @@ FOR /F "usebackq tokens=*" %%# IN (`TYPE "%ProgramData%\JtR\run\statusout" ^| fi
 ) ELSE (
 FOR /F "usebackq tokens=4 delims=*" %%# IN (pwhash) DO IF "%%#"=="00000000" SET PROTECTED=2&SET "ERRORMSG=encryption type is not supported.."
 )
-SETLOCAL ENABLEDELAYEDEXPANSION
 IF !GPU! GEQ 1 FOR /F "tokens=2 delims=$" %%# IN (pwhash) DO (
-ENDLOCAL
 IF /I "%%#"=="rar" SET "FLAG=--format=rar-opencl"&CALL :OPENCLENABLED
 IF /I "%%#"=="rar3" SET "FLAG=--format=rar-opencl"&CALL :OPENCLENABLED
 IF /I "%%#"=="rar5" SET "FLAG=--format=RAR5-opencl"&CALL :OPENCLENABLED
-) ELSE (
-ENDLOCAL
 )
 EXIT /b
 
 :OPENCLENABLED
+ENDLOCAL
 SETLOCAL ENABLEDELAYEDEXPANSION
 SET "TitleName=!TitleName:#PROC=GPU!"
-SET "TitleName=!TitleName:#STATUS=ENABLED!"
+SET TitleName=!TitleName:#STATUS=ENABLED!
 IF !OFFLINE! EQU 0 (
 SET "TitleName=!TitleName:#RUNMODE=Online!"
 ) ELSE (
@@ -465,6 +433,7 @@ SET "TitleName=!TitleName:#RUNMODE=Offline!"
 )
 TITLE !TitleName!
 ENDLOCAL
+SETLOCAL ENABLEDELAYEDEXPANSION
 EXIT /b
 
 :HASH.7z
@@ -475,13 +444,9 @@ SET PROTECTED=0&SET "ERRORMSG=is not password protected.."
 ) ELSE (
 FOR /F "usebackq tokens=*" %%# IN (`TYPE statusout ^| findstr /I /C^:"not supported"`) DO SET PROTECTED=2&SET "ERRORMSG=encryption type is not supported.."
 )
-SETLOCAL ENABLEDELAYEDEXPANSION
 IF !GPU! GEQ 1 (
-ENDLOCAL
 SET "FLAG=--format=7z-opencl"
 CALL :OPENCLENABLED
-) ELSE (
-ENDLOCAL
 )
 EXIT /b
 
@@ -490,7 +455,6 @@ CALL portableshell.bat pdf2john.pl "%~1">"%ProgramData%\JtR\run\pwhash" 2>nul
 POWERSHELL -nop -c "$^=[regex]::Match((gc pwhash),'^(.+\/)(?i)(.*\.pdf)(.+$)');$^.Groups[2].value+$^.Groups[3].value|sc pwhash">nul 2>&1
 FOR /F %%# IN ("%ProgramData%\JtR\run\pwhash") DO SET /A HSIZE=%%~z#
 IF %HSIZE% LSS 8000 FOR /F "usebackq tokens=*" %%# IN (`TYPE pwhash ^| findstr /I /C^:"not encrypted!"`) DO SET PROTECTED=0&SET "ERRORMSG=is not password protected.."
-SETLOCAL ENABLEDELAYEDEXPANSION
 IF !GPU! GEQ 1 (
 SET "TitleName=!TitleName:#PROC=CPU!"
 SET "TitleName=!TitleName:#STATUS=UNSUPPORTED Filetype!"
@@ -500,9 +464,6 @@ SET "TitleName=!TitleName:#RUNMODE=Online!"
 SET "TitleName=!TitleName:#RUNMODE=Offline!"
 )
 TITLE !TitleName!
-ENDLOCAL
-) ELSE (
-ENDLOCAL
 )
 EXIT /b
 
@@ -551,6 +512,10 @@ SET "%~2=%LENGTH%"
 EXIT /b
 )
 
+:EXTENSION
+SET %2=%~x1
+EXIT /b
+
 :RENAMEOLD
 IF EXIST "%SystemDrive%\Users\%UserName%\Desktop\ZipRipper-Passwords.%R%.txt" (
 SET /A R+=1
@@ -588,6 +553,23 @@ EXIT /b
 
 :GETFILE
 FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "Add-Type -AssemblyName System.Windows.Forms;$^=New-Object System.Windows.Forms.OpenFileDialog -Property @{InitialDirectory='';Title='Select a password protected ZIP, RAR, 7z or PDF...';Filter='All Supported (*.zip;*.rar;*.7z;*.pdf)|*.zip;*.rar;*.7z;*.pdf|ZIP (*.zip)|*.zip|RAR (*.rar)|*.rar|7-Zip (*.7z)|*.7z|PDF (*.pdf)|*.pdf'};$null=$^.ShowDialog();$Quoted='"^""' + $^^.Filename + '"^""';$Quoted"`) DO SET %1=%%#
+EXIT /b
+
+:WORDLISTFILEINFO
+FOR /F "usebackq tokens=1,2" %%# IN (`POWERSHELL "$^=[regex]::Match('%WORDLISTADDR:"=%', '.*\/((.*)\..*)$');$^.Groups[1].Value+' '+$^.Groups[2].Value"`) DO (
+CALL :EXTENSION %%# EXT
+IF /I NOT "!EXT!"==".7z" (
+IF /I "!EXT!"==".txt" (
+SET wListOuter=""
+SET wListInner="%%#"
+)
+) ELSE (
+SET wListOuter="%%#"
+SET wListInner="%%$"
+)
+)
+SET LISTNAME="%ProgramData%\!wListInner:"=!"
+IF NOT !wListOuter!=="" SET wListOuter="%ProgramData%\!wListOuter:"=!"
 EXIT /b
 
 :RESETWORDLIST
@@ -689,6 +671,9 @@ SET /A GPU=0
 ) ELSE (
 SET /A GPU=1
 )
+IF NOT EXIST "%ProgramData%\ignore.Radeon" (
+IF /I "%%#"=="Radeon" (
+IF NOT EXIST "%WinDir%\System32\amdocl64.dll" CALL :FIXRADEON
 IF /I "%%# %%$"=="Radeon RX" IF NOT EXIST "%WinDir%\System32\amdocl64.dll" (
 SET /A GPU=0
 ) ELSE (
@@ -698,6 +683,8 @@ IF /I "%%# %%$"=="Radeon Pro" IF NOT EXIST "%WinDir%\System32\amdocl64.dll" (
 SET /A GPU=0
 ) ELSE (
 SET /A GPU=2
+)
+)
 )
 )
 EXIT /b
@@ -761,4 +748,13 @@ CALL :SINGLE %1
 ECHO/
 ECHO ==============================
 )>>"%SystemDrive%\Users\%UserName%\Desktop\ZipRipper-Passwords.txt"
+EXIT /b
+
+:FIXRADEON
+FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "$^=New-Object -ComObject Wscript.Shell;$^.Popup('Radeon series GPU detected, but OpenCL dependencies are missing.. Would you like to perform a one-time download from AMD to enable OpenCL support on your system? (~13mb)',0,'Enable AMD OpenCL Support?',0x1)"`) DO IF %%# EQU 1 (
+CALL :SINGLEDOWNLOAD "https://download.amd.com/dir/bin/amdocl64.dll/64CB5B3Ed36000/amdocl64.dll" "%WinDir%\System32\amdocl64.dll" "Adding AMD OpenCL support..."
+>nul 2>&1 REG ADD "HKEY_LOCAL_MACHINE\SOFTWARE\Khronos\OpenCL\Vendors" /v "%WinDir%\System32\amdocl64.dll" /t REG_DWORD /d 0 /f
+) ELSE (
+CD.>"%ProgramData%\ignore.Radeon"
+)
 EXIT /b
