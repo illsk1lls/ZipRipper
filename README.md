@@ -26,7 +26,7 @@ StarwberryPerl(Portable) - <a href="https://strawberryperl.com/releases.html">ht
 nVidia "GeForce" & "Quadro" and AMD "Radeon RX" & "Radeon Pro" cards<br>
 
 **All GPU users:** Ensure you have the latest GPU drivers installed.<br>
-**AMD GPU users:** For GPU support you may need to use <a href="https://github.com/illsk1lls/ZipRipper/blob/main/.resources/FixOpenCLforAMD.bat">the script located in the .resources folder</a> to enable OpenCL on your system.<br>
+**AMD GPU users:** For GPU support the script will offer to enable OpenCL on your system if the dependencies are not present.. Otherwise you may need to use <a href="https://github.com/illsk1lls/ZipRipper/blob/main/.resources/FixOpenCLforAMD.bat">the script located in the .resources folder</a> to enable OpenCL on your system.<br>
 
 **ZipRipper is portable, there are two different running modes; Online Mode, and Offline mode...**<br>
 
