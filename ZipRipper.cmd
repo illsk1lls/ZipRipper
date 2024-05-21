@@ -1,5 +1,5 @@
 @ECHO OFF
-REM Begin dynamic alternate wordlist info - expected format is UTF-8 text file inside a 7z archive -or- direct link to unarchived UTF-8 .txt file
+REM Begin dynamic alternate wordlist info - expected format is UTF-8 .txt file inside a 7z archive -or- direct link to unarchived UTF-8 .txt file
 SET WORDLISTNAME="Cyclone"
 SET WORDLISTADDR="https://download.weakpass.com/wordlists/1928/cyclone_hk.txt.7z"
 REM End dynamic alternate wordlist info -> Click John's mouth on the GUI to access this option <-
