@@ -760,7 +760,14 @@ FOR /F "usebackq skip=1 tokens=2,3" %%# IN (`WMIC path Win32_VideoController get
 	)
 	IF /I NOT EXIST "%ProgramData%\ignore.Radeon" (
 		IF /I "%%#"=="Radeon" (
-			IF /I NOT EXIST "%WinDir%\System32\amdocl64.dll" CALL :FIXRADEON
+			IF /I NOT EXIST "%WinDir%\System32\amdocl64.dll" (
+				CALL :FIXRADEON
+			) ELSE (
+				REG QUERY "HKEY_LOCAL_MACHINE\SOFTWARE\Khronos\OpenCL\Vendors" /v "%WinDir%\System32\amdocl64.dll" >nul 2>&1
+				IF %ERRORLEVEL% NEQ 0 (
+					CALL :FIXRADEON
+				)
+			)
 			IF /I "%%# %%$"=="Radeon RX" (
 				IF /I NOT EXIST "%WinDir%\System32\amdocl64.dll" (
 					SET /A GPU=0
