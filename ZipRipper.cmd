@@ -1,7 +1,7 @@
 @ECHO OFF
 REM Begin dynamic alternate wordlist info - Expected format is UTF-8 text file inside a 7z archive -or- Direct link to unarchived UTF-8 .txt file
-SET WORDLISTNAME="RockYou"
-SET WORDLISTADDR="https://github.com/brannondorsey/naive-hashcat/releases/download/data/rockyou.txt"
+SET WORDLISTNAME="Cyclone"
+SET WORDLISTADDR="https://download.weakpass.com/wordlists/1928/cyclone_hk.txt.7z"
 REM End dynamic alternate wordlist info -> Click John's mouth on the GUI to access this option <-
 CALL :SINGLEINSTANCE
 IF NOT "%PROCESSOR_ARCHITECTURE%"=="AMD64" (
@@ -565,7 +565,12 @@ SET wListInner="%%#"
 )
 ) ELSE (
 SET wListOuter="%%#"
+SET CHECK="%%$"
+IF /I "!CHECK:~-5,-1!"==".txt" (
 SET wListInner="%%$"
+) ELSE (
+SET wListInner="%%$.txt"
+)
 )
 )
 SET LISTNAME="%ProgramData%\!wListInner:"=!"
