@@ -48,14 +48,18 @@ IF /I NOT "%~dp0" == "%ProgramData%\" (
 	CALL :CLEANUP STARTUP
 	ECHO|(SET /p="%~dp0")>"%ProgramData%\launcher.ZipRipper"
 	>nul 2>&1 COPY /Y "%~f0" "%ProgramData%"
-	IF EXIST "%~dp0zr-offline.txt" >nul 2>&1 COPY /Y "%~dp0zr-offline.txt" "%ProgramData%"
+	IF EXIST "%~dp0zr-offline.txt" (
+		>nul 2>&1 COPY /Y "%~dp0zr-offline.txt" "%ProgramData%"
+	)
 	>nul 2>&1 FLTMC && (
 		TITLE Re-Launching...
 		START "" /min "%ProgramData%\launcher.ZipRipper" "%ProgramData%\%~nx0"
-	) || IF NOT "%f0%"=="1" (
-		TITLE Re-Launching...
-		START "" /min /high "%ProgramData%\launcher.ZipRipper" "%ProgramData%\%~nx0"
-		EXIT /b
+	) || (
+		IF NOT "%f0%"=="1" (
+			TITLE Re-Launching...
+			START "" /min /high "%ProgramData%\launcher.ZipRipper" "%ProgramData%\%~nx0"
+			EXIT /b
+		)
 	)
 	EXIT /b
 )
@@ -65,17 +69,24 @@ SET GPU=0
 SET ALLOWSTART=0
 CALL :CHECKWIN
 CALL :CHECKGPU
-IF EXIST "%ProgramData%\JtR" >nul 2>&1 RD "%ProgramData%\JtR" /S /Q
+IF EXIST "%ProgramData%\JtR" (
+	>nul 2>&1 RD "%ProgramData%\JtR" /S /Q
+)
 >nul 2>&1 ATTRIB -h "%ProgramData%\BIT*.tmp"
-IF EXIST "%ProgramData%\BIT*.tmp" >nul 2>&1 DEL "%ProgramData%\BIT*.tmp" /F /Q
+IF EXIST "%ProgramData%\BIT*.tmp" (
+	>nul 2>&1 DEL "%ProgramData%\BIT*.tmp" /F /Q
+)
 CALL :CENTERWINDOW
-IF "%OFFLINE%"=="1" CALL :OFFLINEMODE
+IF "%OFFLINE%"=="1" (
+	CALL :OFFLINEMODE
+)
 IF "%~1"=="" (
 	ECHO USE THE GUI TO PROCEED
 	SETLOCAL ENABLEDELAYEDEXPANSION
 
 :MAIN
-	SET "ACTION="&SET "WORDLIST="
+	SET "ACTION="
+	SET "WORDLIST="
 	CALL :MAINMENU ACTION WORDLIST
 	IF "!ACTION!"=="Offline" (
 		CALL :BUILD RELAUNCH
@@ -140,11 +151,14 @@ FOR %%# IN (%PERL%) DO IF /I "%~x1"==".%%#" (
 	SET ALLOWSTART=1
 	SET ISPERL=1
 )
-IF NOT "%ALLOWSTART%"=="1" CALL :CLEANUP
-
+IF NOT "%ALLOWSTART%"=="1" (
+	CALL :CLEANUP
+)
 >nul 2>&1 REG DELETE HKCU\Software\classes\.ZipRipper\ /F 
-IF EXIST "%ProgramData%\ignore.Radeon" >nul 2>&1 DEL "%ProgramData%\ignore.Radeon" /F /Q
 >nul 2>&1 DEL "%ProgramData%\launcher.ZipRipper" /F /Q
+IF EXIST "%ProgramData%\ignore.Radeon" (
+	>nul 2>&1 DEL "%ProgramData%\ignore.Radeon" /F /Q
+)
 SET "FILETYPE=%~x1"
 SET "TitleName=[ZIP-Ripper]  -  [#PROC Mode]  -  [OpenCL #STATUS]  -  #RUNMODE Mode"
 SETLOCAL ENABLEDELAYEDEXPANSION
@@ -255,7 +269,9 @@ SETLOCAL ENABLEDELAYEDEXPANSION
 IF !POTSIZE! GEQ 1 (
 	SET FOUND=1
 	CALL :SAVEFILE %1
-	IF EXIST "%AppData%\ZR-InProgress\!MD5!" >nul 2>&1 RD "%AppData%\ZR-InProgress\!MD5!" /S /Q
+	IF EXIST "%AppData%\ZR-InProgress\!MD5!" (
+		>nul 2>&1 RD "%AppData%\ZR-InProgress\!MD5!" /S /Q
+	)
 	ECHO/
 	ECHO Passwords saved to: "%SystemDrive%\Users\%UserName%\Desktop\ZipRipper-Passwords.txt"
 ) ELSE (
@@ -284,13 +300,13 @@ GOTO :EOF
 :GETMD5
 SET "MD5FILE=%~1"
 FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "$^=Resolve-Path '%MD5FILE:'=''%';$md5=new-object -TypeName System.Security.Cryptography.MD5CryptoServiceProvider;$f=[System.IO.File]::Open($^,[System.IO.Filemode]::Open,[System.IO.FileAccess]::Read);try{[System.BitConverter]::ToString($md5.ComputeHash($f)).Replace('-','').ToLower()}finally{$f.Dispose()}"`) DO (
-SET %2=%%#
+	SET %2=%%#
 )
 EXIT /b
 
 :RESUMEDECIDE
 FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "$^=New-Object -ComObject Wscript.Shell;$^.Popup('Click OK to resume using the saved session data/wordlist, or Cancel to remove the saved job and start over',0,'There is a job in progress for this file!',0x1)"`) DO (
-SET %1=%%#
+	SET %1=%%#
 )
 EXIT /b
 
@@ -300,7 +316,9 @@ IF NOT EXIST "%ProgramData%\JtR\run\john.rec" (
 ) ELSE (
 	ECHO Resume is available for the next session...
 	SETLOCAL ENABLEDELAYEDEXPANSION
-	IF NOT EXIST "%AppData%\ZR-InProgress\!MD5!" MD "%AppData%\ZR-InProgress\!MD5!"
+	IF NOT EXIST "%AppData%\ZR-InProgress\!MD5!" (
+		MD "%AppData%\ZR-InProgress\!MD5!"
+	)
 	>nul 2>&1 MOVE /Y "%ProgramData%\JtR\run\pwhash" "%AppData%\ZR-InProgress\!MD5!"
 	>nul 2>&1 MOVE /Y "%ProgramData%\JtR\run\john.pot" "%AppData%\ZR-InProgress\!MD5!"
 	>nul 2>&1 MOVE /Y "%ProgramData%\JtR\run\john.rec" "%AppData%\ZR-InProgress\!MD5!"
@@ -323,8 +341,13 @@ PAUSE
 EXIT /b 
 
 :ONLINEMODE
-SET /A P=3&SET /A PT=11
-IF "%ISPERL%"=="1" SET "PERL2=$info.Text=' Downloading Portable Perl';Update-Gui;downloadFile 'https://github.com/StrawberryPerl/Perl-Dist-Strawberry/releases/download/SP_5380_5361/strawberry-perl-5.38.0.1-64bit-portable.zip' '%ProgramData%\perlportable.zip';"&SET /A P=4&SET /A PT=8
+SET /A P=3
+SET /A PT=11
+IF "%ISPERL%"=="1" (
+	SET "PERL2=$info.Text=' Downloading Portable Perl';Update-Gui;downloadFile 'https://github.com/StrawberryPerl/Perl-Dist-Strawberry/releases/download/SP_5380_5361/strawberry-perl-5.38.0.1-64bit-portable.zip' '%ProgramData%\perlportable.zip';"
+	SET /A P=4
+	SET /A PT=8
+)
 POWERSHELL -nop -c "Add-Type -AssemblyName PresentationFramework, System.Drawing, System.Windows.Forms, WindowsFormsIntegration;[xml]$xaml='<Window xmlns="^""http://schemas.microsoft.com/winfx/2006/xaml/presentation"^"" xmlns:x="^""http://schemas.microsoft.com/winfx/2006/xaml"^"" Title="^"" Initializing..."^"" Height="^""75"^"" Width="^""210"^"" WindowStartupLocation="^""CenterScreen"^"" WindowStyle="^""None"^"" Topmost="^""True"^"" Background="^""#333333"^"" AllowsTransparency="^""True"^""><Canvas><TextBlock Name="^""Info"^"" Canvas.Top="^""3"^"" Text="^"" Initializing..."^"" Foreground="^""#eeeeee"^"" FontWeight="^""Bold"^""/><ProgressBar Canvas.Left="^""5"^"" Canvas.Top="^""28"^"" Width="^""200"^"" Height="^""3"^"" Name="^""Progress"^"" Foreground="^""#FF0000"^""/><TextBlock Name="^""Info2"^"" Canvas.Top="^""38"^"" Text="^"" Getting Resources (Online Mode)"^"" Foreground="^""#eeeeee"^"" FontWeight="^""Bold"^""/><ProgressBar Canvas.Left="^""5"^"" Canvas.Top="^""63"^"" Width="^""200"^"" Height="^""3"^"" Name="^""Progress2"^"" Foreground="^""#FF0000"^""/></Canvas><Window.TaskbarItemInfo><TaskbarItemInfo/></Window.TaskbarItemInfo></Window>';$reader=(New-Object System.Xml.XmlNodeReader $xaml);$form=[Windows.Markup.XamlReader]::Load($reader);$bitmap=New-Object System.Windows.Media.Imaging.BitmapImage;$bitmap='%LOGO:'=''%';$form.Icon=$bitmap;$form.TaskbarItemInfo.Overlay=$bitmap;$form.TaskbarItemInfo.Description=$form.Title;$form.Add_Closing({[System.Windows.Forms.Application]::Exit();Stop-Process $pid});$progressBar=$form.FindName("^""Progress"^"");$progressTotal=$form.FindName("^""Progress2"^"");$info=$form.FindName("^""Info"^"");$info2=$form.FindName("^""Info2"^"");function Update-Gui(){$form.Dispatcher.Invoke([Windows.Threading.DispatcherPriority]::Background, [action]{})};function GetResources(){$info.Text=' Initializing...';$progressTotal.Value=%PT%;Update-Gui;$info.Text=' Downloading 7zr Standalone';Update-Gui;downloadFile 'https://www.7-zip.org/a/7zr.exe' '%ProgramData%\7zr.exe';$info.Text=' Downloading 7za Console';Update-Gui;downloadFile 'https://www.7-zip.org/a/7z2300-extra.7z' '%ProgramData%\7zExtra.7z';$info.Text=' Downloading JohnTheRipper';Update-Gui;downloadFile 'https://github.com/openwall/john-packages/releases/download/bleeding/winX64_1_JtR.7z' '%ProgramData%\winX64_1_JtR.7z';%PERL2%$progressTotal.Value=100;$info.Text="^"" Ready..."^"";Update-Gui};function DownloadFile($url,$targetFile){$uri=New-Object "^""System.Uri"^"" "^""$url"^"";$request=[System.Net.HttpWebRequest]::Create($uri);$request.set_Timeout(15000);$response=$request.GetResponse();$totalLength=[System.Math]::Floor($response.get_ContentLength()/1024);$responseStream=$response.GetResponseStream();$targetStream=New-Object -TypeName System.IO.FileStream -ArgumentList $targetFile, Create;$buffer=new-object byte[] 10KB;$count=$responseStream.Read($buffer,0,$buffer.length);$downloadedBytes=$count;while ($count -gt 0){$targetStream.Write($buffer, 0, $count);$count=$responseStream.Read($buffer,0,$buffer.length);$downloadedBytes=$downloadedBytes + $count;$roundedPercent=[int]((([System.Math]::Floor($downloadedBytes/1024)) / $totalLength) * 100);$progressBar.Value=$roundedPercent;if($totalP -ge %P%){$progressTotal.Value++;$totalP=0};if($progressBar.Value -ne $lastpercent){$lastpercent=$progressBar.Value;$totalP++;Update-Gui}};$targetStream.Flush();$targetStream.Close();$targetStream.Dispose();$responseStream.Dispose()};$form.Add_ContentRendered({GetResources;$form.Close()});$form.Show();$appContext=New-Object System.Windows.Forms.ApplicationContext;[void][System.Windows.Forms.Application]::Run($appContext)">nul
 EXIT /b
 
@@ -333,7 +356,9 @@ SET NEEDED=7zr.exe,7zExtra.7z,winX64_1_JtR.7z,perlportable.zip,zipripper.png
 SET EXTRACT=0
 <NUL set /p=Offline mode enabled
 FOR %%# IN (%NEEDED%) DO (
-	IF /I NOT EXIST "%~dp0%%#" SET EXTRACT=1
+	IF /I NOT EXIST "%~dp0%%#" (
+		SET EXTRACT=1
+	)
 )
 IF NOT "%EXTRACT%"=="1" (
 	<NUL set /p=, checking resources...
@@ -362,9 +387,15 @@ IF EXIST !wListOuter! (
 		>nul 2>&1 DEL !wListOuter! /F /Q
 	)
 )
-IF "%ISPERL%"=="1" "%ProgramData%\JtR\7za.exe" x -y "%ProgramData%\perlportable.zip" -o"%ProgramData%\JtR\run">nul
-IF EXIST "%ProgramData%\perlportable.zip" >nul 2>&1 DEL "%ProgramData%\perlportable.zip" /F /Q
-IF EXIST "%ProgramData%\zr-offline.txt" >nul 2>&1 DEL "%ProgramData%\zr-offline.txt" /F /Q
+IF "%ISPERL%"=="1" (
+	"%ProgramData%\JtR\7za.exe" x -y "%ProgramData%\perlportable.zip" -o"%ProgramData%\JtR\run">nul
+)
+IF EXIST "%ProgramData%\perlportable.zip" (
+	>nul 2>&1 DEL "%ProgramData%\perlportable.zip" /F /Q
+)
+IF EXIST "%ProgramData%\zr-offline.txt" (
+	>nul 2>&1 DEL "%ProgramData%\zr-offline.txt" /F /Q
+)
 >nul 2>&1 DEL "%ProgramData%\winX64_1_JtR.7z" /F /Q
 >nul 2>&1 DEL "%ProgramData%\7zr.exe" /F /Q
 >nul 2>&1 DEL "%ProgramData%\7zExtra.7z" /F /Q
@@ -549,7 +580,9 @@ CALL :CHECKLENGTH FILEHASH HASHLENGTH
 POWERSHELL -nop -c "$^=gc john.pot|%%{$_ -Replace '^.+?\*.\*([a-z\d]{%HASHLENGTH%})\*.+:(.*)$',"^""`$1:`$2"^""}|sc pwhash.x3">nul 2>&1
 FOR /F "usebackq tokens=1,2 delims=:" %%# IN (pwhash.x2) DO (
 	FOR /F "usebackq tokens=1* delims=:" %%X IN (pwhash.x3) DO (
-		IF "%%$"=="%%X" ECHO|(SET /p="%%Y - [%%#]"&ECHO/)>>"%SystemDrive%\Users\%UserName%\Desktop\ZipRipper-Passwords.txt"
+		IF "%%$"=="%%X" (
+			ECHO|(SET /p="%%Y - [%%#]"&ECHO/)>>"%SystemDrive%\Users\%UserName%\Desktop\ZipRipper-Passwords.txt"
+		)
 	)
 )
 DEL /f /q pwhash.x*
@@ -622,7 +655,7 @@ EXIT /b
 
 :GETFILE
 FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "Add-Type -AssemblyName System.Windows.Forms;$^=New-Object System.Windows.Forms.OpenFileDialog -Property @{InitialDirectory='';Title='Select a password protected ZIP, RAR, 7z or PDF...';Filter='All Supported (*.zip;*.rar;*.7z;*.pdf)|*.zip;*.rar;*.7z;*.pdf|ZIP (*.zip)|*.zip|RAR (*.rar)|*.rar|7-Zip (*.7z)|*.7z|PDF (*.pdf)|*.pdf'};$null=$^.ShowDialog();$Quoted='"^""' + $^^.Filename + '"^""';$Quoted"`) DO (
-SET %1=%%#
+	SET %1=%%#
 )
 EXIT /b
 
@@ -677,15 +710,33 @@ EXIT /b
 EXIT /b
 
 :CLEANUP
-IF /I EXIST "%ProgramData%\JtR" >nul 2>&1 RD "%ProgramData%\JtR" /S /Q
-IF /I EXIST "%ProgramData%\zr-offline.txt" >nul 2>&1 DEL "%ProgramData%\zr-offline.txt" /F /Q
-IF /I EXIST "%ProgramData%\7zExtra.7z" >nul 2>&1 DEL "%ProgramData%\7zExtra.7z" /F /Q
-IF /I EXIST "%ProgramData%\7zr.exe" >nul 2>&1 DEL "%ProgramData%\7zr.exe" /F /Q
-IF /I EXIST "%ProgramData%\perlportable.zip" >nul 2>&1 DEL "%ProgramData%\perlportable.zip" /F /Q
-IF /I EXIST "%ProgramData%\winX64_1_JtR.7z" >nul 2>&1 DEL "%ProgramData%\winX64_1_JtR.7z" /F /Q
-IF /I EXIST "%ProgramData%\zipripper.png" >nul 2>&1 DEL "%ProgramData%\zipripper.png" /F /Q
-IF /I EXIST "%ProgramData%\launcher.ZipRipper" >nul 2>&1 DEL "%ProgramData%\launcher.ZipRipper" /F /Q
-IF /I EXIST "%ProgramData%\ztmp\*" >nul 2>&1 RD "%ProgramData%\ztmp" /S /Q
+IF /I EXIST "%ProgramData%\JtR" (
+	>nul 2>&1 RD "%ProgramData%\JtR" /S /Q
+)
+IF /I EXIST "%ProgramData%\zr-offline.txt" (
+	>nul 2>&1 DEL "%ProgramData%\zr-offline.txt" /F /Q
+)
+IF /I EXIST "%ProgramData%\7zExtra.7z" (
+	>nul 2>&1 DEL "%ProgramData%\7zExtra.7z" /F /Q
+)
+IF /I EXIST "%ProgramData%\7zr.exe" (
+	>nul 2>&1 DEL "%ProgramData%\7zr.exe" /F /Q
+)
+IF /I EXIST "%ProgramData%\perlportable.zip" (
+	>nul 2>&1 DEL "%ProgramData%\perlportable.zip" /F /Q
+)
+IF /I EXIST "%ProgramData%\winX64_1_JtR.7z" (
+	>nul 2>&1 DEL "%ProgramData%\winX64_1_JtR.7z" /F /Q
+)
+IF /I EXIST "%ProgramData%\zipripper.png" (
+	>nul 2>&1 DEL "%ProgramData%\zipripper.png" /F /Q
+)
+IF /I EXIST "%ProgramData%\launcher.ZipRipper" (
+	>nul 2>&1 DEL "%ProgramData%\launcher.ZipRipper" /F /Q
+)
+IF /I EXIST "%ProgramData%\ztmp\*" (
+	>nul 2>&1 RD "%ProgramData%\ztmp" /S /Q
+)
 IF "%1"=="" (
 	>nul 2>&1 REG DELETE HKCU\Software\classes\.ZipRipper\ /F
 	(GOTO) 2>nul&DEL "%~f0"/F /Q>nul&EXIT
@@ -693,7 +744,9 @@ IF "%1"=="" (
 EXIT /b
 
 :BUILD
-IF EXIST "%ProgramData%\ztmp\*" >nul 2>&1 RD "%ProgramData%\ztmp" /S /Q
+IF EXIST "%ProgramData%\ztmp\*" (
+	>nul 2>&1 RD "%ProgramData%\ztmp" /S /Q
+)
 >nul 2>&1 MD "%ProgramData%\ztmp"
 >nul 2>&1 COPY /Y "%ProgramData%\zipripper.png" "%ProgramData%\ztmp\104"
 PUSHD "%ProgramData%\ztmp"
