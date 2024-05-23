@@ -97,7 +97,7 @@ IF "%~1"=="" (
 				ENDLOCAL
 				EXIT /b
 			) ELSE (
-			CALL :CLEANUP
+				CALL :CLEANUP
 			)
 		)
 	IF NOT "!ACTION!"=="Start" (
@@ -143,13 +143,17 @@ IF "%~1"=="" (
 	ENDLOCAL
 	EXIT /b
 )
-FOR %%# IN (%NATIVE%) DO IF /I "%~x1"==".%%#" (
-	SET ALLOWSTART=1
-	SET ISPERL=0
+FOR %%# IN (%NATIVE%) DO (
+	IF /I "%~x1"==".%%#" (
+		SET ALLOWSTART=1
+		SET ISPERL=0
+	)
 )
-FOR %%# IN (%PERL%) DO IF /I "%~x1"==".%%#" (
-	SET ALLOWSTART=1
-	SET ISPERL=1
+FOR %%# IN (%PERL%) DO (
+	IF /I "%~x1"==".%%#" (
+		SET ALLOWSTART=1
+		SET ISPERL=1
+	)
 )
 IF NOT "%ALLOWSTART%"=="1" (
 	CALL :CLEANUP
@@ -181,7 +185,9 @@ IF %OFFLINE% EQU 0 (
 	IF !WORDLIST! EQU 1 (
 		<NUL set /p=Please Wait...
 		CALL :WORDLISTFILEINFO
-		IF !wListOuter!=="" SET wListOuter=!LISTNAME!
+		IF !wListOuter!=="" (
+			SET wListOuter=!LISTNAME!
+		)
 		CALL :SINGLEDOWNLOAD %WORDLISTADDR% !wListOuter! "Downloading %WORDLISTNAME:"=% wordlist..."
 		CALL :ONLINEMODE
 		ECHO Ready
@@ -195,7 +201,9 @@ IF %OFFLINE% EQU 0 (
 ) ELSE (
 	IF !WORDLIST! EQU 1 (
 		CALL :WORDLISTFILEINFO
-		IF !wListOuter!=="" SET wListOuter=!LISTNAME!
+		IF !wListOuter!=="" (
+			SET wListOuter=!LISTNAME!
+		)
 		CALL :SINGLEDOWNLOAD %WORDLISTADDR% !wListOuter! "Downloading %WORDLISTNAME:"=% wordlist..."
 	)
 )
@@ -344,9 +352,9 @@ EXIT /b
 SET /A P=3
 SET /A PT=11
 IF "%ISPERL%"=="1" (
-	SET "PERL2=$info.Text=' Downloading Portable Perl';Update-Gui;downloadFile 'https://github.com/StrawberryPerl/Perl-Dist-Strawberry/releases/download/SP_5380_5361/strawberry-perl-5.38.0.1-64bit-portable.zip' '%ProgramData%\perlportable.zip';"
 	SET /A P=4
 	SET /A PT=8
+	SET "PERL2=$info.Text=' Downloading Portable Perl';Update-Gui;downloadFile 'https://github.com/StrawberryPerl/Perl-Dist-Strawberry/releases/download/SP_5380_5361/strawberry-perl-5.38.0.1-64bit-portable.zip' '%ProgramData%\perlportable.zip';"
 )
 POWERSHELL -nop -c "Add-Type -AssemblyName PresentationFramework, System.Drawing, System.Windows.Forms, WindowsFormsIntegration;[xml]$xaml='<Window xmlns="^""http://schemas.microsoft.com/winfx/2006/xaml/presentation"^"" xmlns:x="^""http://schemas.microsoft.com/winfx/2006/xaml"^"" Title="^"" Initializing..."^"" Height="^""75"^"" Width="^""210"^"" WindowStartupLocation="^""CenterScreen"^"" WindowStyle="^""None"^"" Topmost="^""True"^"" Background="^""#333333"^"" AllowsTransparency="^""True"^""><Canvas><TextBlock Name="^""Info"^"" Canvas.Top="^""3"^"" Text="^"" Initializing..."^"" Foreground="^""#eeeeee"^"" FontWeight="^""Bold"^""/><ProgressBar Canvas.Left="^""5"^"" Canvas.Top="^""28"^"" Width="^""200"^"" Height="^""3"^"" Name="^""Progress"^"" Foreground="^""#FF0000"^""/><TextBlock Name="^""Info2"^"" Canvas.Top="^""38"^"" Text="^"" Getting Resources (Online Mode)"^"" Foreground="^""#eeeeee"^"" FontWeight="^""Bold"^""/><ProgressBar Canvas.Left="^""5"^"" Canvas.Top="^""63"^"" Width="^""200"^"" Height="^""3"^"" Name="^""Progress2"^"" Foreground="^""#FF0000"^""/></Canvas><Window.TaskbarItemInfo><TaskbarItemInfo/></Window.TaskbarItemInfo></Window>';$reader=(New-Object System.Xml.XmlNodeReader $xaml);$form=[Windows.Markup.XamlReader]::Load($reader);$bitmap=New-Object System.Windows.Media.Imaging.BitmapImage;$bitmap='%LOGO:'=''%';$form.Icon=$bitmap;$form.TaskbarItemInfo.Overlay=$bitmap;$form.TaskbarItemInfo.Description=$form.Title;$form.Add_Closing({[System.Windows.Forms.Application]::Exit();Stop-Process $pid});$progressBar=$form.FindName("^""Progress"^"");$progressTotal=$form.FindName("^""Progress2"^"");$info=$form.FindName("^""Info"^"");$info2=$form.FindName("^""Info2"^"");function Update-Gui(){$form.Dispatcher.Invoke([Windows.Threading.DispatcherPriority]::Background, [action]{})};function GetResources(){$info.Text=' Initializing...';$progressTotal.Value=%PT%;Update-Gui;$info.Text=' Downloading 7zr Standalone';Update-Gui;downloadFile 'https://www.7-zip.org/a/7zr.exe' '%ProgramData%\7zr.exe';$info.Text=' Downloading 7za Console';Update-Gui;downloadFile 'https://www.7-zip.org/a/7z2300-extra.7z' '%ProgramData%\7zExtra.7z';$info.Text=' Downloading JohnTheRipper';Update-Gui;downloadFile 'https://github.com/openwall/john-packages/releases/download/bleeding/winX64_1_JtR.7z' '%ProgramData%\winX64_1_JtR.7z';%PERL2%$progressTotal.Value=100;$info.Text="^"" Ready..."^"";Update-Gui};function DownloadFile($url,$targetFile){$uri=New-Object "^""System.Uri"^"" "^""$url"^"";$request=[System.Net.HttpWebRequest]::Create($uri);$request.set_Timeout(15000);$response=$request.GetResponse();$totalLength=[System.Math]::Floor($response.get_ContentLength()/1024);$responseStream=$response.GetResponseStream();$targetStream=New-Object -TypeName System.IO.FileStream -ArgumentList $targetFile, Create;$buffer=new-object byte[] 10KB;$count=$responseStream.Read($buffer,0,$buffer.length);$downloadedBytes=$count;while ($count -gt 0){$targetStream.Write($buffer, 0, $count);$count=$responseStream.Read($buffer,0,$buffer.length);$downloadedBytes=$downloadedBytes + $count;$roundedPercent=[int]((([System.Math]::Floor($downloadedBytes/1024)) / $totalLength) * 100);$progressBar.Value=$roundedPercent;if($totalP -ge %P%){$progressTotal.Value++;$totalP=0};if($progressBar.Value -ne $lastpercent){$lastpercent=$progressBar.Value;$totalP++;Update-Gui}};$targetStream.Flush();$targetStream.Close();$targetStream.Dispose();$responseStream.Dispose()};$form.Add_ContentRendered({GetResources;$form.Close()});$form.Show();$appContext=New-Object System.Windows.Forms.ApplicationContext;[void][System.Windows.Forms.Application]::Run($appContext)">nul
 EXIT /b
@@ -425,7 +433,9 @@ FOR /F "usebackq tokens=1 delims=:/" %%# IN (pwhash) DO (
 	)
 )
 SET "NEWNAME=%~nx1"
-IF "%ALT%"=="1" POWERSHELL -nop -c "$^=New-Object -ComObject Wscript.Shell;$^.Popup("^""This file has been renamed since the initial session. The filename will be updated in the saved session data.`n`nInitial file name: %OLDNAME%`n`nCurrent file name: %~nx1`n`nIt is recommended that you do not change the file name after the initial session to avoid potential issues, but it is not a requirement, and the session is able to resume anyway..."^"",0,'WARNING: File name change detected!',0x0);$update=[System.IO.File]::ReadAllText('%ProgramData%\JtR\run\pwhash').Replace('%OLDNAME:'=''%','%NEWNAME:'=''%');[System.IO.File]::WriteAllText('%ProgramData%\JtR\run\pwhash', $update)">nul
+IF "%ALT%"=="1" (
+	POWERSHELL -nop -c "$^=New-Object -ComObject Wscript.Shell;$^.Popup("^""This file has been renamed since the initial session. The filename will be updated in the saved session data.`n`nInitial file name: %OLDNAME%`n`nCurrent file name: %~nx1`n`nIt is recommended that you do not change the file name after the initial session to avoid potential issues, but it is not a requirement, and the session is able to resume anyway..."^"",0,'WARNING: File name change detected!',0x0);$update=[System.IO.File]::ReadAllText('%ProgramData%\JtR\run\pwhash').Replace('%OLDNAME:'=''%','%NEWNAME:'=''%');[System.IO.File]::WriteAllText('%ProgramData%\JtR\run\pwhash', $update)">nul
+)
 EXIT /b
 
 :HASH.ZIP
@@ -482,18 +492,20 @@ IF %HSIZE% EQU 0 (
 		)
 	)
 )
-IF !GPU! GEQ 1 FOR /F "tokens=2 delims=$" %%# IN (pwhash) DO (
-	IF /I "%%#"=="rar" (
-		SET "FLAG=--format=rar-opencl"
-		CALL :OPENCLENABLED
-	)
-	IF /I "%%#"=="rar3" (
-		SET "FLAG=--format=rar-opencl"
-		CALL :OPENCLENABLED
-	)
-	IF /I "%%#"=="rar5" (
-		SET "FLAG=--format=RAR5-opencl"
-		CALL :OPENCLENABLED
+IF !GPU! GEQ 1 (
+	FOR /F "tokens=2 delims=$" %%# IN (pwhash) DO (
+		IF /I "%%#"=="rar" (
+			SET "FLAG=--format=rar-opencl"
+			CALL :OPENCLENABLED
+		)
+		IF /I "%%#"=="rar3" (
+			SET "FLAG=--format=rar-opencl"
+			CALL :OPENCLENABLED
+		)
+		IF /I "%%#"=="rar5" (
+			SET "FLAG=--format=RAR5-opencl"
+			CALL :OPENCLENABLED
+		)
 	)
 )
 EXIT /b
@@ -557,7 +569,9 @@ EXIT /b
 
 :GETSIZE
 SET /A "%2=%~z1"
-IF %~z1==[] SET /A "%2=0"
+IF %~z1==[] (
+	SET /A "%2=0"
+)
 EXIT /b
 
 :SINGLE
@@ -644,7 +658,7 @@ EXIT /b
 :SINGLEINSTANCE
 TASKLIST /V /NH /FI "imagename eq cmd.exe"|FINDSTR /I /C^:"ZIP-Ripper">nul
 IF NOT %errorlevel%==1 (
-POWERSHELL -nop -c "$^={$Notify=[PowerShell]::Create().AddScript({$Audio=New-Object System.Media.SoundPlayer;$Audio.SoundLocation=$env:WinDir + '\Media\Windows Notify System Generic.wav';$Audio.playsync()});$rs=[RunspaceFactory]::CreateRunspace();$rs.ApartmentState="^""STA"^"";$rs.ThreadOptions="^""ReuseThread"^"";$rs.Open();$Notify.Runspace=$rs;$Notify.BeginInvoke()};&$^;$PopUp=New-Object -ComObject Wscript.Shell;$PopUp.Popup("^""ZipRipper is already running!"^"",0,'ERROR:',0x10)">nul&EXIT
+	POWERSHELL -nop -c "$^={$Notify=[PowerShell]::Create().AddScript({$Audio=New-Object System.Media.SoundPlayer;$Audio.SoundLocation=$env:WinDir + '\Media\Windows Notify System Generic.wav';$Audio.playsync()});$rs=[RunspaceFactory]::CreateRunspace();$rs.ApartmentState="^""STA"^"";$rs.ThreadOptions="^""ReuseThread"^"";$rs.Open();$Notify.Runspace=$rs;$Notify.BeginInvoke()};&$^;$PopUp=New-Object -ComObject Wscript.Shell;$PopUp.Popup("^""ZipRipper is already running!"^"",0,'ERROR:',0x10)">nul&EXIT
 )
 TITLE [ZIP-Ripper] Launching GUI...
 EXIT /b
