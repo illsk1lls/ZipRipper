@@ -65,6 +65,4 @@ More wordlists can be found at <a href="https://weakpass.com/wordlist">https://w
 -7z archives containing a single text file<br>
 -Raw unarchived txt files<br>
 
-*If a raw text file is used, leave* **WORDLIST7z=""** *as shown in the RockYou option above, otherwise* **WORDLIST7z="DownloadedArchiveName.7z"** *as shown in the Combined option above.*<br>
-
 *UNC Paths and redirected folders are supported.*<br>
