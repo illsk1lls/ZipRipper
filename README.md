@@ -22,6 +22,8 @@ StarwberryPerl(Portable) - <a href="https://strawberryperl.com/releases.html">ht
 *<p align="center">When a password is found an alert window will appear, and the password(s) will be<br>*
 *saved to the users desktop as:* ZipRipper-Passwords.txt</p>
 
+If you have questions, head on over to <a href="https://github.com/illsk1lls/ZipRipper/discussions/categories/q-a">Discussions Q&A</a><br>
+
 **Current version provides support for hardware acceleration via OpenCL for:**<br>
 nVidia "GeForce" & "Quadro" and AMD "Radeon RX" & "Radeon Pro" cards<br>
 
