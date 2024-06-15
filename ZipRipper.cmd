@@ -167,13 +167,12 @@ IF EXIST "%ProgramData%\ignore.Radeon" (
 	>nul 2>&1 DEL "%ProgramData%\ignore.Radeon" /F /Q
 )
 SET "FILETYPE=%~x1"
-SET "TitleName=[ZIP-Ripper]  -  [#PROC Mode]  -  [OpenCL #STATUS]  -  #RUNMODE Mode"
+SET "TitleName=[ZIP-Ripper]  -  [CPU/GPU]  -  [OpenCL #STATUS]  -  #RUNMODE Mode"
 SETLOCAL ENABLEDELAYEDEXPANSION
 IF !GPU! GEQ 1 (
-	SET "TitleName=!TitleName:#PROC=CPU/GPU!"
 	SET "TitleName=!TitleName:#STATUS=AVAILABLE!"
 ) ELSE (
-	SET "TitleName=!TitleName:#PROC=CPU!"
+	SET "TitleName=!TitleName:CPU/GPU=CPU!"
 	SET "TitleName=!TitleName:#STATUS=UNAVAILABLE!"
 )
 IF !OFFLINE! EQU 0 (
