@@ -89,8 +89,10 @@ IF "%~1"=="" (
 	CALL :MAINMENU ACTION WORDLIST
 	SETLOCAL ENABLEDELAYEDEXPANSION
 	IF "!ACTION!"=="Offline" (
+		SETLOCAL DISABLEDELAYEDEXPANSION
 		CALL :BUILD RELAUNCH
 		SET /p OFOLDER=<"%ProgramData%\launcher.ZipRipper"
+			SETLOCAL ENABLEDELAYEDEXPANSION
 			IF "!RELAUNCH!"=="1" (
 				TITLE Re-Launching...
 				START "" /min "%ProgramData%\launcher.ZipRipper" "!OFOLDER!%~nx0"
