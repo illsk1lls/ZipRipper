@@ -273,6 +273,7 @@ IF "%RESUME%"=="1" (
 	john --wordlist="%ProgramData%\JtR\run\password.lst" --rules=single,all "%ProgramData%\JtR\run\pwhash" !FLAG!
 )
 CALL :GETSIZE "%ProgramData%\JtR\run\john.pot" POTSIZE
+CALL :SAVELOCATION USERDESKTOP
 SETLOCAL ENABLEDELAYEDEXPANSION
 IF !POTSIZE! GEQ 1 (
 	SET FOUND=1
@@ -281,14 +282,14 @@ IF !POTSIZE! GEQ 1 (
 		>nul 2>&1 RD "%AppData%\ZR-InProgress\!MD5!" /S /Q
 	)
 	ECHO/
-	ECHO Passwords saved to: "%SystemDrive%\Users\%UserName%\Desktop\ZipRipper-Passwords.txt"
+	ECHO Passwords saved to: "%UserDesktop%\ZipRipper-Passwords.txt"
 ) ELSE (
 	SET FOUND=0
 	ECHO/
 	CALL :SETRESUME %1
 )
 IF NOT "!FOUND!"=="0" (
-	CALL :GETSIZE "%SystemDrive%\Users\%UserName%\Desktop\ZipRipper-Passwords.txt" PWSIZE
+	CALL :GETSIZE "%UserDesktop%\ZipRipper-Passwords.txt" PWSIZE
 	IF !PWSIZE! LEQ 1600 (
 		ENDLOCAL
 		CALL :DISPLAYINFOA
@@ -313,7 +314,7 @@ FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "$^=Resolve-Path 
 EXIT /b
 
 :RESUMEDECIDE
-FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "$^=New-Object -ComObject Wscript.Shell;$^.Popup('Click OK to resume using the saved session data/wordlist, or Cancel to remove the saved job and start over',0,'There is a job in progress for this file!',0x1)"`) DO (
+FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "$^=New-Object -ComObject Wscript.Shell;$^.Popup('Click OK to resume using the saved session data/wordlist, or Cancel to remove the saved job and start over',0,'There is a job in progress for this file',0x1)"`) DO (
 	SET %1=%%#
 )
 EXIT /b
@@ -323,7 +324,6 @@ IF NOT EXIST "%ProgramData%\JtR\run\john.rec" (
 	ECHO Resume is UNAVAILABLE for this file ;^(
 ) ELSE (
 	ECHO Resume is available for the next session...
-	SETLOCAL ENABLEDELAYEDEXPANSION
 	IF NOT EXIST "%AppData%\ZR-InProgress\!MD5!" (
 		MD "%AppData%\ZR-InProgress\!MD5!"
 	)
@@ -332,7 +332,6 @@ IF NOT EXIST "%ProgramData%\JtR\run\john.rec" (
 	>nul 2>&1 MOVE /Y "%ProgramData%\JtR\run\john.rec" "%AppData%\ZR-InProgress\!MD5!"
 	>nul 2>&1 MOVE /Y "%ProgramData%\JtR\run\john.log" "%AppData%\ZR-InProgress\!MD5!"
 	>nul 2>&1 MOVE /Y "%ProgramData%\JtR\run\password.lst" "%AppData%\ZR-InProgress\!MD5!"
-	ENDLOCAL
 )
 EXIT /b
 
@@ -576,7 +575,7 @@ EXIT /b
 
 :SINGLE
 FOR /F "usebackq tokens=2 delims=:" %%# IN (john.pot) DO (
-	ECHO|(SET /p="%%# - [%~nx1]"&ECHO/)>>"%SystemDrive%\Users\%UserName%\Desktop\ZipRipper-Passwords.txt"
+	ECHO|(SET /p="%%# - [%~nx1]"&ECHO/)>>"%UserDesktop%\ZipRipper-Passwords.txt"
 )
 EXIT /b
 
@@ -595,7 +594,7 @@ POWERSHELL -nop -c "$^=gc john.pot|%%{$_ -Replace '^.+?\*.\*([a-z\d]{%HASHLENGTH
 FOR /F "usebackq tokens=1,2 delims=:" %%# IN (pwhash.x2) DO (
 	FOR /F "usebackq tokens=1* delims=:" %%X IN (pwhash.x3) DO (
 		IF "%%$"=="%%X" (
-			ECHO|(SET /p="%%Y - [%%#]"&ECHO/)>>"%SystemDrive%\Users\%UserName%\Desktop\ZipRipper-Passwords.txt"
+			ECHO|(SET /p="%%Y - [%%#]"&ECHO/)>>"%UserDesktop%\ZipRipper-Passwords.txt"
 		)
 	)
 )
@@ -629,20 +628,20 @@ SET %2=%~x1
 EXIT /b
 
 :RENAMEOLD
-IF EXIST "%SystemDrive%\Users\%UserName%\Desktop\ZipRipper-Passwords.%R%.txt" (
+IF EXIST "%UserDesktop%\ZipRipper-Passwords.%R%.txt" (
 	SET /A R+=1
 	GOTO :RENAMEOLD
 ) ELSE (
-	REN "%SystemDrive%\Users\%UserName%\Desktop\ZipRipper-Passwords.txt" "ZipRipper-Passwords.%R%.txt"
+	REN "%UserDesktop%\ZipRipper-Passwords.txt" "ZipRipper-Passwords.%R%.txt"
 )
 EXIT /b
 
 :DISPLAYINFOA
-POWERSHELL -nop -c "$^={$Notify=[PowerShell]::Create().AddScript({$Audio=New-Object System.Media.SoundPlayer;$Audio.SoundLocation=$env:WinDir + '\Media\Windows Notify System Generic.wav';$Audio.playsync()});$rs=[RunspaceFactory]::CreateRunspace();$runspace.ApartmentState="^""STA"^"";$rs.ThreadOptions="^""ReuseThread"^"";$rs.Open();$Notify.Runspace=$rs;$Notify.BeginInvoke()};&$^;$Msg=@();foreach($line in Get-Content '%SystemDrive%\Users\%UserName%\Desktop\ZipRipper-Passwords.txt'){if($null -eq $Msg){$Msg+=$line}else{$Msg+=$line + "^""`n"^""}};$Msg+="^""Save Location:`n"^"";$Msg+="^"""^"""^""%SystemDrive%\Users\%UserName%\Desktop\ZipRipper-Passwords.txt"^"""^"""^"";$PopUp=New-Object -ComObject Wscript.Shell;$PopUp.Popup($Msg,0,'Message from ZIP-Ripper',0x0)">nul
+POWERSHELL -nop -c "$^={$Notify=[PowerShell]::Create().AddScript({$Audio=New-Object System.Media.SoundPlayer;$Audio.SoundLocation=$env:WinDir + '\Media\Windows Notify System Generic.wav';$Audio.playsync()});$rs=[RunspaceFactory]::CreateRunspace();$runspace.ApartmentState="^""STA"^"";$rs.ThreadOptions="^""ReuseThread"^"";$rs.Open();$Notify.Runspace=$rs;$Notify.BeginInvoke()};&$^;$Msg=@();foreach($line in Get-Content '%UserDesktop%\ZipRipper-Passwords.txt'){if($null -eq $Msg){$Msg+=$line}else{$Msg+=$line + "^""`n"^""}};$Msg+="^""Save Location:`n"^"";$Msg+="^"""^"""^""%UserDesktop%\ZipRipper-Passwords.txt"^"""^"""^"";$PopUp=New-Object -ComObject Wscript.Shell;$PopUp.Popup($Msg,0,'Message from ZIP-Ripper',0x0)">nul
 EXIT /b
 
 :DISPLAYINFOB
-POWERSHELL -nop -c "$^={$Notify=[PowerShell]::Create().AddScript({$Audio=New-Object System.Media.SoundPlayer;$Audio.SoundLocation=$env:WinDir + '\Media\Windows Notify System Generic.wav';$Audio.playsync()});$rs=[RunspaceFactory]::CreateRunspace();$runspace.ApartmentState="^""STA"^"";$rs.ThreadOptions="^""ReuseThread"^"";$rs.Open();$Notify.Runspace=$rs;$Notify.BeginInvoke()};&$^;$Msg=@();$Msg+="^""[ZIP-Ripper] - FOUND PASSWORDS`n"^"";$Msg+="^"" %DATE% + %TIME%`n"^"";$Msg+="^""==============================`n"^"";$Msg+="^""`n"^"";$Msg+="^""TOO MANY TO LIST`n"^"";$Msg+="^""`n"^"";$Msg+="^""==============================`n"^"";$Msg+="^""Save Location:`n"^"";$Msg+="^"""^"""^""%SystemDrive%\Users\%UserName%\Desktop\ZipRipper-Passwords.txt"^"""^"""^"";$PopUp=New-Object -ComObject Wscript.Shell;$PopUp.Popup($Msg,0,'Message from ZIP-Ripper',0x0)">nul
+POWERSHELL -nop -c "$^={$Notify=[PowerShell]::Create().AddScript({$Audio=New-Object System.Media.SoundPlayer;$Audio.SoundLocation=$env:WinDir + '\Media\Windows Notify System Generic.wav';$Audio.playsync()});$rs=[RunspaceFactory]::CreateRunspace();$runspace.ApartmentState="^""STA"^"";$rs.ThreadOptions="^""ReuseThread"^"";$rs.Open();$Notify.Runspace=$rs;$Notify.BeginInvoke()};&$^;$Msg=@();$Msg+="^""[ZIP-Ripper] - FOUND PASSWORDS`n"^"";$Msg+="^"" %DATE% + %TIME%`n"^"";$Msg+="^""==============================`n"^"";$Msg+="^""`n"^"";$Msg+="^""TOO MANY TO LIST`n"^"";$Msg+="^""`n"^"";$Msg+="^""==============================`n"^"";$Msg+="^""Save Location:`n"^"";$Msg+="^"""^"""^""%UserDesktop%\ZipRipper-Passwords.txt"^"""^"""^"";$PopUp=New-Object -ComObject Wscript.Shell;$PopUp.Popup($Msg,0,'Message from ZIP-Ripper',0x0)">nul
 EXIT /b
 
 :CHECKCONNECTION
@@ -896,8 +895,14 @@ IF "%LEGACYTERM%"=="0" (
 )
 EXIT /b
 
+:SAVELOCATION
+FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "[Environment]::GetFolderPath('Desktop')"`) DO (
+	SET "%1=%%#"
+)
+EXIT /b
+
 :SAVEFILE
-IF EXIST "%SystemDrive%\Users\%UserName%\Desktop\ZipRipper-Passwords.txt" (
+IF EXIST "%UserDesktop%\ZipRipper-Passwords.txt" (
 	SET /A R=0
 	CALL :RENAMEOLD
 )
@@ -906,7 +911,7 @@ IF EXIST "%SystemDrive%\Users\%UserName%\Desktop\ZipRipper-Passwords.txt" (
 	ECHO  %DATE% + %TIME%
 	ECHO ==============================
 	ECHO/
-)>"%SystemDrive%\Users\%UserName%\Desktop\ZipRipper-Passwords.txt"
+)>"%UserDesktop%\ZipRipper-Passwords.txt"
 IF "%ZIP2%"=="1" (
 	CALL :MULTI
 ) ELSE (
@@ -915,7 +920,7 @@ IF "%ZIP2%"=="1" (
 (
 	ECHO/
 	ECHO ==============================
-)>>"%SystemDrive%\Users\%UserName%\Desktop\ZipRipper-Passwords.txt"
+)>>"%UserDesktop%\ZipRipper-Passwords.txt"
 EXIT /b
 
 :FIXRADEON
