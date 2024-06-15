@@ -42,7 +42,7 @@ IF NOT EXIST "%~dp0zr-offline.txt" (
 ) ELSE (
 	SET OFFLINE=1
 )
-ENDLOCAL
+SETLOCAL DISABLEDELAYEDEXPANSION
 >nul 2>&1 REG ADD HKCU\Software\classes\.ZipRipper\shell\runas\command /f /ve /d "CMD /x /d /r SET \"f0=1\"&CALL \"%%2\" %%3"
 IF /I NOT "%~dp0" == "%ProgramData%\" (
 	CALL :CLEANUP STARTUP
@@ -82,12 +82,12 @@ IF "%OFFLINE%"=="1" (
 )
 IF "%~1"=="" (
 	ECHO USE THE GUI TO PROCEED
-	SETLOCAL ENABLEDELAYEDEXPANSION
 
 :MAIN
 	SET "ACTION="
 	SET "WORDLIST="
 	CALL :MAINMENU ACTION WORDLIST
+	SETLOCAL ENABLEDELAYEDEXPANSION
 	IF "!ACTION!"=="Offline" (
 		CALL :BUILD RELAUNCH
 		SET /p OFOLDER=<"%ProgramData%\launcher.ZipRipper"
@@ -131,9 +131,12 @@ IF "%~1"=="" (
 			GOTO :MAIN
 		)
 	)
+	SETLOCAL DISABLEDELAYEDEXPANSION
 	CALL :GETFILE FILENAME
-	IF NOT EXIST !FILENAME! (
+	SETLOCAL ENABLEDELAYEDEXPANSION
+	IF !FILENAME!=="" (
 		IF DEFINED LISTNAME CALL :RESETWORDLIST
+		ENDLOCAL
 		GOTO :MAIN
 	)
 	TITLE Re-Launching...
@@ -179,8 +182,6 @@ IF !OFFLINE! EQU 0 (
 	SET "TitleName=!TitleName:#RUNMODE=Offline!"
 )
 TITLE !TitleName!
-ENDLOCAL
-SETLOCAL ENABLEDELAYEDEXPANSION
 IF %OFFLINE% EQU 0 (
 	IF !WORDLIST! EQU 1 (
 		<NUL set /p=Please Wait...
@@ -220,16 +221,21 @@ IF %~z1 GEQ 200000000 (
 	<NUL set /p=Creating password hash...
 )
 SET RESUME=0
+SETLOCAL DISABLEDELAYEDEXPANSION
 CALL :GETMD5 %1 MD5
-IF EXIST "%AppData%\ZR-InProgress\!MD5!" (
+IF EXIST "%AppData%\ZR-InProgress\%MD5%" (
 	CALL :RESUMEDECIDE ISRESUME
+	SETLOCAL ENABLEDELAYEDEXPANSION
 	IF "!ISRESUME!"=="1" (
-		>nul 2>&1 MOVE /Y "%AppData%\ZR-InProgress\!MD5!\*.*" "%ProgramData%\JtR\run\"
+		SETLOCAL DISABLEDELAYEDEXPANSION
+		>nul 2>&1 MOVE /Y "%AppData%\ZR-InProgress\%MD5%\*.*" "%ProgramData%\JtR\run\"
 		CALL :CHECKRESUMENAME %1
 		SET RESUME=1
+		SETLOCAL ENABLEDELAYEDEXPANSION
 		GOTO :STARTJTR
 	) ELSE (
-		>nul 2>&1 RD "%AppData%\ZR-InProgress\!MD5!" /S /Q
+		SETLOCAL DISABLEDELAYEDEXPANSION
+		>nul 2>&1 RD "%AppData%\ZR-InProgress\%MD5%" /S /Q
 	)
 )
 SET ZIP2=0
@@ -238,8 +244,10 @@ SET /A HSIZE=0
 CALL :HASH%FILETYPE% %1
 ECHO Done
 ECHO/
+SETLOCAL ENABLEDELAYEDEXPANSION
 IF NOT "!PROTECTED!"=="1" (
-	CALL :NOTSUPPORTED %1 "!ERRORMSG!"
+	SETLOCAL DISABLEDELAYEDEXPANSION
+	CALL :NOTSUPPORTED %1 "%ERRORMSG%"
 	ENDLOCAL
 	CALL :CLEANUP
 	GOTO :EOF
@@ -273,23 +281,29 @@ IF "%RESUME%"=="1" (
 	john --wordlist="%ProgramData%\JtR\run\password.lst" --rules=single,all "%ProgramData%\JtR\run\pwhash" !FLAG!
 )
 CALL :GETSIZE "%ProgramData%\JtR\run\john.pot" POTSIZE
+SETLOCAL DISABLEDELAYEDEXPANSION
 CALL :SAVELOCATION USERDESKTOP
 SETLOCAL ENABLEDELAYEDEXPANSION
 IF !POTSIZE! GEQ 1 (
+	SETLOCAL DISABLEDELAYEDEXPANSION
 	SET FOUND=1
 	CALL :SAVEFILE %1
-	IF EXIST "%AppData%\ZR-InProgress\!MD5!" (
-		>nul 2>&1 RD "%AppData%\ZR-InProgress\!MD5!" /S /Q
+	IF EXIST "%AppData%\ZR-InProgress\%MD5%" (
+		>nul 2>&1 RD "%AppData%\ZR-InProgress\%MD5%" /S /Q
 	)
 	ECHO/
 	ECHO Passwords saved to: "%UserDesktop%\ZipRipper-Passwords.txt"
 ) ELSE (
+	SETLOCAL DISABLEDELAYEDEXPANSION	
 	SET FOUND=0
 	ECHO/
 	CALL :SETRESUME %1
 )
+SETLOCAL ENABLEDELAYEDEXPANSION
 IF NOT "!FOUND!"=="0" (
+	SETLOCAL DISABLEDELAYEDEXPANSION
 	CALL :GETSIZE "%UserDesktop%\ZipRipper-Passwords.txt" PWSIZE
+	SETLOCAL ENABLEDELAYEDEXPANSION
 	IF !PWSIZE! LEQ 1600 (
 		ENDLOCAL
 		CALL :DISPLAYINFOA
@@ -324,14 +338,14 @@ IF NOT EXIST "%ProgramData%\JtR\run\john.rec" (
 	ECHO Resume is UNAVAILABLE for this file ;^(
 ) ELSE (
 	ECHO Resume is available for the next session...
-	IF NOT EXIST "%AppData%\ZR-InProgress\!MD5!" (
-		MD "%AppData%\ZR-InProgress\!MD5!"
+	IF NOT EXIST "%AppData%\ZR-InProgress\%MD5%" (
+		MD "%AppData%\ZR-InProgress\%MD5%"
 	)
-	>nul 2>&1 MOVE /Y "%ProgramData%\JtR\run\pwhash" "%AppData%\ZR-InProgress\!MD5!"
-	>nul 2>&1 MOVE /Y "%ProgramData%\JtR\run\john.pot" "%AppData%\ZR-InProgress\!MD5!"
-	>nul 2>&1 MOVE /Y "%ProgramData%\JtR\run\john.rec" "%AppData%\ZR-InProgress\!MD5!"
-	>nul 2>&1 MOVE /Y "%ProgramData%\JtR\run\john.log" "%AppData%\ZR-InProgress\!MD5!"
-	>nul 2>&1 MOVE /Y "%ProgramData%\JtR\run\password.lst" "%AppData%\ZR-InProgress\!MD5!"
+	>nul 2>&1 MOVE /Y "%ProgramData%\JtR\run\pwhash" "%AppData%\ZR-InProgress\%MD5%"
+	>nul 2>&1 MOVE /Y "%ProgramData%\JtR\run\john.pot" "%AppData%\ZR-InProgress\%MD5%"
+	>nul 2>&1 MOVE /Y "%ProgramData%\JtR\run\john.rec" "%AppData%\ZR-InProgress\%MD5%"
+	>nul 2>&1 MOVE /Y "%ProgramData%\JtR\run\john.log" "%AppData%\ZR-InProgress\%MD5%"
+	>nul 2>&1 MOVE /Y "%ProgramData%\JtR\run\password.lst" "%AppData%\ZR-InProgress\%MD5%"
 )
 EXIT /b
 
@@ -449,25 +463,25 @@ IF %HSIZE% EQU 0 (
 		SET "ERRORMSG=encryption type is not supported.. (not a ZIPfile)"
 	)
 )
+SETLOCAL ENABLEDELAYEDEXPANSION
 FOR /F "tokens=2 delims=$" %%# IN (pwhash) DO (
 	IF /I "%%#"=="zip2" (
 		SET ZIP2=1
+
 		IF !GPU! GEQ 1 (
+			ENDLOCAL
 			SET "FLAG=--format=ZIP-opencl"
 			CALL :OPENCLENABLED
 		)
 	)
+	SETLOCAL ENABLEDELAYEDEXPANSION
 	IF /I "%%#"=="pkzip" (
-		SET "TitleName=!TitleName:#PROC=CPU!"
-		SET "TitleName=!TitleName:#STATUS=UNSUPPORTED Filetype!"
-		IF !OFFLINE! EQU 0 (
-			SET "TitleName=!TitleName:#RUNMODE=Online!"
-		) ELSE (
-			SET "TitleName=!TitleName:#RUNMODE=Offline!"
-		)
+		SET "TitleName=!TitleName:CPU/GPU=CPU!"
+		SET "TitleName=!TitleName:AVAILABLE=UNSUPPORTED Filetype!"
 		TITLE !TitleName!
 	)
 )
+SETLOCAL DISABLEDELAYEDEXPANSION
 EXIT /b
 
 :HASH.RAR
@@ -491,7 +505,9 @@ IF %HSIZE% EQU 0 (
 		)
 	)
 )
+SETLOCAL ENABLEDELAYEDEXPANSION
 IF !GPU! GEQ 1 (
+	ENDLOCAL
 	FOR /F "tokens=2 delims=$" %%# IN (pwhash) DO (
 		IF /I "%%#"=="rar" (
 			SET "FLAG=--format=rar-opencl"
@@ -506,7 +522,9 @@ IF !GPU! GEQ 1 (
 			CALL :OPENCLENABLED
 		)
 	)
+	
 )
+SETLOCAL DISABLEDELAYEDEXPANSION
 EXIT /b
 
 :HASH.7z
@@ -523,10 +541,15 @@ IF %HSIZE% EQU 0 (
 		SET "ERRORMSG=encryption type is not supported.."
 	)
 )
+SETLOCAL ENABLEDELAYEDEXPANSION
 IF !GPU! GEQ 1 (
+	ENDLOCAL
 	SET "FLAG=--format=7z-opencl"
 	CALL :OPENCLENABLED
+) ELSE (
+	ENDLOCAL
 )
+SETLOCAL DISABLEDELAYEDEXPANSION
 EXIT /b
 
 :HASH.PDF
@@ -539,31 +562,24 @@ IF %HSIZE% LSS 8000 FOR /F "usebackq tokens=*" %%# IN (`TYPE pwhash ^| findstr /
 	SET PROTECTED=0
 	SET "ERRORMSG=is not password protected.."
 )
+SETLOCAL ENABLEDELAYEDEXPANSION
 IF !GPU! GEQ 1 (
-	SET "TitleName=!TitleName:#PROC=CPU!"
-	SET "TitleName=!TitleName:#STATUS=UNSUPPORTED Filetype!"
-	IF !OFFLINE! EQU 0 (
-		SET "TitleName=!TitleName:#RUNMODE=Online!"
-	) ELSE (
-		SET "TitleName=!TitleName:#RUNMODE=Offline!"
-	)
+	SET "TitleName=!TitleName:CPU/GPU=CPU!"
+	SET "TitleName=!TitleName:AVAILABLE=UNSUPPORTED Filetype!"
 	TITLE !TitleName!
+	ENDLOCAL
+) ELSE (
+	ENDLOCAL
 )
+SETLOCAL DISABLEDELAYEDEXPANSION
 EXIT /b
 
 :OPENCLENABLED
-ENDLOCAL
 SETLOCAL ENABLEDELAYEDEXPANSION
-SET "TitleName=!TitleName:#PROC=GPU!"
-SET TitleName=!TitleName:#STATUS=ENABLED!
-IF !OFFLINE! EQU 0 (
-	SET "TitleName=!TitleName:#RUNMODE=Online!"
-) ELSE (
-	SET "TitleName=!TitleName:#RUNMODE=Offline!"
-)
+SET "TitleName=!TitleName:CPU/GPU=GPU!"
+SET TitleName=!TitleName:AVAILABLE=ENABLED!
 TITLE !TitleName!
 ENDLOCAL
-SETLOCAL ENABLEDELAYEDEXPANSION
 EXIT /b
 
 :GETSIZE
@@ -618,7 +634,7 @@ EXIT /b
 	)
 )
 ( 
-	ENDLOCAL
+	SETLOCAL DISABLEDELAYEDEXPANSION
 	SET "%~2=%LENGTH%"
 	EXIT /b
 )
@@ -668,7 +684,7 @@ EXIT /b
 
 :GETFILE
 FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "Add-Type -AssemblyName System.Windows.Forms;$^=New-Object System.Windows.Forms.OpenFileDialog -Property @{InitialDirectory='';Title='Select a password protected ZIP, RAR, 7z or PDF...';Filter='All Supported (*.zip;*.rar;*.7z;*.pdf)|*.zip;*.rar;*.7z;*.pdf|ZIP (*.zip)|*.zip|RAR (*.rar)|*.rar|7-Zip (*.7z)|*.7z|PDF (*.pdf)|*.pdf'};$null=$^.ShowDialog();$Quoted='"^""' + $^^.Filename + '"^""';$Quoted"`) DO (
-	SET %1=%%#
+	SET "%1=%%#"
 )
 EXIT /b
 
@@ -856,10 +872,17 @@ EXIT /b
 
 :SETTERMINAL
 SET "LEGACY={B23D10C0-E52E-411E-9D5B-C09FDF709C7D}"
+SET "LETWIN={00000000-0000-0000-0000-000000000000}"
 SET "TERMINAL={2EACA947-7F5F-4CFA-BA87-8F7FBEEFBE69}"
 SET "TERMINAL2={E12CFF52-A866-4C77-9A90-F570A7AA2C6B}"
-POWERSHELL -nop -c "Get-WmiObject -Class Win32_OperatingSystem | Select -ExpandProperty Caption | Find 'Windows 11'">nul && (
+POWERSHELL -nop -c "Get-WmiObject -Class Win32_OperatingSystem | Select -ExpandProperty Caption | Find 'Windows 11'">nul
+IF ERRORLEVEL 0 (
 	SET isEleven=1
+	>nul 2>&1 REG QUERY "HKCU\Console\%%%%Startup" /v DelegationConsole
+	IF ERRORLEVEL 1 (
+			REG ADD "HKCU\Console\%%%%Startup" /v DelegationConsole /t REG_SZ /d "%LETWIN%" /f>nul
+			REG ADD "HKCU\Console\%%%%Startup" /v DelegationTerminal /t REG_SZ /d "%LETWIN%" /f>nul
+	)
 	FOR /F "usebackq tokens=3" %%# IN (`REG QUERY "HKCU\Console\%%%%Startup" /v DelegationConsole 2^>nul`) DO (
 		IF NOT "%%#"=="%LEGACY%" (
 			SET "DEFAULTCONSOLE=%%#"
