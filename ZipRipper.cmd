@@ -439,7 +439,7 @@ FOR /F "usebackq skip=2 tokens=3,4" %%# IN (`REG QUERY "HKLM\SOFTWARE\Microsoft\
 EXIT /b
 
 :CHECKRESUMENAME
-FOR /F "usebackq tokens=1 delims=:/" %%# IN (pwhash) DO (
+FOR /F "tokens=1 delims=:/" %%# IN (pwhash) DO (
 	IF NOT "%~nx1"=="%%#" (
 		SET ALT=1
 		SET "OLDNAME=%%#"
@@ -503,7 +503,7 @@ IF %HSIZE% EQU 0 (
 		SET "ERRORMSG=encryption type is not supported.. (old filetype)"
 	)
 ) ELSE (
-	FOR /F "usebackq tokens=4 delims=*" %%# IN (pwhash) DO (
+	FOR /F "tokens=4 delims=*" %%# IN (pwhash) DO (
 		IF "%%#"=="00000000" (
 			SET PROTECTED=2
 			SET "ERRORMSG=encryption type is not supported.."
@@ -603,27 +603,27 @@ FOR /f "tokens=1*" %%# in ("!TRIM!") DO (
 EXIT /b
 
 :SINGLE
-FOR /F "usebackq tokens=2 delims=:" %%# IN (john.pot) DO (
+FOR /F "tokens=2 delims=:" %%# IN (john.pot) DO (
 	ECHO|(SET /p="%%# - [%~nx1]"&ECHO/)>>"%UserDesktop%\ZipRipper-Passwords.txt"
 )
 EXIT /b
 
 :MULTI
-FOR /F "usebackq tokens=1,5 delims=*" %%# IN (pwhash) DO (
+FOR /F "tokens=1,5 delims=*" %%# IN (pwhash) DO (
 	ECHO|(SET /p="%%#%%$"&ECHO/)>>pwhash.x1
 )
-FOR /F "usebackq tokens=1,3 delims=$" %%# IN (pwhash.x1) DO (
+FOR /F "tokens=1,3 delims=$" %%# IN (pwhash.x1) DO (
 	ECHO|(SET /p="%%#%%$"&ECHO/)>>pwhash.x2
 )
-FOR /F "usebackq tokens=2 delims=:" %%# IN (pwhash.x2) DO (
+FOR /F "tokens=2 delims=:" %%# IN (pwhash.x2) DO (
 	CALL :TRIMWHITESPACE FILEHASH %%#
 )
 SETLOCAL ENABLEDELAYEDEXPANSION
 CALL :CHECKLENGTH FILEHASH HASHLENGTH
 SETLOCAL DISABLEDELAYEDEXPANSION
 POWERSHELL -nop -c "$^=gc john.pot|%%{$_ -Replace '^.+?\*.\*([a-z\d]{%HASHLENGTH%})\*.+:(.*)$',"^""`$1:`$2"^""}|sc pwhash.x3"
-FOR /F "usebackq tokens=1,2 delims=:" %%# IN (pwhash.x2) DO (
-	FOR /F "usebackq tokens=1* delims=:" %%X IN (pwhash.x3) DO (
+FOR /F "tokens=1,2 delims=:" %%# IN (pwhash.x2) DO (
+	FOR /F "tokens=1* delims=:" %%X IN (pwhash.x3) DO (
 		CALL :TRIMWHITESPACE S %%$
 		SETLOCAL ENABLEDELAYEDEXPANSION
 		IF "!S!"=="%%X" (
@@ -672,11 +672,15 @@ IF EXIST "%UserDesktop%\ZipRipper-Passwords.%R%.txt" (
 EXIT /b
 
 :DISPLAYINFOA
-POWERSHELL -nop -c "$^={$Notify=[PowerShell]::Create().AddScript({$Audio=New-Object System.Media.SoundPlayer;$Audio.SoundLocation=$env:WinDir + '\Media\Windows Notify System Generic.wav';$Audio.playsync()});$rs=[RunspaceFactory]::CreateRunspace();$runspace.ApartmentState="^""STA"^"";$rs.ThreadOptions="^""ReuseThread"^"";$rs.Open();$Notify.Runspace=$rs;$Notify.BeginInvoke()};&$^;$Msg=@();foreach($line in Get-Content '%UserDesktop%\ZipRipper-Passwords.txt'){if($null -eq $Msg){$Msg+=$line}else{$Msg+=$line + "^""`n"^""}};$Msg+="^""Save Location:`n"^"";$Msg+="^"""^"""^""%UserDesktop%\ZipRipper-Passwords.txt"^"""^"""^"";$PopUp=New-Object -ComObject Wscript.Shell;$PopUp.Popup($Msg,0,'Message from ZIP-Ripper',0x0)">nul
+CALL :SETTERMINAL
+START /min "Loading Results..." POWERSHELL -nop -c "Add-Type -MemberDefinition '[DllImport("^""User32.dll"^"")]public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);' -Namespace Win32 -Name Functions;$Min=[Win32.Functions]::ShowWindow((Get-Process -Id $PID).MainWindowHandle,0);$^={$Notify=[PowerShell]::Create().AddScript({$Audio=New-Object System.Media.SoundPlayer;$Audio.SoundLocation=$env:WinDir + '\Media\Windows Notify System Generic.wav';$Audio.playsync()});$rs=[RunspaceFactory]::CreateRunspace();$rs.ApartmentState="^""STA"^"";$rs.ThreadOptions="^""ReuseThread"^"";$rs.Open();$Notify.Runspace=$rs;$Notify.BeginInvoke()};&$^;$Msg=@();foreach($line in Get-Content '%UserDesktop%\ZipRipper-Passwords.txt'){if($null -eq $Msg){$Msg+=$line}else{$Msg+=$line + "^""`n"^""}};$Msg+="^""Save Location:`n"^"";$Msg+="^"""^"""^""%UserDesktop%\ZipRipper-Passwords.txt"^"""^"""^"";$PopUp=New-Object -ComObject Wscript.Shell;$PopUp.Popup($Msg,0,'Message from ZIP-Ripper',0x0)">nul
+CALL :RESTORETERMINAL
 EXIT /b
 
 :DISPLAYINFOB
-POWERSHELL -nop -c "$^={$Notify=[PowerShell]::Create().AddScript({$Audio=New-Object System.Media.SoundPlayer;$Audio.SoundLocation=$env:WinDir + '\Media\Windows Notify System Generic.wav';$Audio.playsync()});$rs=[RunspaceFactory]::CreateRunspace();$runspace.ApartmentState="^""STA"^"";$rs.ThreadOptions="^""ReuseThread"^"";$rs.Open();$Notify.Runspace=$rs;$Notify.BeginInvoke()};&$^;$Msg=@();$Msg+="^""[ZIP-Ripper] - FOUND PASSWORDS`n"^"";$Msg+="^"" %DATE% + %TIME%`n"^"";$Msg+="^""==============================`n"^"";$Msg+="^""`n"^"";$Msg+="^""TOO MANY TO LIST`n"^"";$Msg+="^""`n"^"";$Msg+="^""==============================`n"^"";$Msg+="^""Save Location:`n"^"";$Msg+="^"""^"""^""%UserDesktop%\ZipRipper-Passwords.txt"^"""^"""^"";$PopUp=New-Object -ComObject Wscript.Shell;$PopUp.Popup($Msg,0,'Message from ZIP-Ripper',0x0)">nul
+CALL :SETTERMINAL
+START /min "Loading Results..." POWERSHELL -nop -c "Add-Type -MemberDefinition '[DllImport("^""User32.dll"^"")]public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);' -Namespace Win32 -Name Functions;$Min=[Win32.Functions]::ShowWindow((Get-Process -Id $PID).MainWindowHandle,0);$^={$Notify=[PowerShell]::Create().AddScript({$Audio=New-Object System.Media.SoundPlayer;$Audio.SoundLocation=$env:WinDir + '\Media\Windows Notify System Generic.wav';$Audio.playsync()});$rs=[RunspaceFactory]::CreateRunspace();$rs.ApartmentState="^""STA"^"";$rs.ThreadOptions="^""ReuseThread"^"";$rs.Open();$Notify.Runspace=$rs;$Notify.BeginInvoke()};&$^;$Msg=@();$Msg+="^""[ZIP-Ripper] - FOUND PASSWORDS`n"^"";$Msg+="^"" %DATE% + %TIME%`n"^"";$Msg+="^""==============================`n"^"";$Msg+="^""`n"^"";$Msg+="^""TOO MANY TO LIST`n"^"";$Msg+="^""`n"^"";$Msg+="^""==============================`n"^"";$Msg+="^""Save Location:`n"^"";$Msg+="^"""^"""^""%UserDesktop%\ZipRipper-Passwords.txt"^"""^"""^"";$PopUp=New-Object -ComObject Wscript.Shell;$PopUp.Popup($Msg,0,'Message from ZIP-Ripper',0x0)">nul
+CALL :RESTORETERMINAL
 EXIT /b
 
 :CHECKCONNECTION
