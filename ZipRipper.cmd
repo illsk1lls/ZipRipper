@@ -505,7 +505,8 @@ IF %HSIZE% EQU 0 (
 ) ELSE (
 	FOR /F "usebackq tokens=4 delims=*" %%# IN (pwhash) DO (
 		IF "%%#"=="00000000" (
-			SET PROTECTED=2&SET "ERRORMSG=encryption type is not supported.."
+			SET PROTECTED=2
+			SET "ERRORMSG=encryption type is not supported.."
 		)
 	)
 )
