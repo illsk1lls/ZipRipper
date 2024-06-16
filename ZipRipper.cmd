@@ -55,6 +55,7 @@ IF /I NOT "%~dp0" == "%ProgramData%\" (
 	>nul 2>&1 FLTMC && (
 		TITLE Re-Launching...
 		START "" /min "%ProgramData%\launcher.ZipRipper" "%ProgramData%\%~nx0"
+		EXIT /b
 	) || (
 		IF NOT "%f0%"=="1" (
 			TITLE Re-Launching...
@@ -62,7 +63,6 @@ IF /I NOT "%~dp0" == "%ProgramData%\" (
 			EXIT /b
 		)
 	)
-	EXIT /b
 )
 SET "NATIVE=ZIP,RAR"
 SET "PERL=7z,PDF"
@@ -102,6 +102,7 @@ IF "%~1"=="" (
 			) ELSE (
 				ENDLOCAL
 				CALL :CLEANUP
+				GOTO :EOF
 			)
 		)
 	IF NOT "!ACTION!"=="Start" (
@@ -164,6 +165,7 @@ FOR %%# IN (%PERL%) DO (
 )
 IF NOT "%ALLOWSTART%"=="1" (
 	CALL :CLEANUP
+	GOTO :EOF
 )
 >nul 2>&1 REG DELETE HKCU\Software\classes\.ZipRipper\ /F 
 >nul 2>&1 DEL "%ProgramData%\launcher.ZipRipper" /F /Q
@@ -285,25 +287,20 @@ IF "%RESUME%"=="1" (
 )
 CALL :GETSIZE "%ProgramData%\JtR\run\john.pot" POTSIZE
 SETLOCAL DISABLEDELAYEDEXPANSION
-CALL :SAVELOCATION USERDESKTOP
+CALL :SAVELOCATION UserDesktop
 SETLOCAL ENABLEDELAYEDEXPANSION
 IF !POTSIZE! GEQ 1 (
 	SETLOCAL DISABLEDELAYEDEXPANSION
+	ECHO/
+	<NUL set /p=Generating Password File...
 	CALL :SAVEFILE %1
 	IF EXIST "%AppData%\ZR-InProgress\%MD5%" (
 		>nul 2>&1 RD "%AppData%\ZR-InProgress\%MD5%" /S /Q
 	)
+	ECHO Done
 	ECHO/
 	ECHO Passwords saved to: "%UserDesktop%\ZipRipper-Passwords.txt"
 	ENDLOCAL
-	SET FOUND=1
-) ELSE (
-	ENDLOCAL	
-	SET FOUND=0
-	ECHO/
-	CALL :SETRESUME %1
-)
-IF %FOUND% NEQ 0 (
 	SETLOCAL ENABLEDELAYEDEXPANSION
 	CALL :GETSIZE "!UserDesktop!\ZipRipper-Passwords.txt" PWSIZE
 	IF !PWSIZE! LEQ 1600 (
@@ -313,8 +310,11 @@ IF %FOUND% NEQ 0 (
 		SETLOCAL DISABLEDELAYEDEXPANSION
 		CALL :DISPLAYINFOB
 	)
-) ELSE (
 	ENDLOCAL
+) ELSE (
+	ENDLOCAL	
+	ECHO/
+	CALL :SETRESUME %1
 )
 ECHO/
 PAUSE
@@ -693,7 +693,7 @@ TASKLIST /V /NH /FI "imagename eq cmd.exe"|FINDSTR /I /C^:"ZIP-Ripper">nul
 IF NOT %errorlevel%==1 (
 	POWERSHELL -nop -c "$^={$Notify=[PowerShell]::Create().AddScript({$Audio=New-Object System.Media.SoundPlayer;$Audio.SoundLocation=$env:WinDir + '\Media\Windows Notify System Generic.wav';$Audio.playsync()});$rs=[RunspaceFactory]::CreateRunspace();$rs.ApartmentState="^""STA"^"";$rs.ThreadOptions="^""ReuseThread"^"";$rs.Open();$Notify.Runspace=$rs;$Notify.BeginInvoke()};&$^;$PopUp=New-Object -ComObject Wscript.Shell;$PopUp.Popup("^""ZipRipper is already running!"^"",0,'ERROR:',0x10)">nul&EXIT
 )
-TITLE [ZIP-Ripper] Launching GUI...
+TITLE [ZIP-Ripper] Launching...
 EXIT /b
 
 :CENTERWINDOW
