@@ -120,7 +120,7 @@ IF "%~1"=="" (
 	IF !WORDLIST! EQU 2 (
 		SET "LMSG=Custom wordlist selected - The wordlist will be included in the resume data - Please select a wordlist file, then select a password protected ZIP, RAR, 7z, or PDF file"
 		CALL :LISTMESSAGE "!LMSG!"
-		FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "Add-Type -AssemblyName System.Windows.Forms;$^=New-Object System.Windows.Forms.OpenFileDialog -Property @{InitialDirectory='';Title='Select a Custom wordlist - A text file with UTF-8 encoding)';Filter='All Supported (*.txt;*.lst)|*.txt;*.lst|TXT (*.txt)|*.txt|LST (*.lst)|*.lst'};$null=$^.ShowDialog();$Quoted='"^""' + $^^.Filename + '"^""';$Quoted"`) DO (
+		FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "Add-Type -AssemblyName System.Windows.Forms;$^=New-Object System.Windows.Forms.OpenFileDialog -Property @{InitialDirectory='';Title='Select a Custom wordlist - (A text file with UTF-8 encoding)';Filter='All Supported (*.txt;*.lst)|*.txt;*.lst|TXT (*.txt)|*.txt|LST (*.lst)|*.lst'};$null=$^.ShowDialog();$Quoted='"^""' + $^^.Filename + '"^""';$Quoted"`) DO (
 			SET LISTNAME=%%#
 		)
 		IF NOT !LISTNAME!=="" (
@@ -287,29 +287,28 @@ CALL :SAVELOCATION USERDESKTOP
 SETLOCAL ENABLEDELAYEDEXPANSION
 IF !POTSIZE! GEQ 1 (
 	SETLOCAL DISABLEDELAYEDEXPANSION
-	SET FOUND=1
 	CALL :SAVEFILE %1
 	IF EXIST "%AppData%\ZR-InProgress\%MD5%" (
 		>nul 2>&1 RD "%AppData%\ZR-InProgress\%MD5%" /S /Q
 	)
 	ECHO/
 	ECHO Passwords saved to: "%UserDesktop%\ZipRipper-Passwords.txt"
+	ENDLOCAL
+	SET FOUND=1
 ) ELSE (
-	SETLOCAL DISABLEDELAYEDEXPANSION	
+	ENDLOCAL	
 	SET FOUND=0
 	ECHO/
 	CALL :SETRESUME %1
 )
-SETLOCAL ENABLEDELAYEDEXPANSION
-IF NOT "!FOUND!"=="0" (
-	SETLOCAL DISABLEDELAYEDEXPANSION
-	CALL :GETSIZE "%UserDesktop%\ZipRipper-Passwords.txt" PWSIZE
+IF %FOUND% NEQ 0 (
 	SETLOCAL ENABLEDELAYEDEXPANSION
+	CALL :GETSIZE "!UserDesktop!\ZipRipper-Passwords.txt" PWSIZE
 	IF !PWSIZE! LEQ 1600 (
-		ENDLOCAL
+		SETLOCAL DISABLEDELAYEDEXPANSION
 		CALL :DISPLAYINFOA
 	) ELSE (
-		ENDLOCAL
+		SETLOCAL DISABLEDELAYEDEXPANSION
 		CALL :DISPLAYINFOB
 	)
 ) ELSE (
@@ -467,12 +466,14 @@ IF %HSIZE% EQU 0 (
 SETLOCAL ENABLEDELAYEDEXPANSION
 FOR /F "tokens=2 delims=$" %%# IN (pwhash) DO (
 	IF /I "%%#"=="zip2" (
-		SET ZIP2=1
-
 		IF !GPU! GEQ 1 (
 			ENDLOCAL
+			SET ZIP2=1
 			SET "FLAG=--format=ZIP-opencl"
 			CALL :OPENCLENABLED
+		) ELSE (
+			ENDLOCAL
+			SET ZIP2=1
 		)
 	)
 	SETLOCAL ENABLEDELAYEDEXPANSION
@@ -580,7 +581,7 @@ SETLOCAL ENABLEDELAYEDEXPANSION
 SET "TitleName=!TitleName:CPU/GPU=GPU!"
 SET TitleName=!TitleName:AVAILABLE=ENABLED!
 TITLE !TitleName!
-ENDLOCAL
+SETLOCAL ENABLEDELAYEDEXPANSION
 EXIT /b
 
 :GETSIZE
@@ -598,24 +599,23 @@ EXIT /b
 
 :MULTI
 FOR /F "usebackq tokens=1,5 delims=*" %%# IN (pwhash) DO (
-	ECHO %%#%%$>>pwhash.x1
+	ECHO|(SET /p="%%#%%$"&ECHO/)>>pwhash.x1
 )
 FOR /F "usebackq tokens=1,3 delims=$" %%# IN (pwhash.x1) DO (
-	ECHO %%#%%$>>pwhash.x2
+	ECHO|(SET /p="%%#%%$"&ECHO/)>>pwhash.x2
 )
 FOR /F "usebackq tokens=2 delims=:" %%# IN (pwhash.x2) DO (
-	SET FILEHASH=%%#
+	SET "FILEHASH=%%#"
 )
 CALL :CHECKLENGTH FILEHASH HASHLENGTH
-POWERSHELL -nop -c "$^=gc john.pot|%%{$_ -Replace '^.+?\*.\*([a-z\d]{%HASHLENGTH%})\*.+:(.*)$',"^""`$1:`$2"^""}|sc pwhash.x3">nul 2>&1
+POWERSHELL -nop -c "$^=gc john.pot|%%{$_ -Replace '^.+?\*.\*([a-z\d]{%HASHLENGTH%})\*.+:(.*)$',"^""`$1:`$2"^""}|sc pwhash.x3"
 FOR /F "usebackq tokens=1,2 delims=:" %%# IN (pwhash.x2) DO (
 	FOR /F "usebackq tokens=1* delims=:" %%X IN (pwhash.x3) DO (
-		IF "%%$"=="%%X" (
+		IF "%%$"=="%%X  " (
 			ECHO|(SET /p="%%Y - [%%#]"&ECHO/)>>"%UserDesktop%\ZipRipper-Passwords.txt"
 		)
 	)
 )
-DEL /f /q pwhash.x*
 EXIT /b
 
 :CHECKLENGTH
@@ -635,8 +635,8 @@ EXIT /b
 	)
 )
 ( 
-	SETLOCAL DISABLEDELAYEDEXPANSION
-	SET "%~2=%LENGTH%"
+	ENDLOCAL
+	SET /A "%~2=(%LENGTH%-2)"
 	EXIT /b
 )
 
@@ -936,9 +936,12 @@ IF EXIST "%UserDesktop%\ZipRipper-Passwords.txt" (
 	ECHO ==============================
 	ECHO/
 )>"%UserDesktop%\ZipRipper-Passwords.txt"
-IF "%ZIP2%"=="1" (
+SETLOCAL ENABLEDELAYEDEXPANSION
+IF "!ZIP2!"=="1" (
+	ENDLOCAL
 	CALL :MULTI
 ) ELSE (
+	ENDLOCAL
 	CALL :SINGLE %1
 )
 (
