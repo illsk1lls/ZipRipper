@@ -596,9 +596,9 @@ EXIT /b
 SETLOCAL ENABLEDELAYEDEXPANSION
 SET TRIM=%*
 FOR /f "tokens=1*" %%# in ("!TRIM!") DO (
-	ENDLOCAL
 	SET "%1=%%$"
 )
+ENDLOCAL
 EXIT /b
 
 :SINGLE
@@ -901,8 +901,8 @@ IF ERRORLEVEL 0 (
 	SET isEleven=1
 	>nul 2>&1 REG QUERY "HKCU\Console\%%%%Startup" /v DelegationConsole
 	IF ERRORLEVEL 1 (
-			REG ADD "HKCU\Console\%%%%Startup" /v DelegationConsole /t REG_SZ /d "%LETWIN%" /f>nul
-			REG ADD "HKCU\Console\%%%%Startup" /v DelegationTerminal /t REG_SZ /d "%LETWIN%" /f>nul
+		REG ADD "HKCU\Console\%%%%Startup" /v DelegationConsole /t REG_SZ /d "%LETWIN%" /f>nul
+		REG ADD "HKCU\Console\%%%%Startup" /v DelegationTerminal /t REG_SZ /d "%LETWIN%" /f>nul
 	)
 	FOR /F "usebackq tokens=3" %%# IN (`REG QUERY "HKCU\Console\%%%%Startup" /v DelegationConsole 2^>nul`) DO (
 		IF NOT "%%#"=="%LEGACY%" (
