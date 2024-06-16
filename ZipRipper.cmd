@@ -28,6 +28,7 @@ IF NOT EXIST "%~dp0zr-offline.txt" (
 	CALL :CHECKCONNECTION ONLINE
 	SETLOCAL ENABLEDELAYEDEXPANSION
 	IF !ONLINE! EQU 0 (
+		ENDLOCAL
 		CALL :CENTERWINDOW
 		ECHO Internet connection not detected...
 		ECHO/
@@ -39,10 +40,10 @@ IF NOT EXIST "%~dp0zr-offline.txt" (
 		PAUSE
 		GOTO :EOF
 	)
+	ENDLOCAL
 ) ELSE (
 	SET OFFLINE=1
 )
-SETLOCAL DISABLEDELAYEDEXPANSION
 >nul 2>&1 REG ADD HKCU\Software\classes\.ZipRipper\shell\runas\command /f /ve /d "CMD /x /d /r SET \"f0=1\"&CALL \"%%2\" %%3"
 IF /I NOT "%~dp0" == "%ProgramData%\" (
 	CALL :CLEANUP STARTUP
@@ -99,6 +100,7 @@ IF "%~1"=="" (
 				ENDLOCAL
 				EXIT /b
 			) ELSE (
+				ENDLOCAL
 				CALL :CLEANUP
 			)
 		)
