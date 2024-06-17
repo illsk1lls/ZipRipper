@@ -245,7 +245,7 @@ IF EXIST "%AppData%\ZR-InProgress\%MD5%" (
 )
 SET ZIP2=0
 SET PROTECTED=1
-SET /A HSIZE=0
+SET HSIZE=0
 CALL :HASH%FILETYPE% %1
 ECHO Done
 ECHO/
@@ -364,11 +364,11 @@ PAUSE
 EXIT /b 
 
 :ONLINEMODE
-SET /A P=3
-SET /A PT=11
+SET P=3
+SET PT=11
 IF "%ISPERL%"=="1" (
-	SET /A P=4
-	SET /A PT=8
+	SET P=4
+	SET PT=8
 	SET "PERL2=$info.Text=' Downloading Portable Perl';Update-Gui;downloadFile 'https://github.com/StrawberryPerl/Perl-Dist-Strawberry/releases/download/SP_5380_5361/strawberry-perl-5.38.0.1-64bit-portable.zip' '%ProgramData%\perlportable.zip';"
 )
 POWERSHELL -nop -c "Add-Type -AssemblyName PresentationFramework, System.Drawing, System.Windows.Forms, WindowsFormsIntegration;[xml]$xaml='<Window xmlns="^""http://schemas.microsoft.com/winfx/2006/xaml/presentation"^"" xmlns:x="^""http://schemas.microsoft.com/winfx/2006/xaml"^"" Title="^"" Initializing..."^"" Height="^""75"^"" Width="^""210"^"" WindowStartupLocation="^""CenterScreen"^"" WindowStyle="^""None"^"" Topmost="^""True"^"" Background="^""#333333"^"" AllowsTransparency="^""True"^""><Canvas><TextBlock Name="^""Info"^"" Canvas.Top="^""3"^"" Text="^"" Initializing..."^"" Foreground="^""#eeeeee"^"" FontWeight="^""Bold"^""/><ProgressBar Canvas.Left="^""5"^"" Canvas.Top="^""28"^"" Width="^""200"^"" Height="^""3"^"" Name="^""Progress"^"" Foreground="^""#FF0000"^""/><TextBlock Name="^""Info2"^"" Canvas.Top="^""38"^"" Text="^"" Getting Resources (Online Mode)"^"" Foreground="^""#eeeeee"^"" FontWeight="^""Bold"^""/><ProgressBar Canvas.Left="^""5"^"" Canvas.Top="^""63"^"" Width="^""200"^"" Height="^""3"^"" Name="^""Progress2"^"" Foreground="^""#FF0000"^""/></Canvas><Window.TaskbarItemInfo><TaskbarItemInfo/></Window.TaskbarItemInfo></Window>';$reader=(New-Object System.Xml.XmlNodeReader $xaml);$form=[Windows.Markup.XamlReader]::Load($reader);$bitmap=New-Object System.Windows.Media.Imaging.BitmapImage;$bitmap='%LOGO:'=''%';$form.Icon=$bitmap;$form.TaskbarItemInfo.Overlay=$bitmap;$form.TaskbarItemInfo.Description=$form.Title;$form.Add_Closing({[System.Windows.Forms.Application]::Exit();Stop-Process $pid});$progressBar=$form.FindName("^""Progress"^"");$progressTotal=$form.FindName("^""Progress2"^"");$info=$form.FindName("^""Info"^"");$info2=$form.FindName("^""Info2"^"");function Update-Gui(){$form.Dispatcher.Invoke([Windows.Threading.DispatcherPriority]::Background, [action]{})};function GetResources(){$info.Text=' Initializing...';$progressTotal.Value=%PT%;Update-Gui;$info.Text=' Downloading 7zr Standalone';Update-Gui;downloadFile 'https://www.7-zip.org/a/7zr.exe' '%ProgramData%\7zr.exe';$info.Text=' Downloading 7za Console';Update-Gui;downloadFile 'https://www.7-zip.org/a/7z2300-extra.7z' '%ProgramData%\7zExtra.7z';$info.Text=' Downloading JohnTheRipper';Update-Gui;downloadFile 'https://github.com/openwall/john-packages/releases/download/bleeding/winX64_1_JtR.7z' '%ProgramData%\winX64_1_JtR.7z';%PERL2%$progressTotal.Value=100;$info.Text="^"" Ready..."^"";Update-Gui};function DownloadFile($url,$targetFile){$uri=New-Object "^""System.Uri"^"" "^""$url"^"";$request=[System.Net.HttpWebRequest]::Create($uri);$request.set_Timeout(15000);$response=$request.GetResponse();$totalLength=[System.Math]::Floor($response.get_ContentLength()/1024);$responseStream=$response.GetResponseStream();$targetStream=New-Object -TypeName System.IO.FileStream -ArgumentList $targetFile, Create;$buffer=new-object byte[] 10KB;$count=$responseStream.Read($buffer,0,$buffer.length);$downloadedBytes=$count;while ($count -gt 0){$targetStream.Write($buffer, 0, $count);$count=$responseStream.Read($buffer,0,$buffer.length);$downloadedBytes=$downloadedBytes + $count;$roundedPercent=[int]((([System.Math]::Floor($downloadedBytes/1024)) / $totalLength) * 100);$progressBar.Value=$roundedPercent;if($totalP -ge %P%){$progressTotal.Value++;$totalP=0};if($progressBar.Value -ne $lastpercent){$lastpercent=$progressBar.Value;$totalP++;Update-Gui}};$targetStream.Flush();$targetStream.Close();$targetStream.Dispose();$responseStream.Dispose()};$form.Add_ContentRendered({GetResources;$form.Close()});$form.Show();$appContext=New-Object System.Windows.Forms.ApplicationContext;[void][System.Windows.Forms.Application]::Run($appContext)">nul
@@ -456,7 +456,7 @@ EXIT /b
 :HASH.ZIP
 zip2john "%~1">"%ProgramData%\JtR\run\pwhash" 2>"%ProgramData%\JtR\run\statusout"
 FOR /F %%# IN ("%ProgramData%\JtR\run\pwhash") DO (
-	SET /A HSIZE=%%~z#
+	SET HSIZE=%%~z#
 )
 IF %HSIZE% EQU 0 (
 	SET PROTECTED=0&SET "ERRORMSG=is not password protected.."
@@ -491,7 +491,7 @@ EXIT /b
 :HASH.RAR
 rar2john "%~1">"%ProgramData%\JtR\run\pwhash" 2>"%ProgramData%\JtR\run\statusout"
 FOR /F %%# IN ("%ProgramData%\JtR\run\pwhash") DO (
-	SET /A HSIZE=%%~z#
+	SET HSIZE=%%~z#
 )
 IF %HSIZE% EQU 0 (
 	FOR /F "usebackq tokens=*" %%# IN (`TYPE "%ProgramData%\JtR\run\statusout" ^| findstr /I /C^:"Did not find"`) DO (
@@ -536,7 +536,7 @@ EXIT /b
 :HASH.7z
 CALL portableshell.bat 7z2john.pl "%~1">"%ProgramData%\JtR\run\pwhash" 2>"%ProgramData%\JtR\run\statusout"
 FOR /F %%# IN ("%ProgramData%\JtR\run\pwhash") DO (
-	SET /A HSIZE=%%~z#
+	SET HSIZE=%%~z#
 )
 IF %HSIZE% EQU 0 (
 	SET PROTECTED=0
@@ -561,7 +561,7 @@ EXIT /b
 CALL portableshell.bat pdf2john.pl "%~1">"%ProgramData%\JtR\run\pwhash" 2>nul
 POWERSHELL -nop -c "$^=[regex]::Match((gc pwhash),'^(.+\/)(?i)(.*\.pdf)(.+$)');$^.Groups[2].value+$^.Groups[3].value|sc pwhash">nul 2>&1
 FOR /F %%# IN ("%ProgramData%\JtR\run\pwhash") DO (
-	SET /A HSIZE=%%~z#
+	SET HSIZE=%%~z#
 )
 IF %HSIZE% LSS 8000 FOR /F "usebackq tokens=*" %%# IN (`TYPE pwhash ^| findstr /I /C^:"not encrypted!"`) DO (
 	SET PROTECTED=0
@@ -587,9 +587,9 @@ ENDLOCAL
 EXIT /b
 
 :GETSIZE
-SET /A "%2=%~z1"
+SET "%2=%~z1"
 IF %~z1==[] (
-	SET /A "%2=0"
+	SET "%2=0"
 )
 EXIT /b
 
@@ -654,7 +654,7 @@ EXIT /b
 )
 ( 
 	ENDLOCAL
-	SET /A "%~2=%LENGTH%"
+	SET "%~2=%LENGTH%"
 	EXIT /b
 )
 
@@ -847,24 +847,24 @@ FOR /F "usebackq skip=1 tokens=2,3" %%# IN (`WMIC path Win32_VideoController get
 		IF NOT EXIST "%WinDir%\System32\OpenCL.dll" (
 			IF /I EXIST "%WinDir%\System32\DriverStore\FileRepository\nvamig.inf_amd64_72a8482547fd21bc\OpenCL64.dll" (
 				>nul 2>&1 COPY /Y "%WinDir%\System32\DriverStore\FileRepository\nvamig.inf_amd64_72a8482547fd21bc\OpenCL64.dll" "%WinDir%\System32\OpenCL.dll"
-				SET /A GPU=1
+				SET GPU=1
 			) ELSE (
-				SET /A GPU=0
+				SET GPU=0
 			)
 		) ELSE (
-			SET /A GPU=1
+			SET GPU=1
 		)
 	)
 	IF /I "%%#"=="Quadro" (
 		IF NOT EXIST "%WinDir%\System32\OpenCL.dll" (
 			IF /I EXIST "%WinDir%\System32\DriverStore\FileRepository\nvamig.inf_amd64_72a8482547fd21bc\OpenCL64.dll" (
 				>nul 2>&1 COPY /Y "%WinDir%\System32\DriverStore\FileRepository\nvamig.inf_amd64_72a8482547fd21bc\OpenCL64.dll" "%WinDir%\System32\OpenCL.dll"
-				SET /A GPU=1
+				SET GPU=1
 			) ELSE (
-				SET /A GPU=0
+				SET GPU=0
 			)
 		) ELSE (
-			SET /A GPU=1
+			SET GPU=1
 		)
 	)
 	IF /I NOT EXIST "%ProgramData%\ignore.Radeon" (
@@ -879,16 +879,16 @@ FOR /F "usebackq skip=1 tokens=2,3" %%# IN (`WMIC path Win32_VideoController get
 			)
 			IF /I "%%# %%$"=="Radeon RX" (
 				IF /I NOT EXIST "%WinDir%\System32\amdocl64.dll" (
-					SET /A GPU=0
+					SET GPU=0
 				) ELSE (
-					SET /A GPU=2
+					SET GPU=2
 				)
 			)
 			IF /I "%%# %%$"=="Radeon Pro" (
 				IF /I NOT EXIST "%WinDir%\System32\amdocl64.dll" (
-					SET /A GPU=0
+					SET GPU=0
 				) ELSE (
-					SET /A GPU=2
+					SET GPU=2
 				)
 			)
 		)
@@ -952,7 +952,7 @@ EXIT /b
 
 :SAVEFILE
 IF EXIST "%UserDesktop%\ZipRipper-Passwords.txt" (
-	SET /A R=0
+	SET R=0
 	CALL :RENAMEOLD
 )
 (
