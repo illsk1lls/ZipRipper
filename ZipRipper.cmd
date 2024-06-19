@@ -611,19 +611,19 @@ EXIT /b
 
 :MULTI
 FOR /F "tokens=1,5 delims=*" %%# IN (pwhash) DO (
-	ECHO|(SET /p="%%#%%$"&ECHO/)>>pwhash.x1
+	FOR /F "tokens=1,3 delims=$" %%# IN ("%%#%%$") DO (
+		ECHO|(SET /p="%%#%%$"&ECHO/)>>pwhash.x
+		IF NOT DEFINED # (
+			FOR /F "tokens=2 delims=:" %%# IN (pwhash.x) DO (
+				CALL :TRIMWHITESPACE %%# %%#
+				CALL :CHECKLENGTH %%# #
+			)		
+		)
+	)
 )
-FOR /F "tokens=1,3 delims=$" %%# IN (pwhash.x1) DO (
-	ECHO|(SET /p="%%#%%$"&ECHO/)>>pwhash.x2
-)
-FOR /F "tokens=2 delims=:" %%# IN (pwhash.x2) DO (
-	CALL :TRIMWHITESPACE %%# %%#
-	CALL :CHECKLENGTH %%# #
-)
-SETLOCAL DISABLEDELAYEDEXPANSION
-POWERSHELL -nop -c "$^=gc john.pot|%%{$_ -Replace '^.+?\*.\*([a-z\d]{%#%})\*.+:(.*)$',"^""`$1:`$2"^""}|sc pwhash.x3"
-FOR /F "tokens=1,2 delims=:" %%# IN (pwhash.x2) DO (
-	FOR /F "tokens=1* delims=:" %%_ IN (pwhash.x3) DO (
+POWERSHELL -nop -c "$^=gc john.pot|%%{$_ -Replace '^.+?\*.\*([a-z\d]{%#%})\*.+:(.*)$',"^""`$1:`$2"^""}|sc pot.x"
+FOR /F "tokens=1,2 delims=:" %%# IN (pwhash.x) DO (
+	FOR /F "tokens=1* delims=:" %%_ IN (pot.x) DO (
 		CALL :TRIMWHITESPACE $ %%$
 		SETLOCAL ENABLEDELAYEDEXPANSION
 		IF "!$!"=="%%_" (
