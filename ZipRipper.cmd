@@ -612,25 +612,29 @@ EXIT /b
 :MULTI
 FOR /F "tokens=1,5 delims=*" %%# IN (pwhash) DO (
 	FOR /F "tokens=1,3 delims=$" %%# IN ("%%#%%$") DO (
-		ECHO|(SET /p="%%#%%$"&ECHO/)>>pwhash.x
 		IF NOT DEFINED # (
 			FOR /F "tokens=2 delims=:" %%# IN ("%%#%%$") DO (
 				CALL :TRIMWHITESPACE %%# %%#
 				CALL :CHECKLENGTH %%# #
-			)		
+			)
 		)
-	)
-)
-POWERSHELL -nop -c "$^=gc john.pot|%%{$_ -Replace '^.+?\*.\*([a-z\d]{%#%})\*.+:(.*)$',"^""`$1:`$2"^""}|sc pot.x"
-FOR /F "tokens=1,2 delims=:" %%# IN (pwhash.x) DO (
-	FOR /F "tokens=1* delims=:" %%_ IN (pot.x) DO (
-		CALL :TRIMWHITESPACE $ %%$
-		SETLOCAL ENABLEDELAYEDEXPANSION
-		IF "!$!"=="%%_" (
-			ENDLOCAL
-			ECHO|(SET /p="%%` - [%%#]"&ECHO/)>>"%UserDesktop%\ZipRipper-Passwords.txt"
-		) ELSE (
-			ENDLOCAL
+		FOR /F "tokens=1,2 delims=:" %%# IN ("%%#%%$") DO (
+			SETLOCAL ENABLEDELAYEDEXPANSION
+			FOR /F "usebackq tokens=* delims=" %%_ IN (`POWERSHELL -nop -c "$^^=gc john.pot|%%{$_ -Replace '^^.+?\*.\*([a-z\d]{!#!})\*.+:(.*)$',"^""`$1:`$2"^"";Write-Host $_}"`) DO (
+				ENDLOCAL
+				FOR /F "tokens=5 delims=*" %%` IN ("%%_") DO (
+					CALL :TRIMWHITESPACE $ %%$
+					SETLOCAL ENABLEDELAYEDEXPANSION
+					FOR /F "tokens=1* delims=:" %%Y IN ("%%_") DO (
+						IF "!$!"=="%%`" (
+							ENDLOCAL
+							ECHO|(SET /p="%%Z - [%%#]"&ECHO/)>>"%UserDesktop%\ZipRipper-Passwords.txt"
+						) ELSE (
+							ENDLOCAL
+						)
+					)
+				)
+			)		
 		)
 	)
 )
