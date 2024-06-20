@@ -620,7 +620,7 @@ FOR /F "tokens=1,5 delims=*" %%# IN (pwhash) DO (
 		)
 		FOR /F "tokens=1,2 delims=:" %%# IN ("%%#%%$") DO (
 			SETLOCAL ENABLEDELAYEDEXPANSION
-			FOR /F "usebackq tokens=* delims=" %%_ IN (`POWERSHELL -nop -c "$^^=gc john.pot|%%{$_ -Replace '^^.+?\*.\*([a-z\d]{!#!})\*.+:(.*)$',"^""`$1:`$2"^"";Write-Host $_}"`) DO (
+			FOR /F "usebackq tokens=*" %%_ IN (`POWERSHELL -nop -c "$^^=gc john.pot|%%{$_ -Replace '^^.+?\*.\*([a-z\d]{!#!})\*.+:(.*)$',"^""`$1:`$2"^"";Write-Host $_}"`) DO (
 				ENDLOCAL
 				FOR /F "tokens=5 delims=*" %%` IN ("%%_") DO (
 					CALL :TRIMWHITESPACE $ %%$
