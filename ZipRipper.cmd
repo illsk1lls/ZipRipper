@@ -281,6 +281,7 @@ ECHO/
 IF "%RESUME%"=="1" (
 	ECHO Resuming Session...
 	ECHO/
+	CALL :SETSTATUSANDFLAGS
 	john --restore
 ) ELSE (
 	john --wordlist="%ProgramData%\JtR\run\password.lst" --rules=single,all "%ProgramData%\JtR\run\pwhash" !FLAG!
@@ -466,27 +467,7 @@ IF %HSIZE% EQU 0 (
 		SET "ERRORMSG=encryption type is not supported.. (not a ZIPfile)"
 	)
 )
-FOR /F "tokens=2 delims=$" %%# IN (pwhash) DO (
-	IF /I "%%#"=="zip2" (
-		SETLOCAL ENABLEDELAYEDEXPANSION
-		IF !GPU! GEQ 1 (
-			ENDLOCAL
-			SET ZIP2=1
-			SET "FLAG=--format=ZIP-opencl"
-			CALL :OPENCLENABLED
-		) ELSE (
-			ENDLOCAL
-			SET ZIP2=1
-		)
-	)
-	IF /I "%%#"=="pkzip" (
-		SETLOCAL ENABLEDELAYEDEXPANSION
-		SET "TitleName=!TitleName:Initializing=CPU Mode!"
-		SET "TitleName=!TitleName:AVAILABLE=UNSUPPORTED Filetype!"
-		TITLE !TitleName!
-		ENDLOCAL
-	)
-)
+CALL :SETSTATUSANDFLAGS
 EXIT /b
 
 :HASH.RAR
@@ -511,27 +492,7 @@ IF %HSIZE% EQU 0 (
 		)
 	)
 )
-SETLOCAL ENABLEDELAYEDEXPANSION
-IF !GPU! GEQ 1 (
-	ENDLOCAL
-	FOR /F "tokens=2 delims=$" %%# IN (pwhash) DO (
-		IF /I "%%#"=="rar" (
-			SET "FLAG=--format=rar-opencl"
-			CALL :OPENCLENABLED
-		)
-		IF /I "%%#"=="rar3" (
-			SET "FLAG=--format=rar-opencl"
-			CALL :OPENCLENABLED
-		)
-		IF /I "%%#"=="rar5" (
-			SET "FLAG=--format=RAR5-opencl"
-			CALL :OPENCLENABLED
-		)
-	)
-	
-) ELSE (
-	ENDLOCAL
-)
+CALL :SETSTATUSANDFLAGS
 EXIT /b
 
 :HASH.7z
@@ -548,14 +509,7 @@ IF %HSIZE% EQU 0 (
 		SET "ERRORMSG=encryption type is not supported.."
 	)
 )
-SETLOCAL ENABLEDELAYEDEXPANSION
-IF !GPU! GEQ 1 (
-	ENDLOCAL
-	SET "FLAG=--format=7z-opencl"
-	CALL :OPENCLENABLED
-) ELSE (
-	ENDLOCAL
-)
+CALL :SETSTATUSANDFLAGS
 EXIT /b
 
 :HASH.PDF
@@ -568,14 +522,76 @@ IF %HSIZE% LSS 8000 FOR /F "usebackq tokens=*" %%# IN (`TYPE pwhash ^| findstr /
 	SET PROTECTED=0
 	SET "ERRORMSG=is not password protected.."
 )
-SETLOCAL ENABLEDELAYEDEXPANSION
-IF !GPU! GEQ 1 (
-	SET "TitleName=!TitleName:Initializing=CPU Mode!"
-	SET "TitleName=!TitleName:AVAILABLE=UNSUPPORTED Filetype!"
-	TITLE !TitleName!
-	ENDLOCAL
-) ELSE (
-	ENDLOCAL
+CALL :SETSTATUSANDFLAGS
+EXIT /b
+
+:SETSTATUSANDFLAGS
+IF /I "%FILETYPE%"==".zip" (
+	FOR /F "tokens=2 delims=$" %%# IN (pwhash) DO (
+		IF /I "%%#"=="zip2" (
+			SETLOCAL ENABLEDELAYEDEXPANSION
+			IF !GPU! GEQ 1 (
+				ENDLOCAL
+				SET ZIP2=1
+				SET "FLAG=--format=ZIP-opencl"
+				CALL :OPENCLENABLED
+			) ELSE (
+				ENDLOCAL
+				SET ZIP2=1
+			)
+		)
+		IF /I "%%#"=="pkzip" (
+			SETLOCAL ENABLEDELAYEDEXPANSION
+			SET "TitleName=!TitleName:Initializing=CPU Mode!"
+			SET "TitleName=!TitleName:AVAILABLE=UNSUPPORTED Filetype!"
+			TITLE !TitleName!
+			ENDLOCAL
+		)
+	)
+)
+IF /I "%FILETYPE%"==".rar" (
+	SETLOCAL ENABLEDELAYEDEXPANSION
+	IF !GPU! GEQ 1 (
+		ENDLOCAL
+		FOR /F "tokens=2 delims=$" %%# IN (pwhash) DO (
+			IF /I "%%#"=="rar" (
+				SET "FLAG=--format=rar-opencl"
+				CALL :OPENCLENABLED
+			)
+			IF /I "%%#"=="rar3" (
+				SET "FLAG=--format=rar-opencl"
+				CALL :OPENCLENABLED
+			)
+			IF /I "%%#"=="rar5" (
+				SET "FLAG=--format=RAR5-opencl"
+				CALL :OPENCLENABLED
+			)
+		)
+		
+	) ELSE (
+		ENDLOCAL
+	)
+)
+IF /I "%FILETYPE%"==".7z" (
+	SETLOCAL ENABLEDELAYEDEXPANSION
+	IF !GPU! GEQ 1 (
+		ENDLOCAL
+		SET "FLAG=--format=7z-opencl"
+		CALL :OPENCLENABLED
+	) ELSE (
+		ENDLOCAL
+	)
+)
+IF /I "%FILETYPE%"==".pdf" (
+	SETLOCAL ENABLEDELAYEDEXPANSION
+	IF !GPU! GEQ 1 (
+		SET "TitleName=!TitleName:Initializing=CPU Mode!"
+		SET "TitleName=!TitleName:AVAILABLE=UNSUPPORTED Filetype!"
+		TITLE !TitleName!
+		ENDLOCAL
+	) ELSE (
+		ENDLOCAL
+	)
 )
 EXIT /b
 
