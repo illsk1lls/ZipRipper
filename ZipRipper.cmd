@@ -347,6 +347,9 @@ IF NOT EXIST "%ProgramData%\JtR\run\john.rec" (
 	>nul 2>&1 MOVE /Y "%ProgramData%\JtR\run\pwhash" "%AppData%\ZR-InProgress\%MD5%"
 	>nul 2>&1 MOVE /Y "%ProgramData%\JtR\run\john.pot" "%AppData%\ZR-InProgress\%MD5%"
 	>nul 2>&1 MOVE /Y "%ProgramData%\JtR\run\john.rec" "%AppData%\ZR-InProgress\%MD5%"
+	IF /I EXIST "%ProgramData%\JtR\run\john.*.rec" (
+		>nul 2>&1 MOVE /Y "%ProgramData%\JtR\run\john.*.rec" "%AppData%\ZR-InProgress\%MD5%"
+	)
 	>nul 2>&1 MOVE /Y "%ProgramData%\JtR\run\john.log" "%AppData%\ZR-InProgress\%MD5%"
 	>nul 2>&1 MOVE /Y "%ProgramData%\JtR\run\password.lst" "%AppData%\ZR-InProgress\%MD5%"
 )
