@@ -532,11 +532,14 @@ IF /I "%FILETYPE%"==".zip" (
 			SETLOCAL ENABLEDELAYEDEXPANSION
 			IF !GPU! GEQ 1 (
 				ENDLOCAL
-				SET ZIP2=1
 				SET "FLAG=--format=ZIP-opencl"
+				SET ZIP2=1
 				CALL :OPENCLENABLED
 			) ELSE (
 				ENDLOCAL
+				IF NOT "%RESUME%"=="1" (			
+					CALL :CPUMODESPLIT
+				)
 				SET ZIP2=1
 			)
 		)
@@ -546,7 +549,10 @@ IF /I "%FILETYPE%"==".zip" (
 			SET "TitleName=!TitleName:AVAILABLE=UNSUPPORTED Filetype!"
 			TITLE !TitleName!
 			ENDLOCAL
-		)
+			IF NOT "%RESUME%"=="1" (			
+				CALL :CPUMODESPLIT
+			)
+		) 
 	)
 )
 IF /I "%FILETYPE%"==".rar" (
@@ -570,6 +576,9 @@ IF /I "%FILETYPE%"==".rar" (
 		
 	) ELSE (
 		ENDLOCAL
+		IF NOT "%RESUME%"=="1" (
+			CALL :CPUMODESPLIT
+		)
 	)
 )
 IF /I "%FILETYPE%"==".7z" (
@@ -580,6 +589,9 @@ IF /I "%FILETYPE%"==".7z" (
 		CALL :OPENCLENABLED
 	) ELSE (
 		ENDLOCAL
+		IF NOT "%RESUME%"=="1" (
+			CALL :CPUMODESPLIT
+		)
 	)
 )
 IF /I "%FILETYPE%"==".pdf" (
@@ -591,6 +603,9 @@ IF /I "%FILETYPE%"==".pdf" (
 		ENDLOCAL
 	) ELSE (
 		ENDLOCAL
+	)
+	IF NOT "%RESUME%"=="1" (
+		CALL :CPUMODESPLIT
 	)
 )
 EXIT /b
@@ -858,6 +873,21 @@ POPD
 >nul 2>&1 RD "%ProgramData%\ztmp" /S /Q
 FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "$^=New-Object -ComObject Wscript.Shell;$^.Popup('Click OK to re-launch ZipRipper in Offline Mode, or Cancel to quit',0,'Re-Launch ZipRipper?',0x1)"`) DO (
 	SET %1=%%#
+)
+EXIT /b
+
+:CPUMODESPLIT
+FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "$Msg+='Would you like to attempt to use as many available CPU cores as possible?';$Msg+="^""`n"^"";$Msg+="^""`n"^"";$Msg+='WARNING - This may slow down your system for other tasks, and the session will need to be manually ended after a password is found..';$Msg+="^""`n"^"";$Msg+="^""`n"^"";$Msg+='When a password is found in this mode, you will see orange text displayed on the screen, you can then complete the session by pressing the Q key, or using the mouse to click the red X at the top right corner of the ZipRipper window.';$Msg+="^""`n"^"";$Msg+="^""`n"^"";$Msg+='To run ZipRipper in multi-threaded CPU mode click YES';$Msg+="^""`n"^"";$Msg+="^""`n"^"";$Msg+='To run ZipRipper in default CPU mode click NO';$^=New-Object -ComObject Wscript.Shell;$^.Popup($Msg,0,'CPU Mode Detected',32+4)"`) DO (
+	IF %%# EQU 6 (
+		FOR /F "tokens=*" %%# in ('wmic cpu get NumberOfCores /value ^| find "="') do (
+			FOR /F "tokens=2 delims==" %%# in ("%%#") do (
+				SET /A AVAILABLECORES=%%#-2
+			)
+		)
+	)
+)
+IF DEFINED AVAILABLECORES (
+	SET "FLAG=--fork=%AVAILABLECORES%"
 )
 EXIT /b
 
