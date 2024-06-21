@@ -880,7 +880,7 @@ FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "$^=New-Object -C
 EXIT /b
 
 :CPUMODESPLIT
-FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "$Msg+='Would you like to split the wordlist?';$Msg+="^""`n"^"";$Msg+="^""`n"^"";$Msg+='WARNING - The session will need to be manually ended after a password is found..';$Msg+="^""`n"^"";$Msg+="^""`n"^"";$Msg+='If a password is found when the wordlist is split, you will see orange text displayed on the screen, but the remaining processes will continue to run.. you can then complete the session by pressing the Q key, or using the mouse to click the red X at the top right corner of the ZipRipper window.';$Msg+="^""`n"^"";$Msg+="^""`n"^"";$Msg+='To split the wordlist click YES';$Msg+="^""`n"^"";$Msg+="^""`n"^"";$Msg+='To run ZipRipper in default mode click NO (If this is your first attempt you should click NO)';$^=New-Object -ComObject Wscript.Shell;$^.Popup($Msg,0,'CPU Mode Detected',32+4)"`) DO (
+FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "$Msg+='Would you like to split the wordlist?';$Msg+="^""`n"^"";$Msg+="^""`n"^"";$Msg+='WARNING - There may be up to a 60 second delay from when a password is found, before the remaining lists are halted.';$Msg+="^""`n"^"";$Msg+="^""`n"^"";$Msg+='To split the wordlist click YES';$Msg+="^""`n"^"";$Msg+="^""`n"^"";$Msg+='To run ZipRipper in default mode click NO (If this is your first attempt you should click NO)';$^=New-Object -ComObject Wscript.Shell;$^.Popup($Msg,0,'CPU Mode Detected',32+4)"`) DO (
 	IF %%# EQU 6 (
 		FOR /F "tokens=*" %%# in ('wmic cpu get NumberOfCores /value ^| find "="') do (
 			FOR /F "tokens=2 delims==" %%# in ("%%#") do (
