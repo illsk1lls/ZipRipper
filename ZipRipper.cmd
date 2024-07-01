@@ -284,7 +284,7 @@ IF "%RESUME%"=="1" (
 	CALL :SETSTATUSANDFLAGS
 	john --restore
 ) ELSE (
-	john --wordlist="%ProgramData%\JtR\run\password.lst" --rules=single,all "%ProgramData%\JtR\run\pwhash" !FLAG!
+	john --incremental "%ProgramData%\JtR\run\pwhash" !FLAG!
 )
 CALL :GETSIZE "%ProgramData%\JtR\run\john.pot" POTSIZE
 SETLOCAL DISABLEDELAYEDEXPANSION
