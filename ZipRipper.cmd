@@ -897,7 +897,7 @@ EXIT /b
 :CHECKGPU
 FOR /F "usebackq skip=1 tokens=2,3" %%# IN (`WMIC path Win32_VideoController get Name ^| findstr "."`) DO (
 	IF /I "%%#"=="GeForce" (
-		IF NOT EXIST "%WinDir%\System32\OpenCL.dll" (
+		IF /I NOT EXIST "%WinDir%\System32\OpenCL.dll" (
 			IF /I EXIST "%WinDir%\System32\DriverStore\FileRepository\nvamig.inf_amd64_72a8482547fd21bc\OpenCL64.dll" (
 				>nul 2>&1 COPY /Y "%WinDir%\System32\DriverStore\FileRepository\nvamig.inf_amd64_72a8482547fd21bc\OpenCL64.dll" "%WinDir%\System32\OpenCL.dll"
 				SET GPU=1
@@ -908,8 +908,29 @@ FOR /F "usebackq skip=1 tokens=2,3" %%# IN (`WMIC path Win32_VideoController get
 			SET GPU=1
 		)
 	)
+	IF /I "%%#"=="RTX" (
+		IF /I NOT EXIST "%WinDir%\System32\OpenCL.dll" (
+			SET GPU=0
+		) ELSE (
+			SET GPU=1
+		)
+	)
+	IF /I "%%#"=="A800" (
+		IF /I NOT EXIST "%WinDir%\System32\OpenCL.dll" (
+			SET GPU=0
+		) ELSE (
+			SET GPU=1
+		)
+	)
+	IF /I "%%#"=="T1000" (
+		IF /I NOT EXIST "%WinDir%\System32\OpenCL.dll" (
+			SET GPU=0
+		) ELSE (
+			SET GPU=1
+		)
+	)
 	IF /I "%%#"=="Quadro" (
-		IF NOT EXIST "%WinDir%\System32\OpenCL.dll" (
+		IF /I NOT EXIST "%WinDir%\System32\OpenCL.dll" (
 			IF /I EXIST "%WinDir%\System32\DriverStore\FileRepository\nvamig.inf_amd64_72a8482547fd21bc\OpenCL64.dll" (
 				>nul 2>&1 COPY /Y "%WinDir%\System32\DriverStore\FileRepository\nvamig.inf_amd64_72a8482547fd21bc\OpenCL64.dll" "%WinDir%\System32\OpenCL.dll"
 				SET GPU=1
