@@ -67,6 +67,6 @@ More wordlists can be found at <a href="https://weakpass.com/wordlist">https://w
 -7z archives containing a single text file<br>
 -Raw unarchived txt files<br>
 
-**To enable BruteForce mode:** Create an empty .TXT file, and select it as a wordlist by using the "Custom" wordlist option(Click John's mouth on the GUI).  This will bypass the wordlist and immediately start BruteForce. 
+**To enable BruteForce mode:** Create an empty .TXT file, and select it as a wordlist by using the "Custom" wordlist option. This will bypass the wordlist and immediately start BruteForce. 
 
 *UNC Paths and redirected folders are supported.*<br>
