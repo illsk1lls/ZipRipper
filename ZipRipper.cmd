@@ -301,7 +301,7 @@ IF "%RESUME%"=="1" (
 	john --restore
 ) ELSE (
 	IF "!LISTNAME!"=="BRUTE" (
-	john "%ProgramData%\JtR\run\pwhash" --incremental !FLAG!	
+	john "%ProgramData%\JtR\run\pwhash" --incremental=ASCII.chr !FLAG!	
 	) ELSE (
 	john --wordlist="%ProgramData%\JtR\run\password.lst" --rules=single,all "%ProgramData%\JtR\run\pwhash" !FLAG!
 	)
