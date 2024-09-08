@@ -25,7 +25,7 @@ StarwberryPerl(Portable) - <a href="https://strawberryperl.com/releases.html">ht
 If you have questions, head on over to <a href="https://github.com/illsk1lls/ZipRipper/discussions/categories/q-a">Discussions Q&A</a><br>
 
 **Current version provides support for hardware acceleration via OpenCL for:**<br>
-nVidia "GeForce" & "Quadro" and AMD "Radeon RX" & "Radeon Pro" cards<br>
+nVidia "GeForce", "Quadro", "A Series", "RTX Ada" and AMD "Radeon RX", "Radeon Pro" cards<br>
 
 **All GPU users:** Ensure you have the latest GPU drivers installed.<br>
 **AMD GPU users:** For GPU support the script will offer to enable OpenCL on your system if the dependencies are not present.. Otherwise you may need to use <a href="https://github.com/illsk1lls/ZipRipper/blob/main/.resources/FixOpenCLforAMD.bat">the script located in the .resources folder</a> to enable OpenCL on your system.<br>
@@ -43,6 +43,8 @@ nVidia "GeForce" & "Quadro" and AMD "Radeon RX" & "Radeon Pro" cards<br>
 
 **Alternate wordlist options:**<br>
 Click John's mouth and select an option before starting the session. (Clicking an option will register your selection and quietly dismiss the menu, selecting no option will use the default JtR wordlist)<br>
+
+**To enable BruteForce mode**, create an empty .TXT file before using ZipRipper, and select it as a wordlist by using the "Custom" wordlist option (Click John's mouth on the GUI).  This will bypass the wordlist and immediately start BruteForce. (This is best used with short passwords made up of random characters)
 
 It is possible to change the built in alternate wordlist. The included cyclone_hk alternate wordlist is an optional 667MB download, and 2.3GB expanded on disk. **Although the easiest way to use an additional wordlist other than the built in Cyclone alternate, is the Custom wordlist option, which allows you to select a local file.**<br>
 
