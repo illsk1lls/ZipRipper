@@ -44,8 +44,6 @@ nVidia "GeForce", "Quadro", "A Series", "RTX Ada" and AMD "Radeon RX", "Radeon P
 **Alternate wordlist options:**<br>
 Click John's mouth and select an option before starting the session. (Clicking an option will register your selection and quietly dismiss the menu, selecting no option will use the default JtR wordlist)<br>
 
-**To enable BruteForce mode**, create an empty .TXT file before using ZipRipper, and select it as a wordlist by using the "Custom" wordlist option (Click John's mouth on the GUI).  This will bypass the wordlist and immediately start BruteForce. (This is best used with short passwords made up of random characters)
-
 It is possible to change the built in alternate wordlist. The included cyclone_hk alternate wordlist is an optional 667MB download, and 2.3GB expanded on disk. **Although the easiest way to use an additional wordlist other than the built in Cyclone alternate, is the Custom wordlist option, which allows you to select a local file.**<br>
 
 **Examples of how to change the built in alternate wordlist:**<br>
@@ -68,5 +66,7 @@ More wordlists can be found at <a href="https://weakpass.com/wordlist">https://w
 
 -7z archives containing a single text file<br>
 -Raw unarchived txt files<br>
+
+**To enable BruteForce mode:** Create an empty .TXT file, and select it as a wordlist by using the "Custom" wordlist option(Click John's mouth on the GUI).  This will bypass the wordlist and immediately start BruteForce. 
 
 *UNC Paths and redirected folders are supported.*<br>
