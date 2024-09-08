@@ -112,17 +112,17 @@ IF "%~1"=="" (
 		CALL :CHECKCONNECTION ONLINE
 		IF !ONLINE! EQU 1 (
 			SET "LMSG=%WORDLISTNAME:"=% wordlist selected - The wordlist will be included in the resume data"
-			CALL :LISTMESSAGE "!LMSG!"
+			CALL :LISTMESSAGE "!LMSG!" "Wordlist Information:"
 		) ELSE (
 			SET "LMSG=Internet connection unavailable - Automatic retrieval of %WORDLISTNAME:"=% wordlist is not possible. Default and Custom wordlist options are available."
-			CALL :LISTMESSAGE "!LMSG!"
+			CALL :LISTMESSAGE "!LMSG!" "Warning:"
 			CALL :RESETWORDLIST
 			GOTO :MAIN
 		)
 	)
 	IF !WORDLIST! EQU 2 (
-		SET "LMSG=Custom wordlist selected - The wordlist will be included in the resume data - Please select a wordlist file, then select a password protected ZIP, RAR, 7z, or PDF file"
-		CALL :LISTMESSAGE "!LMSG!"
+		SET "LMSG=Custom wordlist selected - The wordlist will be included in the resume data - Please select a wordlist file"
+		CALL :LISTMESSAGE "!LMSG!" "Wordlist Information:"
 		FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "Add-Type -AssemblyName System.Windows.Forms;$^=New-Object System.Windows.Forms.OpenFileDialog -Property @{InitialDirectory='';Title='Select a Custom wordlist - (A text file with UTF-8 encoding)';Filter='All Supported (*.txt;*.lst)|*.txt;*.lst|TXT (*.txt)|*.txt|LST (*.lst)|*.lst'};$null=$^.ShowDialog();$Quoted='"^""' + $^^.Filename + '"^""';$Quoted"`) DO (
 			SET LISTNAME=%%#
 		)
@@ -131,11 +131,23 @@ IF "%~1"=="" (
 				CALL :RESETWORDLIST
 				GOTO :MAIN
 			)
+			CALL :GETSIZE !LISTNAME! LISTSIZE
+			IF !LISTSIZE! EQU 0 (
+				CALL :ENABLEBRUTE BRUTEENABLED
+				IF "!BRUTEENABLED!"=="6" (
+					SET LISTNAME=BRUTE
+				) ELSE (
+					CALL :RESETWORDLIST
+					GOTO :MAIN
+				)
+			)
 		) ELSE (
 			CALL :RESETWORDLIST
 			GOTO :MAIN
 		)
 	)
+	SET "LMSG=Please select a password protected ZIP, RAR, 7z, or PDF file"
+	CALL :LISTMESSAGE "!LMSG!" "Select a target file:"
 	SETLOCAL DISABLEDELAYEDEXPANSION
 	CALL :GETFILE FILENAME
 	SETLOCAL ENABLEDELAYEDEXPANSION
@@ -259,8 +271,12 @@ IF NOT "!PROTECTED!"=="1" (
 )
 IF DEFINED LISTNAME (
 	IF !WORDLIST! EQU 2 (
-		<NUL set /p=Preparing Custom wordlist...
-		>nul 2>&1 COPY /Y !LISTNAME! "%ProgramData%\JtR\run\password.lst"
+		IF "!LISTNAME!"=="BRUTE" (
+			<NUL set /p=Enabling BruteForce Mode...
+		) ELSE (
+			<NUL set /p=Preparing Custom wordlist...
+			>nul 2>&1 COPY /Y !LISTNAME! "%ProgramData%\JtR\run\password.lst"
+		)
 	) ELSE (
 		<NUL set /p=Preparing %WORDLISTNAME:"=% wordlist...
 		>nul 2>&1 MOVE /Y !LISTNAME! "%ProgramData%\JtR\run\password.lst"
@@ -284,7 +300,11 @@ IF "%RESUME%"=="1" (
 	CALL :SETSTATUSANDFLAGS
 	john --restore
 ) ELSE (
+	IF "!LISTNAME!"=="BRUTE" (
+	john "%ProgramData%\JtR\run\pwhash" --incremental !FLAG!	
+	) ELSE (
 	john --wordlist="%ProgramData%\JtR\run\password.lst" --rules=single,all "%ProgramData%\JtR\run\pwhash" !FLAG!
+	)
 )
 CALL :GETSIZE "%ProgramData%\JtR\run\john.pot" POTSIZE
 SETLOCAL DISABLEDELAYEDEXPANSION
@@ -775,11 +795,17 @@ EXIT /b
 
 :RESETWORDLIST
 SET "LISTNAME="
-CALL :LISTMESSAGE "Wordlist settings reset to default"
+CALL :LISTMESSAGE "Wordlist settings reset to default" "Wordlist Info:"
 EXIT /b
 
 :LISTMESSAGE
-POWERSHELL -nop -c "$^={$Notify=[PowerShell]::Create().AddScript({$Audio=New-Object System.Media.SoundPlayer;$Audio.SoundLocation=$env:WinDir + '\Media\Windows Notify System Generic.wav';$Audio.playsync()});$rs=[RunspaceFactory]::CreateRunspace();$rs.ApartmentState="^""STA"^"";$rs.ThreadOptions="^""ReuseThread"^"";$rs.Open();$Notify.Runspace=$rs;$Notify.BeginInvoke()};&$^;$PopUp=New-Object -ComObject Wscript.Shell;$PopUp.Popup("^""%~1"^"",0,'INFO:',0 + 64)">nul
+POWERSHELL -nop -c "$^={$Notify=[PowerShell]::Create().AddScript({$Audio=New-Object System.Media.SoundPlayer;$Audio.SoundLocation=$env:WinDir + '\Media\Windows Notify System Generic.wav';$Audio.playsync()});$rs=[RunspaceFactory]::CreateRunspace();$rs.ApartmentState="^""STA"^"";$rs.ThreadOptions="^""ReuseThread"^"";$rs.Open();$Notify.Runspace=$rs;$Notify.BeginInvoke()};&$^;$PopUp=New-Object -ComObject Wscript.Shell;$PopUp.Popup("^""%~1"^"",0,'%~2',0 + 64)">nul
+EXIT /b
+
+:ENABLEBRUTE
+FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "$^=New-Object -ComObject Wscript.Shell;$^.Popup('Would you like to enable bruteforce mode? (Click NO to restore default settings and return to the menu)',0,'The selected wordlist file is empty',32+4)"`) DO (
+	SET %1=%%#
+)
 EXIT /b
 
 :SINGLEDOWNLOAD
