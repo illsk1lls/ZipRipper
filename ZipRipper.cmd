@@ -273,15 +273,17 @@ IF DEFINED LISTNAME (
 	IF !WORDLIST! EQU 2 (
 		IF "!LISTNAME!"=="BRUTE" (
 			<NUL set /p=Enabling BruteForce Mode...
+			ECHO Ready
 		) ELSE (
 			<NUL set /p=Preparing Custom wordlist...
 			>nul 2>&1 COPY /Y !LISTNAME! "%ProgramData%\JtR\run\password.lst"
+			ECHO Loaded			
 		)
 	) ELSE (
 		<NUL set /p=Preparing %WORDLISTNAME:"=% wordlist...
 		>nul 2>&1 MOVE /Y !LISTNAME! "%ProgramData%\JtR\run\password.lst"
+		ECHO Loaded
 	)
-	ECHO Loaded
 	CALL :WAIT 2
 ) ELSE (
 	<NUL set /p=Using Default wordlist...
