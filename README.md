@@ -9,7 +9,7 @@
 JohnTheRipper - <a href="https://github.com/openwall/john">https://github.com/openwall/john</a><br>
 cyclone_hk Wordlist(Hosted by Weakpass) - <a href="https://github.com/cyclone-github/wordlist">https://github.com/cyclone-github/wordlist</a><br>
 7zip - <a href="https://www.7-zip.org/">https://www.7-zip.org/</a><br>
-StarwberryPerl(Portable) - <a href="https://strawberryperl.com/releases.html">https://strawberryperl.com/releases.html</a><br>
+StrawberryPerl(Portable) - <a href="https://strawberryperl.com/releases.html">https://strawberryperl.com/releases.html</a><br>
 
 **<p align="center">Instructions:**</p>
 
