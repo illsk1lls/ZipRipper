@@ -979,7 +979,9 @@ FOR /F "usebackq skip=1 tokens=2,3" %%# IN (`WMIC path Win32_VideoController get
 					CALL :FIXRADEON
 				)
 			)
-			IF NOT %GPU%==1 (
+			SETLOCAL ENABLEDELAYEDEXPANSION
+			IF NOT !GPU!==1 (
+				ENDLOCAL
 				IF /I "%%# %%$"=="Radeon RX" (
 					IF /I NOT EXIST "%WinDir%\System32\amdocl64.dll" (
 						SET GPU=0
@@ -994,6 +996,8 @@ FOR /F "usebackq skip=1 tokens=2,3" %%# IN (`WMIC path Win32_VideoController get
 						SET GPU=2
 					)
 				)
+			) ELSE (
+				ENDLOCAL
 			)
 		)
 	)
