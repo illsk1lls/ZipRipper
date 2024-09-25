@@ -979,18 +979,20 @@ FOR /F "usebackq skip=1 tokens=2,3" %%# IN (`WMIC path Win32_VideoController get
 					CALL :FIXRADEON
 				)
 			)
-			IF /I "%%# %%$"=="Radeon RX" (
-				IF /I NOT EXIST "%WinDir%\System32\amdocl64.dll" (
-					SET GPU=0
-				) ELSE (
-					SET GPU=2
+			IF NOT %GPU%==1 (
+				IF /I "%%# %%$"=="Radeon RX" (
+					IF /I NOT EXIST "%WinDir%\System32\amdocl64.dll" (
+						SET GPU=0
+					) ELSE (
+						SET GPU=2
+					)
 				)
-			)
-			IF /I "%%# %%$"=="Radeon Pro" (
-				IF /I NOT EXIST "%WinDir%\System32\amdocl64.dll" (
-					SET GPU=0
-				) ELSE (
-					SET GPU=2
+				IF /I "%%# %%$"=="Radeon Pro" (
+					IF /I NOT EXIST "%WinDir%\System32\amdocl64.dll" (
+						SET GPU=0
+					) ELSE (
+						SET GPU=2
+					)
 				)
 			)
 		)
