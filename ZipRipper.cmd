@@ -969,19 +969,19 @@ FOR /F "usebackq skip=1 tokens=2,3" %%# IN (`WMIC path Win32_VideoController get
 			SET GPU=1
 		)
 	)
-	IF /I NOT EXIST "%ProgramData%\ignore.Radeon" (
-		IF /I "%%#"=="Radeon" (
-			IF /I NOT EXIST "%WinDir%\System32\amdocl64.dll" (
-				CALL :FIXRADEON
-			) ELSE (
-				REG QUERY "HKEY_LOCAL_MACHINE\SOFTWARE\Khronos\OpenCL\Vendors" /v "%WinDir%\System32\amdocl64.dll" >nul 2>&1
-				IF %ERRORLEVEL% NEQ 0 (
+	SETLOCAL ENABLEDELAYEDEXPANSION
+	IF NOT !GPU!==1 (
+		ENDLOCAL
+		IF /I NOT EXIST "%ProgramData%\ignore.Radeon" (
+			IF /I "%%#"=="Radeon" (
+				IF /I NOT EXIST "%WinDir%\System32\amdocl64.dll" (
 					CALL :FIXRADEON
+				) ELSE (
+					REG QUERY "HKEY_LOCAL_MACHINE\SOFTWARE\Khronos\OpenCL\Vendors" /v "%WinDir%\System32\amdocl64.dll" >nul 2>&1
+					IF %ERRORLEVEL% NEQ 0 (
+						CALL :FIXRADEON
+					)
 				)
-			)
-			SETLOCAL ENABLEDELAYEDEXPANSION
-			IF NOT !GPU!==1 (
-				ENDLOCAL
 				IF /I "%%# %%$"=="Radeon RX" (
 					IF /I NOT EXIST "%WinDir%\System32\amdocl64.dll" (
 						SET GPU=0
@@ -996,10 +996,10 @@ FOR /F "usebackq skip=1 tokens=2,3" %%# IN (`WMIC path Win32_VideoController get
 						SET GPU=2
 					)
 				)
-			) ELSE (
-				ENDLOCAL
 			)
 		)
+	) ELSE (
+		ENDLOCAL
 	)
 )
 EXIT /b
