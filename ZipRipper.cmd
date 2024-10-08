@@ -670,7 +670,7 @@ FOR /F "tokens=1,5 delims=*" %%# IN (pwhash) DO (
 	FOR /F "tokens=1,3 delims=$" %%# IN ("%%#%%$") DO (
 		IF NOT DEFINED # (
 			FOR /F "tokens=2 delims=:" %%# IN ("%%#%%$") DO (
-				CALL :TRIMWHITESPACE %%# %%#
+				CALL :TRIMWHITESPACE %%#
 				CALL :CHECKLENGTH %%# #
 			)
 		)
