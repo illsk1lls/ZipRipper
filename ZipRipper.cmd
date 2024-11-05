@@ -90,22 +90,24 @@ IF "%~1"=="" (
 	CALL :MAINMENU ACTION WORDLIST
 	SETLOCAL ENABLEDELAYEDEXPANSION
 	IF "!ACTION!"=="Offline" (
-		SETLOCAL DISABLEDELAYEDEXPANSION
+		ENDLOCAL
 		CALL :BUILD RELAUNCH
 		SET /p OFOLDER=<"%ProgramData%\launcher.ZipRipper"
-			SETLOCAL ENABLEDELAYEDEXPANSION
-			IF "!RELAUNCH!"=="6" (
-				TITLE Re-Launching...
-				START "" /min "%ProgramData%\launcher.ZipRipper" "!OFOLDER!%~nx0"
-				ENDLOCAL
-				EXIT /b
-			) ELSE (
-				ENDLOCAL
-				CALL :CLEANUP
-				GOTO :EOF
-			)
+		SETLOCAL ENABLEDELAYEDEXPANSION
+		IF "!RELAUNCH!"=="6" (
+			TITLE Re-Launching...
+			START "" /min "%ProgramData%\launcher.ZipRipper" "!OFOLDER!%~nx0"
+			ENDLOCAL
+			EXIT /b
+		) ELSE (
+			ENDLOCAL
+			CALL :CLEANUP
+			GOTO :EOF
 		)
+	)
+	SETLOCAL ENABLEDELAYEDEXPANSION
 	IF NOT "!ACTION!"=="Start" (
+		ENDLOCAL
 		CALL :CLEANUP
 	)
 	IF !WORDLIST! EQU 1 (
@@ -148,7 +150,7 @@ IF "%~1"=="" (
 	)
 	SET "LMSG=Please select a password protected ZIP, RAR, 7z, or PDF file"
 	CALL :LISTMESSAGE "!LMSG!" "Select a target file:"
-	SETLOCAL DISABLEDELAYEDEXPANSION
+	ENDLOCAL
 	CALL :GETFILE FILENAME
 	SETLOCAL ENABLEDELAYEDEXPANSION
 	IF !FILENAME!=="" (
@@ -188,18 +190,24 @@ SET "FILETYPE=%~x1"
 SET "TitleName=[ZIP-Ripper]  -  [Initializing]  -  [OpenCL #STATUS]  -  #RUNMODE Mode"
 SETLOCAL ENABLEDELAYEDEXPANSION
 IF !GPU! GEQ 1 (
-	SET "TitleName=!TitleName:#STATUS=AVAILABLE!"
+	ENDLOCAL
+	SET "TitleName=%TitleName:#STATUS=AVAILABLE%"
 ) ELSE (
-	SET "TitleName=!TitleName:Initializing=CPU Mode!"
-	SET "TitleName=!TitleName:#STATUS=UNAVAILABLE!"
+	ENDLOCAL
+	SET "TitleName=%TitleName:Initializing=CPU Mode%"
+	SET "TitleName=%TitleName:#STATUS=UNAVAILABLE%"
 )
+SETLOCAL ENABLEDELAYEDEXPANSION
 IF !OFFLINE! EQU 0 (
-	SET "TitleName=!TitleName:#RUNMODE=Online!"
+	ENDLOCAL
+	SET "TitleName=%TitleName:#RUNMODE=Online%"
 ) ELSE (
-	SET "TitleName=!TitleName:#RUNMODE=Offline!"
+	ENDLOCAL
+	SET "TitleName=%TitleName:#RUNMODE=Offline%"
 )
-TITLE !TitleName!
+TITLE %TitleName%
 IF %OFFLINE% EQU 0 (
+	SETLOCAL ENABLEDELAYEDEXPANSION
 	IF !WORDLIST! EQU 1 (
 		<NUL set /p=Please Wait...
 		CALL :WORDLISTFILEINFO
@@ -226,6 +234,7 @@ IF %OFFLINE% EQU 0 (
 	)
 )
 CALL :GETJTRREADY
+ENDLOCAL
 ECHO Done
 ECHO/
 PUSHD "%ProgramData%\JtR\run"
@@ -238,20 +247,18 @@ IF %~z1 GEQ 200000000 (
 	<NUL set /p=Creating password hash...
 )
 SET RESUME=0
-SETLOCAL DISABLEDELAYEDEXPANSION
 CALL :GETMD5 %1 MD5
 IF EXIST "%AppData%\ZR-InProgress\%MD5%" (
 	CALL :RESUMEDECIDE ISRESUME
 	SETLOCAL ENABLEDELAYEDEXPANSION
 	IF "!ISRESUME!"=="6" (
-		SETLOCAL DISABLEDELAYEDEXPANSION
+		ENDLOCAL
 		>nul 2>&1 MOVE /Y "%AppData%\ZR-InProgress\%MD5%\*.*" "%ProgramData%\JtR\run\"
 		CALL :CHECKRESUMENAME %1
 		SET RESUME=1
-		SETLOCAL ENABLEDELAYEDEXPANSION
 		GOTO :STARTJTR
 	) ELSE (
-		SETLOCAL DISABLEDELAYEDEXPANSION
+		ENDLOCAL
 		>nul 2>&1 RD "%AppData%\ZR-InProgress\%MD5%" /S /Q
 	)
 )
@@ -302,18 +309,19 @@ IF "%RESUME%"=="1" (
 	CALL :SETSTATUSANDFLAGS
 	john --restore
 ) ELSE (
+	SETLOCAL ENABLEDELAYEDEXPANSION
 	IF "!LISTNAME!"=="BRUTE" (
 	john "%ProgramData%\JtR\run\pwhash" --incremental=ASCII.chr !FLAG!	
 	) ELSE (
 	john --wordlist="%ProgramData%\JtR\run\password.lst" --rules=single,all "%ProgramData%\JtR\run\pwhash" !FLAG!
 	)
+	ENDLOCAL
 )
 CALL :GETSIZE "%ProgramData%\JtR\run\john.pot" POTSIZE
-SETLOCAL DISABLEDELAYEDEXPANSION
 CALL :SAVELOCATION UserDesktop
 SETLOCAL ENABLEDELAYEDEXPANSION
 IF !POTSIZE! GEQ 1 (
-	SETLOCAL DISABLEDELAYEDEXPANSION
+	ENDLOCAL
 	ECHO/
 	<NUL set /p=Generating Password File...
 	CALL :SAVEFILE %1
@@ -323,17 +331,15 @@ IF !POTSIZE! GEQ 1 (
 	ECHO Done
 	ECHO/
 	ECHO Passwords saved to: "%UserDesktop%\ZipRipper-Passwords.txt"
-	ENDLOCAL
 	SETLOCAL ENABLEDELAYEDEXPANSION
 	CALL :GETSIZE "!UserDesktop!\ZipRipper-Passwords.txt" PWSIZE
 	IF !PWSIZE! LEQ 1600 (
-		SETLOCAL DISABLEDELAYEDEXPANSION
+		ENDLOCAL
 		CALL :DISPLAYINFOA
 	) ELSE (
-		SETLOCAL DISABLEDELAYEDEXPANSION
+		ENDLOCAL
 		CALL :DISPLAYINFOB
 	)
-	ENDLOCAL
 ) ELSE (
 	ENDLOCAL	
 	ECHO/
@@ -569,11 +575,9 @@ IF /I "%FILETYPE%"==".zip" (
 			)
 		)
 		IF /I "%%#"=="pkzip" (
-			SETLOCAL ENABLEDELAYEDEXPANSION
-			SET "TitleName=!TitleName:Initializing=CPU Mode!"
-			SET "TitleName=!TitleName:AVAILABLE=UNSUPPORTED Filetype!"
-			TITLE !TitleName!
-			ENDLOCAL
+			SET "TitleName=%TitleName:Initializing=CPU Mode%"
+			SET "TitleName=%TitleName:AVAILABLE=UNSUPPORTED Filetype%"
+			TITLE %TitleName%
 			IF NOT "%RESUME%"=="1" (			
 				CALL :CPUMODESPLIT
 			)
@@ -622,10 +626,10 @@ IF /I "%FILETYPE%"==".7z" (
 IF /I "%FILETYPE%"==".pdf" (
 	SETLOCAL ENABLEDELAYEDEXPANSION
 	IF !GPU! GEQ 1 (
-		SET "TitleName=!TitleName:Initializing=CPU Mode!"
-		SET "TitleName=!TitleName:AVAILABLE=UNSUPPORTED Filetype!"
-		TITLE !TitleName!
 		ENDLOCAL
+		SET "TitleName=%TitleName:Initializing=CPU Mode%"
+		SET "TitleName=%TitleName:AVAILABLE=UNSUPPORTED Filetype%"
+		TITLE %TitleName%
 	) ELSE (
 		ENDLOCAL
 	)
@@ -636,11 +640,9 @@ IF /I "%FILETYPE%"==".pdf" (
 EXIT /b
 
 :OPENCLENABLED
-SETLOCAL ENABLEDELAYEDEXPANSION
-SET "TitleName=!TitleName:Initializing=GPU Mode!"
-SET TitleName=!TitleName:AVAILABLE=ENABLED!
-TITLE !TitleName!
-ENDLOCAL
+SET "TitleName=%TitleName:Initializing=GPU Mode%"
+SET "TitleName=%TitleName:AVAILABLE=ENABLED%"
+TITLE %TitleName%
 EXIT /b
 
 :GETSIZE
@@ -912,13 +914,14 @@ FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "$Msg+='Would you
 	IF %%# EQU 6 (
 		FOR /F "tokens=*" %%# in ('wmic cpu get NumberOfCores /value ^| find "="') do (
 			FOR /F "tokens=2 delims==" %%# in ("%%#") do (
-				SET /A AVAILABLECORES=%%#-2
-			)
+				SET AVAILABLECORES=%%#			)
 		)
 	)
 )
 IF DEFINED AVAILABLECORES (
-	SET "FLAG=--fork=%AVAILABLECORES%"
+	SETLOCAL ENABLEDELAYEDEXPANSION
+	SET "FLAG=--fork=!AVAILABLECORES!"
+	ENDLOCAL
 )
 EXIT /b
 
