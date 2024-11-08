@@ -926,7 +926,7 @@ IF DEFINED AVAILABLECORES (
 EXIT /b
 
 :CHECKGPU
-FOR /F "usebackq skip=1 tokens=2,3" %%# IN (`WMIC path Win32_VideoController get Name ^| findstr "."`) DO (
+FOR /F "usebackq skip=1 tokens=2,3" %%# IN (`WMIC path Win32_VideoController get Name`) DO (
 	IF /I "%%#"=="GeForce" (
 		IF /I NOT EXIST "%WinDir%\System32\OpenCL.dll" (
 			IF /I EXIST "%WinDir%\System32\DriverStore\FileRepository\nvamig.inf_amd64_72a8482547fd21bc\OpenCL64.dll" (
