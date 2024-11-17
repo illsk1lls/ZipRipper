@@ -94,7 +94,7 @@ IF "%~1"=="" (
 		CALL :BUILD RELAUNCH
 		SET /p OFOLDER=<"%ProgramData%\launcher.ZipRipper"
 		SETLOCAL ENABLEDELAYEDEXPANSION
-		IF "!RELAUNCH!"=="6" (
+		IF /I "!RELAUNCH!"=="Yes" (
 			TITLE Re-Launching...
 			START "" /min "%ProgramData%\launcher.ZipRipper" "!OFOLDER!%~nx0"
 			ENDLOCAL
@@ -136,7 +136,7 @@ IF "%~1"=="" (
 			CALL :GETSIZE !LISTNAME! LISTSIZE
 			IF !LISTSIZE! EQU 0 (
 				CALL :ENABLEBRUTE BRUTEENABLED
-				IF "!BRUTEENABLED!"=="6" (
+				IF /I "!BRUTEENABLED!"=="Yes" (
 					SET LISTNAME=BRUTE
 				) ELSE (
 					CALL :RESETWORDLIST
@@ -234,7 +234,7 @@ IF %OFFLINE% EQU 0 (
 	)
 )
 CALL :GETJTRREADY
-ENDLOCAL
+SETLOCAL DISABLEDELAYEDEXPANSION
 ECHO Done
 ECHO/
 PUSHD "%ProgramData%\JtR\run"
@@ -251,14 +251,14 @@ CALL :GETMD5 %1 MD5
 IF EXIST "%AppData%\ZR-InProgress\%MD5%" (
 	CALL :RESUMEDECIDE ISRESUME
 	SETLOCAL ENABLEDELAYEDEXPANSION
-	IF "!ISRESUME!"=="6" (
-		ENDLOCAL
+	IF /I "!ISRESUME!"=="Yes" (
+		SETLOCAL DISABLEDELAYEDEXPANSION
 		>nul 2>&1 MOVE /Y "%AppData%\ZR-InProgress\%MD5%\*.*" "%ProgramData%\JtR\run\"
 		CALL :CHECKRESUMENAME %1
 		SET RESUME=1
 		GOTO :STARTJTR
 	) ELSE (
-		ENDLOCAL
+		SETLOCAL DISABLEDELAYEDEXPANSION
 		>nul 2>&1 RD "%AppData%\ZR-InProgress\%MD5%" /S /Q
 	)
 )
@@ -270,9 +270,8 @@ ECHO Done
 ECHO/
 SETLOCAL ENABLEDELAYEDEXPANSION
 IF NOT "!PROTECTED!"=="1" (
-	SETLOCAL DISABLEDELAYEDEXPANSION
-	CALL :NOTSUPPORTED %1 "%ERRORMSG%"
 	ENDLOCAL
+	CALL :NOTSUPPORTED %1 "%ERRORMSG%"
 	CALL :CLEANUP
 	GOTO :EOF
 )
@@ -291,8 +290,10 @@ IF DEFINED LISTNAME (
 		>nul 2>&1 MOVE /Y !LISTNAME! "%ProgramData%\JtR\run\password.lst"
 		ECHO Loaded
 	)
+	ENDLOCAL
 	CALL :WAIT 2
 ) ELSE (
+	ENDLOCAL
 	<NUL set /p=Using Default wordlist...
 	CALL :WAIT 1
 	ECHO Loaded
@@ -311,9 +312,9 @@ IF "%RESUME%"=="1" (
 ) ELSE (
 	SETLOCAL ENABLEDELAYEDEXPANSION
 	IF "!LISTNAME!"=="BRUTE" (
-	john "%ProgramData%\JtR\run\pwhash" --incremental=ASCII.chr !FLAG!	
+		john "%ProgramData%\JtR\run\pwhash" --incremental=ASCII.chr !FLAG!	
 	) ELSE (
-	john --wordlist="%ProgramData%\JtR\run\password.lst" --rules=single,all "%ProgramData%\JtR\run\pwhash" !FLAG!
+		john --wordlist="%ProgramData%\JtR\run\password.lst" --rules=single,all "%ProgramData%\JtR\run\pwhash" !FLAG!
 	)
 	ENDLOCAL
 )
@@ -359,7 +360,7 @@ FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "$^=Resolve-Path 
 EXIT /b
 
 :RESUMEDECIDE
-FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "$^=New-Object -ComObject Wscript.Shell;$^.Popup('Would you like to resume the job? (Click NO to clear the resume data and start over)',0,'Resume Data Found',32+4)"`) DO (
+FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "Add-Type -AssemblyName System.Windows.Forms;$^={$Notify=[PowerShell]::Create().AddScript({$Audio=New-Object System.Media.SoundPlayer;$Audio.SoundLocation=$env:WinDir + '\Media\Windows Notify System Generic.wav';$Audio.playsync()});$rs=[RunspaceFactory]::CreateRunspace();$rs.ApartmentState="^""STA"^"";$rs.ThreadOptions="^""ReuseThread"^"";$rs.Open();$Notify.Runspace=$rs;$Notify.BeginInvoke()};&$^;[System.Windows.Forms.MessageBox]::Show('Would you like to resume the job? (Click NO to clear the resume data and start over)', 'Resume Data Found',4,32,0,131072)"`) DO (
 	SET %1=%%#
 )
 EXIT /b
@@ -481,7 +482,7 @@ FOR /F "tokens=1 delims=:/" %%# IN (pwhash) DO (
 )
 SET "NEWNAME=%~nx1"
 IF "%ALT%"=="1" (
-	POWERSHELL -nop -c "$^=New-Object -ComObject Wscript.Shell;$^.Popup("^""This file has been renamed since the initial session. The filename will be updated in the saved session data.`n`nInitial file name: %OLDNAME%`n`nCurrent file name: %~nx1`n`nIt is recommended that you do not change the file name after the initial session to avoid potential issues, but it is not a requirement, and the session is able to resume anyway..."^"",0,'WARNING: File name change detected!',0x0);$update=[System.IO.File]::ReadAllText('%ProgramData%\JtR\run\pwhash').Replace('%OLDNAME:'=''%','%NEWNAME:'=''%');[System.IO.File]::WriteAllText('%ProgramData%\JtR\run\pwhash', $update)">nul
+	POWERSHELL -nop -c "Add-Type -AssemblyName System.Windows.Forms;$^={$Notify=[PowerShell]::Create().AddScript({$Audio=New-Object System.Media.SoundPlayer;$Audio.SoundLocation=$env:WinDir + '\Media\Windows Notify System Generic.wav';$Audio.playsync()});$rs=[RunspaceFactory]::CreateRunspace();$rs.ApartmentState="^""STA"^"";$rs.ThreadOptions="^""ReuseThread"^"";$rs.Open();$Notify.Runspace=$rs;$Notify.BeginInvoke()};&$^;[System.Windows.Forms.MessageBox]::Show("^""This file has been renamed since the initial session. The filename will be updated in the saved session data.`n`nInitial file name: %OLDNAME%`n`nCurrent file name: %~nx1`n`nIt is recommended that you do not change the file name after the initial session to avoid potential issues, but it is not a requirement, and the session is able to resume anyway..."^"", 'WARNING: File name change detected!',0,0,0,131072);$update=[System.IO.File]::ReadAllText('%ProgramData%\JtR\run\pwhash').Replace('%OLDNAME:'=''%','%NEWNAME:'=''%');[System.IO.File]::WriteAllText('%ProgramData%\JtR\run\pwhash', $update)">nul
 )
 EXIT /b
 
@@ -568,6 +569,7 @@ IF /I "%FILETYPE%"==".zip" (
 				CALL :OPENCLENABLED
 			) ELSE (
 				ENDLOCAL
+				CALL :NOOPENCL
 				IF NOT "%RESUME%"=="1" (			
 					CALL :CPUMODESPLIT
 				)
@@ -575,9 +577,7 @@ IF /I "%FILETYPE%"==".zip" (
 			)
 		)
 		IF /I "%%#"=="pkzip" (
-			SET "TitleName=%TitleName:Initializing=CPU Mode%"
-			SET "TitleName=%TitleName:AVAILABLE=UNSUPPORTED Filetype%"
-			TITLE %TitleName%
+			CALL :NOOPENCL pkzip
 			IF NOT "%RESUME%"=="1" (			
 				CALL :CPUMODESPLIT
 			)
@@ -605,6 +605,7 @@ IF /I "%FILETYPE%"==".rar" (
 		
 	) ELSE (
 		ENDLOCAL
+		CALL :NOOPENCL
 		IF NOT "%RESUME%"=="1" (
 			CALL :CPUMODESPLIT
 		)
@@ -618,6 +619,7 @@ IF /I "%FILETYPE%"==".7z" (
 		CALL :OPENCLENABLED
 	) ELSE (
 		ENDLOCAL
+		CALL :NOOPENCL
 		IF NOT "%RESUME%"=="1" (
 			CALL :CPUMODESPLIT
 		)
@@ -627,14 +629,14 @@ IF /I "%FILETYPE%"==".pdf" (
 	SETLOCAL ENABLEDELAYEDEXPANSION
 	IF !GPU! GEQ 1 (
 		ENDLOCAL
-		SET "TitleName=%TitleName:Initializing=CPU Mode%"
-		SET "TitleName=%TitleName:AVAILABLE=UNSUPPORTED Filetype%"
-		TITLE %TitleName%
+		SET "FLAG=--format=pdf-opencl"
+		CALL :OPENCLENABLED
 	) ELSE (
 		ENDLOCAL
-	)
-	IF NOT "%RESUME%"=="1" (
-		CALL :CPUMODESPLIT
+		CALL :NOOPENCL
+		IF NOT "%RESUME%"=="1" (
+			CALL :CPUMODESPLIT
+		)
 	)
 )
 EXIT /b
@@ -642,6 +644,16 @@ EXIT /b
 :OPENCLENABLED
 SET "TitleName=%TitleName:Initializing=GPU Mode%"
 SET "TitleName=%TitleName:AVAILABLE=ENABLED%"
+TITLE %TitleName%
+EXIT /b
+
+:NOOPENCL
+SET "TitleName=%TitleName:Initializing=CPU Mode%"
+IF %1==[] (
+	SET "TitleName=%TitleName:AVAILABLE=UNAVAILABLE%"
+) ELSE (
+	SET "TitleName=%TitleName:AVAILABLE=UNSUPPORTED Filetype%"
+)
 TITLE %TitleName%
 EXIT /b
 
@@ -664,6 +676,7 @@ EXIT /b
 :SINGLE
 FOR /F "tokens=2 delims=:" %%# IN (john.pot) DO (
 	ECHO|(SET /p="%%# - [%~nx1]"&ECHO/)>>"%UserDesktop%\ZipRipper-Passwords.txt"
+	EXIT /b
 )
 EXIT /b
 
@@ -735,13 +748,13 @@ EXIT /b
 
 :DISPLAYINFOA
 CALL :SETTERMINAL
-START /min "Loading Results..." POWERSHELL -nop -c "Add-Type -MemberDefinition '[DllImport("^""User32.dll"^"")]public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);' -Namespace Win32 -Name Functions;$Min=[Win32.Functions]::ShowWindow((Get-Process -Id $PID).MainWindowHandle,0);$^={$Notify=[PowerShell]::Create().AddScript({$Audio=New-Object System.Media.SoundPlayer;$Audio.SoundLocation=$env:WinDir + '\Media\Windows Notify System Generic.wav';$Audio.playsync()});$rs=[RunspaceFactory]::CreateRunspace();$rs.ApartmentState="^""STA"^"";$rs.ThreadOptions="^""ReuseThread"^"";$rs.Open();$Notify.Runspace=$rs;$Notify.BeginInvoke()};&$^;$Msg=@();foreach($line in Get-Content '%UserDesktop%\ZipRipper-Passwords.txt'){if($null -eq $Msg){$Msg+=$line}else{$Msg+=$line + "^""`n"^""}};$Msg+="^""Save Location:`n"^"";$Msg+="^"""^"""^""%UserDesktop%\ZipRipper-Passwords.txt"^"""^"""^"";$PopUp=New-Object -ComObject Wscript.Shell;$PopUp.Popup($Msg,0,'Message from ZIP-Ripper',0x0)">nul
+START /min "Loading Results..." POWERSHELL -nop -c "Add-Type -AssemblyName System.Windows.Forms;$^={$Notify=[PowerShell]::Create().AddScript({$Audio=New-Object System.Media.SoundPlayer;$Audio.SoundLocation=$env:WinDir + '\Media\Windows Notify System Generic.wav';$Audio.playsync()});$rs=[RunspaceFactory]::CreateRunspace();$rs.ApartmentState="^""STA"^"";$rs.ThreadOptions="^""ReuseThread"^"";$rs.Open();$Notify.Runspace=$rs;$Notify.BeginInvoke()};&$^;$Msg=@();foreach($line in Get-Content '%UserDesktop%\ZipRipper-Passwords.txt'){if($null -eq $Msg){$Msg+=$line}else{$Msg+=$line + "^""`n"^""}};$Msg+="^""Save Location:`n"^"";$Msg+="^"""^"""^""%UserDesktop%\ZipRipper-Passwords.txt"^"""^"""^"";[System.Windows.Forms.MessageBox]::Show($Msg, 'Message from ZIP-Ripper',0,0,0,131072)">nul
 CALL :RESTORETERMINAL
 EXIT /b
 
 :DISPLAYINFOB
 CALL :SETTERMINAL
-START /min "Loading Results..." POWERSHELL -nop -c "Add-Type -MemberDefinition '[DllImport("^""User32.dll"^"")]public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);' -Namespace Win32 -Name Functions;$Min=[Win32.Functions]::ShowWindow((Get-Process -Id $PID).MainWindowHandle,0);$^={$Notify=[PowerShell]::Create().AddScript({$Audio=New-Object System.Media.SoundPlayer;$Audio.SoundLocation=$env:WinDir + '\Media\Windows Notify System Generic.wav';$Audio.playsync()});$rs=[RunspaceFactory]::CreateRunspace();$rs.ApartmentState="^""STA"^"";$rs.ThreadOptions="^""ReuseThread"^"";$rs.Open();$Notify.Runspace=$rs;$Notify.BeginInvoke()};&$^;$Msg=@();$Msg+="^""[ZIP-Ripper] - FOUND PASSWORDS`n"^"";$Msg+="^"" %DATE% + %TIME%`n"^"";$Msg+="^""==============================`n"^"";$Msg+="^""`n"^"";$Msg+="^""TOO MANY TO LIST`n"^"";$Msg+="^""`n"^"";$Msg+="^""==============================`n"^"";$Msg+="^""Save Location:`n"^"";$Msg+="^"""^"""^""%UserDesktop%\ZipRipper-Passwords.txt"^"""^"""^"";$PopUp=New-Object -ComObject Wscript.Shell;$PopUp.Popup($Msg,0,'Message from ZIP-Ripper',0x0)">nul
+START /min "Loading Results..." POWERSHELL -nop -c "Add-Type -AssemblyName System.Windows.Forms;$^={$Notify=[PowerShell]::Create().AddScript({$Audio=New-Object System.Media.SoundPlayer;$Audio.SoundLocation=$env:WinDir + '\Media\Windows Notify System Generic.wav';$Audio.playsync()});$rs=[RunspaceFactory]::CreateRunspace();$rs.ApartmentState="^""STA"^"";$rs.ThreadOptions="^""ReuseThread"^"";$rs.Open();$Notify.Runspace=$rs;$Notify.BeginInvoke()};&$^;$Msg=@();$Msg+="^""[ZIP-Ripper] - FOUND PASSWORDS`n"^"";$Msg+="^"" %DATE% + %TIME%`n"^"";$Msg+="^""==============================`n"^"";$Msg+="^""`n"^"";$Msg+="^""TOO MANY TO LIST`n"^"";$Msg+="^""`n"^"";$Msg+="^""==============================`n"^"";$Msg+="^""Save Location:`n"^"";$Msg+="^"""^"""^""%UserDesktop%\ZipRipper-Passwords.txt"^"""^"""^"";[System.Windows.Forms.MessageBox]::Show($Msg, 'Message from ZIP-Ripper',0,0,0,131072)">nul
 CALL :RESTORETERMINAL
 EXIT /b
 
@@ -758,7 +771,7 @@ EXIT /b
 :SINGLEINSTANCE
 TASKLIST /V /NH /FI "imagename eq cmd.exe"|FINDSTR /I /C^:"ZIP-Ripper">nul
 IF NOT %errorlevel%==1 (
-	POWERSHELL -nop -c "$^={$Notify=[PowerShell]::Create().AddScript({$Audio=New-Object System.Media.SoundPlayer;$Audio.SoundLocation=$env:WinDir + '\Media\Windows Notify System Generic.wav';$Audio.playsync()});$rs=[RunspaceFactory]::CreateRunspace();$rs.ApartmentState="^""STA"^"";$rs.ThreadOptions="^""ReuseThread"^"";$rs.Open();$Notify.Runspace=$rs;$Notify.BeginInvoke()};&$^;$PopUp=New-Object -ComObject Wscript.Shell;$PopUp.Popup("^""ZipRipper is already running!"^"",0,'ERROR:',0x10)">nul&EXIT
+	POWERSHELL -nop -c "Add-Type -AssemblyName System.Windows.Forms;$^={$Notify=[PowerShell]::Create().AddScript({$Audio=New-Object System.Media.SoundPlayer;$Audio.SoundLocation=$env:WinDir + '\Media\Windows Notify System Generic.wav';$Audio.playsync()});$rs=[RunspaceFactory]::CreateRunspace();$rs.ApartmentState="^""STA"^"";$rs.ThreadOptions="^""ReuseThread"^"";$rs.Open();$Notify.Runspace=$rs;$Notify.BeginInvoke()};&$^;[System.Windows.Forms.MessageBox]::Show("^""ZipRipper is already running!"^"", 'ERROR:',0,16,0,131072)">nul&EXIT
 )
 TITLE [ZIP-Ripper] Launching...
 EXIT /b
@@ -803,13 +816,13 @@ CALL :LISTMESSAGE "Wordlist settings reset to default" "Wordlist Info:"
 EXIT /b
 
 :LISTMESSAGE
-POWERSHELL -nop -c "$^={$Notify=[PowerShell]::Create().AddScript({$Audio=New-Object System.Media.SoundPlayer;$Audio.SoundLocation=$env:WinDir + '\Media\Windows Notify System Generic.wav';$Audio.playsync()});$rs=[RunspaceFactory]::CreateRunspace();$rs.ApartmentState="^""STA"^"";$rs.ThreadOptions="^""ReuseThread"^"";$rs.Open();$Notify.Runspace=$rs;$Notify.BeginInvoke()};&$^;$PopUp=New-Object -ComObject Wscript.Shell;$PopUp.Popup("^""%~1"^"",0,'%~2',0 + 4096)">nul
+POWERSHELL -nop -c "Add-Type -AssemblyName System.Windows.Forms;$^={$Notify=[PowerShell]::Create().AddScript({$Audio=New-Object System.Media.SoundPlayer;$Audio.SoundLocation=$env:WinDir + '\Media\Windows Notify System Generic.wav';$Audio.playsync()});$rs=[RunspaceFactory]::CreateRunspace();$rs.ApartmentState="^""STA"^"";$rs.ThreadOptions="^""ReuseThread"^"";$rs.Open();$Notify.Runspace=$rs;$Notify.BeginInvoke()};&$^;[System.Windows.Forms.MessageBox]::Show("^""%~1"^"", '%~2',0,64,0,131072)">nul
 EXIT /b
 
 :ENABLEBRUTE
-FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "$^=New-Object -ComObject Wscript.Shell;$^.Popup('Would you like to enable bruteforce mode? (Click NO to restore default settings and return to the menu)',0,'The selected wordlist file is empty',32+4)"`) DO (
+FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "Add-Type -AssemblyName System.Windows.Forms;$^={$Notify=[PowerShell]::Create().AddScript({$Audio=New-Object System.Media.SoundPlayer;$Audio.SoundLocation=$env:WinDir + '\Media\Windows Notify System Generic.wav';$Audio.playsync()});$rs=[RunspaceFactory]::CreateRunspace();$rs.ApartmentState="^""STA"^"";$rs.ThreadOptions="^""ReuseThread"^"";$rs.Open();$Notify.Runspace=$rs;$Notify.BeginInvoke()};&$^;[System.Windows.Forms.MessageBox]::Show('Would you like to enable bruteforce mode? (Click NO to restore default settings and return to the menu)', 'The selected wordlist file is empty',4,32,0,131072)"`) DO (
 	SET %1=%%#
-)
+)>nul
 EXIT /b
 
 :SINGLEDOWNLOAD
@@ -821,7 +834,7 @@ SET "LOGO=%ProgramData%\zipripper.png"
 IF /I NOT EXIST "%LOGO%" (
 	CALL :SINGLEDOWNLOAD "https://raw.githubusercontent.com/illsk1lls/ZipRipper/main/.resources/zipripper.png" "%LOGO%" "Initializing..."
 )
-FOR /F "usebackq delims=, tokens=1,2*" %%# IN (`POWERSHELL -nop -c "Add-Type -AssemblyName PresentationFramework, System.Drawing, System.Windows.Forms, WindowsFormsIntegration;function wlist(){Switch($showL){0{$D.Visibility="^""Visible"^"";$R.Visibility="^""Visible"^"";$C.Visibility="^""Visible"^"";$global:showL="^""1"^""}1{$D.Visibility="^""Collapsed"^"";$R.Visibility="^""Collapsed"^"";$C.Visibility="^""Collapsed"^"";$global:showL="^""0"^""}}};[xml]$xaml='<Window xmlns="^""http://schemas.microsoft.com/winfx/2006/xaml/presentation"^"" xmlns:x="^""http://schemas.microsoft.com/winfx/2006/xaml"^"" WindowStartupLocation="^""CenterScreen"^"" WindowStyle="^""None"^"" Background="^""Transparent"^"" AllowsTransparency="^""True"^"" Width="^""285"^"" Height="^""324"^""><Window.Resources><ControlTemplate x:Key="^""nM"^"" TargetType="^""Button"^""><Border Background="^""{TemplateBinding Background}"^"" BorderBrush="^""{TemplateBinding BorderBrush}"^"" BorderThickness="^""{TemplateBinding BorderThickness}"^""><ContentPresenter HorizontalAlignment="^""{TemplateBinding HorizontalContentAlignment}"^"" VerticalAlignment="^""{TemplateBinding VerticalContentAlignment}"^""/></Border><ControlTemplate.Triggers><Trigger Property="^""IsEnabled"^"" Value="^""False"^""><Setter Property="^""Background"^"" Value="^""{x:Static SystemColors.ControlLightBrush}"^""/><Setter Property="^""Foreground"^"" Value="^""{x:Static SystemColors.GrayTextBrush}"^""/></Trigger></ControlTemplate.Triggers></ControlTemplate></Window.Resources><Grid><Grid.RowDefinitions><RowDefinition Height="^""298"^""/><RowDefinition Height="^""*"^""/></Grid.RowDefinitions><Grid.Background><ImageBrush ImageSource="^""%LOGO%"^""/></Grid.Background><Grid.Triggers><EventTrigger RoutedEvent="^""Loaded"^""><BeginStoryboard><Storyboard><DoubleAnimation Storyboard.TargetProperty="^""Background.Opacity"^"" From="^""0"^"" To="^""1"^"" Duration="^""0:0:1"^""/></Storyboard></BeginStoryboard></EventTrigger></Grid.Triggers><Canvas Grid.Row="^""0"^""><Button x:Name="^""Offline"^"" Canvas.Left="^""141"^"" Canvas.Top="^""56"^"" Height="^""16"^"" Width="^""26"^"" ToolTip="^""Create [zr-offline.txt]"^"" Template="^""{StaticResource nM}"^""/><Button x:Name="^""Cleanup"^"" Canvas.Left="^""138"^"" Canvas.Top="^""154"^"" Height="^""20"^"" Width="^""20"^"" ToolTip="^""Clear Resume Cache"^"" Template="^""{StaticResource nM}"^""/><Button Name="^""List"^"" Canvas.Left="^""143"^"" Canvas.Top="^""116"^"" Height="^""10"^"" Width="^""15"^"" ToolTip="^""Select Wordlist"^"" Template="^""{StaticResource nM}"^"" Opacity="^""0"^""></Button><Button Name="^""Default"^"" Canvas.Left="^""123"^"" Canvas.Top="^""130"^"" FontSize="^""11"^"" Foreground="^""#eeeeee"^"" Background="^""#333333"^"" Height="^""18"^"" Width="^""55"^"" Visibility="^""Collapsed"^"" HorizontalContentAlignment="^""Left"^"" Template="^""{StaticResource nM}"^"" Opacity="^""0.9"^"">Default</Button><Button Name="^""WL"^"" Canvas.Left="^""123"^"" Canvas.Top="^""147"^"" FontSize="^""11"^"" Foreground="^""#eeeeee"^"" Background="^""#333333"^"" Height="^""18"^"" Width="^""55"^"" Visibility="^""Collapsed"^"" HorizontalContentAlignment="^""Left"^"" Template="^""{StaticResource nM}"^"" Opacity="^""0.9"^"">%WORDLISTNAME:"=%</Button><Button Name="^""Custom"^"" Canvas.Left="^""123"^"" Canvas.Top="^""164"^"" FontSize="^""11"^"" Foreground="^""#eeeeee"^"" Background="^""#333333"^"" Height="^""18"^"" Width="^""55"^"" Visibility="^""Collapsed"^"" HorizontalContentAlignment="^""Left"^"" Template="^""{StaticResource nM}"^"" Opacity="^""0.9"^"">Custom</Button></Canvas><Canvas Grid.Row="^""1"^""><Button x:Name="^""Start"^"" Height="^""22"^"" Width="^""65"^"" Content="^""Start"^"" ToolTip="^""Click to Begin..."^"" Template="^""{StaticResource nM}"^""><Button.Triggers><EventTrigger RoutedEvent="^""Loaded"^""><BeginStoryboard><Storyboard><DoubleAnimation From="^""40"^"" To="^""65"^"" Duration="^""0:0:1"^"" Storyboard.TargetProperty="^""(Canvas.Left)"^"" AutoReverse="^""False"^""/><DoubleAnimation Storyboard.TargetProperty="^""Opacity"^"" From="^""0"^"" To="^""1"^"" Duration="^""0:0:2"^""/></Storyboard></BeginStoryboard></EventTrigger></Button.Triggers></Button></Canvas><Canvas Grid.Row="^""1"^""><Button x:Name="^""Quit"^"" Height="^""22"^"" Width="^""65"^"" Content="^""Quit"^"" ToolTip="^""Click to Exit"^"" Template="^""{StaticResource nM}"^""><Button.Triggers><EventTrigger RoutedEvent="^""Loaded"^""><BeginStoryboard><Storyboard><DoubleAnimation From="^""40"^"" To="^""65"^"" Duration="^""0:0:1"^"" Storyboard.TargetProperty="^""(Canvas.Right)"^"" AutoReverse="^""False"^""/><DoubleAnimation Storyboard.TargetProperty="^""Opacity"^"" From="^""0"^"" To="^""1"^"" Duration="^""0:0:2"^""/></Storyboard></BeginStoryboard></EventTrigger></Button.Triggers></Button></Canvas></Grid><Window.TaskbarItemInfo><TaskbarItemInfo/></Window.TaskbarItemInfo></Window>';$reader=(New-Object System.Xml.XmlNodeReader $xaml);$window=[Windows.Markup.XamlReader]::Load($reader);$window.Title='ZipRipper';$bitmap=New-Object System.Windows.Media.Imaging.BitmapImage;$bitmap='%LOGO:'=''%';$window.Icon=$bitmap;$window.TaskbarItemInfo.Overlay=$bitmap;$window.TaskbarItemInfo.Description=$window.Title;$window.Add_Closing({[System.Windows.Forms.Application]::Exit();Stop-Process $pid});$L=$Window.FindName("^""List"^"");$D=$Window.FindName("^""Default"^"");$R=$Window.FindName("^""WL"^"");$C=$Window.FindName("^""Custom"^"");$L.Add_Click({wlist});$D.Add_MouseEnter({$D.Background="^""#eeeeee"^"";$D.Foreground="^""#333333"^""});$D.Add_MouseLeave({$D.Background="^""#333333"^"";$D.Foreground="^""#eeeeee"^""});$D.Add_Click({$global:list="^""0"^"";wlist});$R.Add_MouseEnter({$R.Background="^""#eeeeee"^"";$R.Foreground="^""#333333"^""});$R.Add_MouseLeave({$R.Background="^""#333333"^"";$R.Foreground="^""#eeeeee"^""});$R.Add_Click({$global:list="^""1"^"";wlist});$C.Add_MouseEnter({$C.Background="^""#eeeeee"^"";$C.Foreground="^""#333333"^""});$C.Add_MouseLeave({$C.Background="^""#333333"^"";$C.Foreground="^""#eeeeee"^""});$C.Add_Click({$global:list="^""2"^"";wlist});$b=$Window.FindName("^""Start"^"");$b.Background = "^""#333333"^"";$b.Foreground="^""#eeeeee"^"";$b.FontSize="^""12"^"";$b.FontWeight="^""Bold"^"";$b.Add_MouseEnter({$b.Background="^""#eeeeee"^"";$b.Foreground="^""#333333"^""});$b.Add_MouseLeave({$b.Background="^""#333333"^"";$b.Foreground="^""#eeeeee"^""});$b.Add_Click({write-host "^""Start,$list"^"";Exit});$b2=$Window.FindName("^""Quit"^"");$b2.Background="^""#333333"^"";$b2.Foreground="^""#eeeeee"^"";$b2.FontSize="^""12"^"";$b2.FontWeight="^""Bold"^"";$b2.Add_MouseEnter({$b2.Background="^""#eeeeee"^"";$b2.Foreground="^""#333333"^""});$b2.Add_MouseLeave({$b2.Background="^""#333333"^"";$b2.Foreground="^""#eeeeee"^""});$b2.Add_Click({write-host 'Quit';Exit});$b3=$Window.FindName("^""Offline"^"");$b3.Opacity="^""0"^"";$b3.Add_Click({$b3m=New-Object -ComObject Wscript.Shell;$b3a=$b3m.Popup('Create [zr-offline.txt] for Offline Mode?',0,'Offline Mode Builder',0x1);if($b3a -eq 1){write-host 'Offline';Exit}});$b4=$Window.FindName("^""Cleanup"^"");$b4.Opacity="^""0"^"";$b4.Add_Click({$b4m=New-Object -ComObject Wscript.Shell;$b4a=$b4m.Popup("^""Cleanup ALL resume data?"^"",0,'Clear InProgress Jobs',0x1);if($b4a -eq 1){if(Test-Path -Path '%AppData:'=''%\ZR-InProgress'){Remove-Item '%AppData:'=''%\ZR-InProgress' -Recurse -force -ErrorAction SilentlyContinue;$b4m2=New-Object -ComObject Wscript.Shell;$b4m2.Popup("^""ALL Jobs Cleared"^"",0,'Clear InProgress Jobs',0x0)} else {$b4m3=New-Object -ComObject Wscript.Shell;$b4m3.Popup('There are no jobs to clear',0,'Clear InProgress Jobs',0x0)}}});$list="^""0"^"";$showL="^""0"^"";$window.add_MouseLeftButtonDown({if($showL -eq 1){wlist};$window.DragMove()});$window.Show();$appContext=New-Object System.Windows.Forms.ApplicationContext;[void][System.Windows.Forms.Application]::Run($appContext)"`) DO (
+FOR /F "usebackq delims=, tokens=1,2*" %%# IN (`POWERSHELL -nop -c "Add-Type -AssemblyName PresentationFramework, System.Drawing, System.Windows.Forms, WindowsFormsIntegration;function wlist(){Switch($showL){0{$D.Visibility="^""Visible"^"";$R.Visibility="^""Visible"^"";$C.Visibility="^""Visible"^"";$global:showL="^""1"^""}1{$D.Visibility="^""Collapsed"^"";$R.Visibility="^""Collapsed"^"";$C.Visibility="^""Collapsed"^"";$global:showL="^""0"^""}}};[xml]$xaml='<Window xmlns="^""http://schemas.microsoft.com/winfx/2006/xaml/presentation"^"" xmlns:x="^""http://schemas.microsoft.com/winfx/2006/xaml"^"" WindowStartupLocation="^""CenterScreen"^"" WindowStyle="^""None"^"" Background="^""Transparent"^"" AllowsTransparency="^""True"^"" Width="^""285"^"" Height="^""324"^""><Window.Resources><ControlTemplate x:Key="^""nM"^"" TargetType="^""Button"^""><Border Background="^""{TemplateBinding Background}"^"" BorderBrush="^""{TemplateBinding BorderBrush}"^"" BorderThickness="^""{TemplateBinding BorderThickness}"^""><ContentPresenter HorizontalAlignment="^""{TemplateBinding HorizontalContentAlignment}"^"" VerticalAlignment="^""{TemplateBinding VerticalContentAlignment}"^""/></Border><ControlTemplate.Triggers><Trigger Property="^""IsEnabled"^"" Value="^""False"^""><Setter Property="^""Background"^"" Value="^""{x:Static SystemColors.ControlLightBrush}"^""/><Setter Property="^""Foreground"^"" Value="^""{x:Static SystemColors.GrayTextBrush}"^""/></Trigger></ControlTemplate.Triggers></ControlTemplate></Window.Resources><Grid><Grid.RowDefinitions><RowDefinition Height="^""298"^""/><RowDefinition Height="^""*"^""/></Grid.RowDefinitions><Grid.Background><ImageBrush ImageSource="^""%LOGO%"^""/></Grid.Background><Grid.Triggers><EventTrigger RoutedEvent="^""Loaded"^""><BeginStoryboard><Storyboard><DoubleAnimation Storyboard.TargetProperty="^""Background.Opacity"^"" From="^""0"^"" To="^""1"^"" Duration="^""0:0:1"^""/></Storyboard></BeginStoryboard></EventTrigger></Grid.Triggers><Canvas Grid.Row="^""0"^""><Button x:Name="^""Offline"^"" Canvas.Left="^""141"^"" Canvas.Top="^""56"^"" Height="^""16"^"" Width="^""26"^"" ToolTip="^""Create [zr-offline.txt]"^"" Template="^""{StaticResource nM}"^""/><Button x:Name="^""Cleanup"^"" Canvas.Left="^""138"^"" Canvas.Top="^""154"^"" Height="^""20"^"" Width="^""20"^"" ToolTip="^""Clear Resume Cache"^"" Template="^""{StaticResource nM}"^""/><Button Name="^""List"^"" Canvas.Left="^""143"^"" Canvas.Top="^""116"^"" Height="^""10"^"" Width="^""15"^"" ToolTip="^""Select Wordlist"^"" Template="^""{StaticResource nM}"^"" Opacity="^""0"^""></Button><Button Name="^""Default"^"" Canvas.Left="^""123"^"" Canvas.Top="^""130"^"" FontSize="^""11"^"" Foreground="^""#eeeeee"^"" Background="^""#333333"^"" Height="^""18"^"" Width="^""55"^"" Visibility="^""Collapsed"^"" HorizontalContentAlignment="^""Left"^"" Template="^""{StaticResource nM}"^"" Opacity="^""0.9"^"">Default</Button><Button Name="^""WL"^"" Canvas.Left="^""123"^"" Canvas.Top="^""147"^"" FontSize="^""11"^"" Foreground="^""#eeeeee"^"" Background="^""#333333"^"" Height="^""18"^"" Width="^""55"^"" Visibility="^""Collapsed"^"" HorizontalContentAlignment="^""Left"^"" Template="^""{StaticResource nM}"^"" Opacity="^""0.9"^"">%WORDLISTNAME:"=%</Button><Button Name="^""Custom"^"" Canvas.Left="^""123"^"" Canvas.Top="^""164"^"" FontSize="^""11"^"" Foreground="^""#eeeeee"^"" Background="^""#333333"^"" Height="^""18"^"" Width="^""55"^"" Visibility="^""Collapsed"^"" HorizontalContentAlignment="^""Left"^"" Template="^""{StaticResource nM}"^"" Opacity="^""0.9"^"">Custom</Button></Canvas><Canvas Grid.Row="^""1"^""><Button x:Name="^""Start"^"" Height="^""22"^"" Width="^""65"^"" Content="^""Start"^"" ToolTip="^""Click to Begin..."^"" Template="^""{StaticResource nM}"^""><Button.Triggers><EventTrigger RoutedEvent="^""Loaded"^""><BeginStoryboard><Storyboard><DoubleAnimation From="^""40"^"" To="^""65"^"" Duration="^""0:0:1"^"" Storyboard.TargetProperty="^""(Canvas.Left)"^"" AutoReverse="^""False"^""/><DoubleAnimation Storyboard.TargetProperty="^""Opacity"^"" From="^""0"^"" To="^""1"^"" Duration="^""0:0:2"^""/></Storyboard></BeginStoryboard></EventTrigger></Button.Triggers></Button></Canvas><Canvas Grid.Row="^""1"^""><Button x:Name="^""Quit"^"" Height="^""22"^"" Width="^""65"^"" Content="^""Quit"^"" ToolTip="^""Click to Exit"^"" Template="^""{StaticResource nM}"^""><Button.Triggers><EventTrigger RoutedEvent="^""Loaded"^""><BeginStoryboard><Storyboard><DoubleAnimation From="^""40"^"" To="^""65"^"" Duration="^""0:0:1"^"" Storyboard.TargetProperty="^""(Canvas.Right)"^"" AutoReverse="^""False"^""/><DoubleAnimation Storyboard.TargetProperty="^""Opacity"^"" From="^""0"^"" To="^""1"^"" Duration="^""0:0:2"^""/></Storyboard></BeginStoryboard></EventTrigger></Button.Triggers></Button></Canvas></Grid><Window.TaskbarItemInfo><TaskbarItemInfo/></Window.TaskbarItemInfo></Window>';$reader=(New-Object System.Xml.XmlNodeReader $xaml);$window=[Windows.Markup.XamlReader]::Load($reader);$window.Title='ZipRipper';$bitmap=New-Object System.Windows.Media.Imaging.BitmapImage;$bitmap='%LOGO:'=''%';$window.Icon=$bitmap;$window.TaskbarItemInfo.Overlay=$bitmap;$window.TaskbarItemInfo.Description=$window.Title;$window.Add_Closing({[System.Windows.Forms.Application]::Exit();Stop-Process $pid});$L=$Window.FindName("^""List"^"");$D=$Window.FindName("^""Default"^"");$R=$Window.FindName("^""WL"^"");$C=$Window.FindName("^""Custom"^"");$L.Add_Click({wlist});$D.Add_MouseEnter({$D.Background="^""#eeeeee"^"";$D.Foreground="^""#333333"^""});$D.Add_MouseLeave({$D.Background="^""#333333"^"";$D.Foreground="^""#eeeeee"^""});$D.Add_Click({$global:list='0';wlist});$R.Add_MouseEnter({$R.Background="^""#eeeeee"^"";$R.Foreground="^""#333333"^""});$R.Add_MouseLeave({$R.Background="^""#333333"^"";$R.Foreground="^""#eeeeee"^""});$R.Add_Click({$global:list='1';wlist});$C.Add_MouseEnter({$C.Background="^""#eeeeee"^"";$C.Foreground="^""#333333"^""});$C.Add_MouseLeave({$C.Background="^""#333333"^"";$C.Foreground="^""#eeeeee"^""});$C.Add_Click({$global:list='2';wlist});$b=$Window.FindName("^""Start"^"");$b.Background = "^""#333333"^"";$b.Foreground="^""#eeeeee"^"";$b.FontSize="^""12"^"";$b.FontWeight="^""Bold"^"";$b.Add_MouseEnter({$b.Background="^""#eeeeee"^"";$b.Foreground="^""#333333"^""});$b.Add_MouseLeave({$b.Background="^""#333333"^"";$b.Foreground="^""#eeeeee"^""});$b.Add_Click({write-host "^""Start,$list"^"";Exit});$b2=$Window.FindName("^""Quit"^"");$b2.Background="^""#333333"^"";$b2.Foreground="^""#eeeeee"^"";$b2.FontSize="^""12"^"";$b2.FontWeight="^""Bold"^"";$b2.Add_MouseEnter({$b2.Background="^""#eeeeee"^"";$b2.Foreground="^""#333333"^""});$b2.Add_MouseLeave({$b2.Background="^""#333333"^"";$b2.Foreground="^""#eeeeee"^""});$b2.Add_Click({write-host 'Quit';Exit});$b3=$Window.FindName("^""Offline"^"");$b3.Opacity="^""0"^"";$b3.Add_Click({$b3m=New-Object -ComObject Wscript.Shell;$b3a=$b3m.Popup('Create [zr-offline.txt] for Offline Mode?',0,'Offline Mode Builder',0x1);if($b3a -eq 1){write-host 'Offline';Exit}});$b4=$Window.FindName("^""Cleanup"^"");$b4.Opacity="^""0"^"";$b4.Add_Click({$b4m=New-Object -ComObject Wscript.Shell;$b4a=$b4m.Popup('Cleanup ALL resume data?',0,'Clear InProgress Jobs',0x1);if($b4a -eq 1){if(Test-Path -Path '%AppData:'=''%\ZR-InProgress'){Remove-Item '%AppData:'=''%\ZR-InProgress' -Recurse -force -ErrorAction SilentlyContinue;$b4m2=New-Object -ComObject Wscript.Shell;$b4m2.Popup('ALL Jobs Cleared',0,'Clear InProgress Jobs',0x0)} else {$b4m3=New-Object -ComObject Wscript.Shell;$b4m3.Popup('There are no jobs to clear',0,'Clear InProgress Jobs',0x0)}}});$list='0';$showL='0';$window.add_MouseLeftButtonDown({if($showL -eq 1){wlist};$window.DragMove()});$window.Show();$appContext=New-Object System.Windows.Forms.ApplicationContext;[void][System.Windows.Forms.Application]::Run($appContext)"`) DO (
 	SET "%1=%%#"
 	IF NOT "%%$"=="" (
 		SET "%2=%%$"
@@ -904,24 +917,20 @@ PUSHD "%ProgramData%\ztmp"
 POWERSHELL -nop -c "Add-Type -AssemblyName PresentationFramework, System.Drawing, System.Windows.Forms, WindowsFormsIntegration;[xml]$xaml='<Window xmlns="^""http://schemas.microsoft.com/winfx/2006/xaml/presentation"^"" xmlns:x="^""http://schemas.microsoft.com/winfx/2006/xaml"^"" Title="^""Building [zr-offline.txt]"^"" Height="^""75"^"" Width="^""210"^"" WindowStartupLocation="^""CenterScreen"^"" WindowStyle="^""None"^"" Topmost="^""True"^"" Background="^""#333333"^"" AllowsTransparency="^""True"^""><Canvas><TextBlock Name="^""Info"^"" Canvas.Top="^""3"^"" Text="^"" Initializing..."^"" Foreground="^""#eeeeee"^"" FontWeight="^""Bold"^""/><ProgressBar Canvas.Left="^""5"^"" Canvas.Top="^""28"^"" Width="^""200"^"" Height="^""3"^"" Name="^""Progress"^"" Foreground="^""#FF0000"^""/><TextBlock Name="^""Info2"^"" Canvas.Top="^""38"^"" Text="^"" Getting Resources (Stage 1/2)"^"" Foreground="^""#eeeeee"^"" FontWeight="^""Bold"^""/><ProgressBar Canvas.Left="^""5"^"" Canvas.Top="^""63"^"" Width="^""200"^"" Height="^""3"^"" Name="^""Progress2"^"" Foreground="^""#FF0000"^""/></Canvas><Window.TaskbarItemInfo><TaskbarItemInfo/></Window.TaskbarItemInfo></Window>';$reader=(New-Object System.Xml.XmlNodeReader $xaml);$form=[Windows.Markup.XamlReader]::Load($reader);$bitmap=New-Object System.Windows.Media.Imaging.BitmapImage;$bitmap='%ProgramData%\zipripper.png';$form.Icon=$bitmap;$form.TaskbarItemInfo.Overlay=$bitmap;$form.TaskbarItemInfo.Description=$form.Title;$form.Add_Closing({[System.Windows.Forms.Application]::Exit();Stop-Process $pid});$progressBar=$form.FindName("^""Progress"^"");$progressTotal=$form.FindName("^""Progress2"^"");$info=$form.FindName("^""Info"^"");$info2=$form.FindName("^""Info2"^"");function Update-Gui (){$form.Dispatcher.Invoke([Windows.Threading.DispatcherPriority]::Background, [action]{})};function Build () {$info.Text=' Downloading 7zr Standalone';Update-Gui;downloadFile 'https://www.7-zip.org/a/7zr.exe' '%ProgramData%\ztmp\101';$info.Text=' Downloading 7za Console';Update-Gui;downloadFile 'https://www.7-zip.org/a/7z2300-extra.7z' '%ProgramData%\ztmp\100';$info.Text=' Downloading JohnTheRipper';Update-Gui;downloadFile 'https://github.com/openwall/john-packages/releases/download/bleeding/winX64_1_JtR.7z' '%ProgramData%\ztmp\103';$info.Text=' Downloading Portable Perl';Update-Gui;downloadFile 'https://github.com/StrawberryPerl/Perl-Dist-Strawberry/releases/download/SP_5380_5361/strawberry-perl-5.38.0.1-64bit-portable.zip' '%ProgramData%\ztmp\102';$progressBar.Value=0;$info.Text=' Merging resources'; $info2.Text=' Building zr-offline.txt (Stage 2/2)';$pass=1;Update-Gui;makecab.exe /F '%ProgramData%\ztmp\offline.config' /D Compress='OFF' /D CabinetNameTemplate='%ProgramData%\ztmp\zr-offline.txt'| out-string -stream | Select-String -Pattern "^""(\d{1,3})(?=[.]\d{1,2}%%)"^"" -AllMatches | ForEach-Object { $_.Matches.Value } | foreach {$progressBar.Value=$_;if($totalP2 -ge 6){$progressTotal.Value=$progressTotal.Value + 1;$totalP2=0};if($progressBar.Value -ne $lastpercent){$lastpercent=$progressBar.Value;$totalP2++};if($progressBar.Value -ge 100){$pass++};if($pass -eq 2){$info.Text="^"" Building data file"^"";if($progressBar.Value -eq 99){$pass++}};if($pass -eq 3){$info.Text="^"" Purging Cache"^""};if($progressBar.Value -ne $lastpercent2){$lastpercent2=$progressBar.Value;Update-Gui}};$progressBar.Value=100;$m=([IO.File]::ReadAllLines('%ProgramData%\launcher.ZipRipper')).Replace('"^""','');Move-Item -Path '%ProgramData%\ztmp\zr-offline.txt' -Destination "^""$m"^"" -Force;$progressTotal.Value=100;$info.Text="^"" Build Completed!"^"";Update-Gui;Sleep 3};function DownloadFile($url,$targetFile){$uri=New-Object "^""System.Uri"^"" "^""$url"^"";$request=[System.Net.HttpWebRequest]::Create($uri);$request.set_Timeout(15000);$response=$request.GetResponse();$totalLength=[System.Math]::Floor($response.get_ContentLength()/1024);$responseStream=$response.GetResponseStream();$targetStream=New-Object -TypeName System.IO.FileStream -ArgumentList $targetFile, Create;$buffer=new-object byte[] 10KB;$count=$responseStream.Read($buffer,0,$buffer.length);$downloadedBytes=$count;while ($count -gt 0){$targetStream.Write($buffer, 0, $count);$count=$responseStream.Read($buffer,0,$buffer.length);$downloadedBytes=$downloadedBytes + $count;$roundedPercent=[int]((([System.Math]::Floor($downloadedBytes/1024))/$totalLength)*100);$progressBar.Value=$roundedPercent;if($totalP -ge 7){$progressTotal.Value++;$totalP=0};if($progressBar.Value -ne $lastpercent){$lastpercent=$progressBar.Value;$totalP++;Update-Gui}};$targetStream.Flush();$targetStream.Close();$targetStream.Dispose();$responseStream.Dispose()};$form.Add_ContentRendered({Build;$form.Close()});$form.Show();$appContext=New-Object System.Windows.Forms.ApplicationContext;[void][System.Windows.Forms.Application]::Run($appContext)">nul
 POPD
 >nul 2>&1 RD "%ProgramData%\ztmp" /S /Q
-FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "$^=New-Object -ComObject Wscript.Shell;$^.Popup('Re-launch ZipRipper in Offline Mode?',0,'Build Complete.',32+4)"`) DO (
+FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "Add-Type -AssemblyName System.Windows.Forms;$^={$Notify=[PowerShell]::Create().AddScript({$Audio=New-Object System.Media.SoundPlayer;$Audio.SoundLocation=$env:WinDir + '\Media\Windows Notify System Generic.wav';$Audio.playsync()});$rs=[RunspaceFactory]::CreateRunspace();$rs.ApartmentState="^""STA"^"";$rs.ThreadOptions="^""ReuseThread"^"";$rs.Open();$Notify.Runspace=$rs;$Notify.BeginInvoke()};&$^;[System.Windows.Forms.MessageBox]::Show('Re-launch ZipRipper in Offline Mode?', 'Build Complete.',4,32,0,131072)"`) DO (
 	SET %1=%%#
 )
 EXIT /b
 
 :CPUMODESPLIT
-FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "$Msg+='Would you like to split the wordlist?';$Msg+="^""`n"^"";$Msg+="^""`n"^"";$Msg+='WARNING - There may be up to a 60 second delay from when a password is found, before the remaining lists are halted.';$Msg+="^""`n"^"";$Msg+="^""`n"^"";$Msg+='To split the wordlist click YES';$Msg+="^""`n"^"";$Msg+="^""`n"^"";$Msg+='To run ZipRipper in default mode click NO (If this is your first attempt you should click NO)';$^=New-Object -ComObject Wscript.Shell;$^.Popup($Msg,0,'CPU Mode Detected',32+4)"`) DO (
-	IF %%# EQU 6 (
-		FOR /F "tokens=*" %%# in ('wmic cpu get NumberOfCores /value ^| find "="') do (
-			FOR /F "tokens=2 delims==" %%# in ("%%#") do (
-				SET AVAILABLECORES=%%#			)
+FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "Add-Type -AssemblyName System.Windows.Forms;$Msg+='Would you like to split the wordlist?';$Msg+="^""`n"^"";$Msg+="^""`n"^"";$Msg+='WARNING - There may be up to a 60 second delay from when a password is found, before the remaining lists are halted.';$Msg+="^""`n"^"";$Msg+="^""`n"^"";$Msg+='To split the wordlist click YES';$Msg+="^""`n"^"";$Msg+="^""`n"^"";$Msg+='To run ZipRipper in default mode click NO (If this is your first attempt you should click NO)';$^={$Notify=[PowerShell]::Create().AddScript({$Audio=New-Object System.Media.SoundPlayer;$Audio.SoundLocation=$env:WinDir + '\Media\Windows Notify System Generic.wav';$Audio.playsync()});$rs=[RunspaceFactory]::CreateRunspace();$rs.ApartmentState="^""STA"^"";$rs.ThreadOptions="^""ReuseThread"^"";$rs.Open();$Notify.Runspace=$rs;$Notify.BeginInvoke()};&$^;[System.Windows.Forms.MessageBox]::Show($Msg, 'CPU Mode Detected',4,32,0,131072)"`) DO (
+	IF /I "%%#"=="Yes" (
+		FOR /F "tokens=*" %%# in ('wmic cpu get NumberOfCores /value ^| find "="') DO (
+			FOR /F "tokens=2 delims==" %%# in ("%%#") DO (
+				SET "FLAG=--fork=%%#"
+			)
 		)
 	)
-)
-IF DEFINED AVAILABLECORES (
-	SETLOCAL ENABLEDELAYEDEXPANSION
-	SET "FLAG=--fork=!AVAILABLECORES!"
-	ENDLOCAL
 )
 EXIT /b
 
@@ -1087,8 +1096,8 @@ IF "!ZIP2!"=="1" (
 EXIT /b
 
 :FIXRADEON
-FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "$^=New-Object -ComObject Wscript.Shell;$^.Popup('Radeon series GPU detected, but OpenCL dependencies are missing.. Would you like to perform a one-time download from AMD to enable OpenCL support on your system? (~13mb)',0,'Enable AMD OpenCL Support?',0x1)"`) DO (
-	IF %%# EQU 1 (
+FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "Add-Type -AssemblyName System.Windows.Forms;$^={$Notify=[PowerShell]::Create().AddScript({$Audio=New-Object System.Media.SoundPlayer;$Audio.SoundLocation=$env:WinDir + '\Media\Windows Notify System Generic.wav';$Audio.playsync()});$rs=[RunspaceFactory]::CreateRunspace();$rs.ApartmentState="^""STA"^"";$rs.ThreadOptions="^""ReuseThread"^"";$rs.Open();$Notify.Runspace=$rs;$Notify.BeginInvoke()};&$^;[System.Windows.Forms.MessageBox]::Show('Radeon series GPU detected, but OpenCL dependencies are missing.. Would you like to perform a one-time download from AMD to enable OpenCL support on your system? (~13mb)','Enable AMD OpenCL Support?',4,32,0,131072)"`) DO (
+	IF /I "%%#"=="Yes" (
 		CALL :SINGLEDOWNLOAD "https://download.amd.com/dir/bin/amdocl64.dll/64CB5B3Ed36000/amdocl64.dll" "%WinDir%\System32\amdocl64.dll" "Adding AMD OpenCL support..."
 		>nul 2>&1 REG ADD "HKEY_LOCAL_MACHINE\SOFTWARE\Khronos\OpenCL\Vendors" /v "%WinDir%\System32\amdocl64.dll" /t REG_DWORD /d 0 /f
 	) ELSE (
