@@ -581,7 +581,13 @@ IF /I "%FILETYPE%"==".zip" (
 			IF NOT "%RESUME%"=="1" (			
 				CALL :CPUMODESPLIT
 			)
-		) 
+		)
+		IF /I "%%#"=="pkzip2" (
+			CALL :NOOPENCL pkzip2
+			IF NOT "%RESUME%"=="1" (			
+				CALL :CPUMODESPLIT
+			)
+		) 		
 	)
 )
 IF /I "%FILETYPE%"==".rar" (
