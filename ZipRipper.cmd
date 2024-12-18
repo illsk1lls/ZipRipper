@@ -498,6 +498,10 @@ IF %HSIZE% EQU 0 (
 		SET PROTECTED=2
 		SET "ERRORMSG=encryption type is not supported.. (not a ZIPfile)"
 	)
+	FOR /F "usebackq tokens=*" %%# IN (`TYPE "%ProgramData%\JtR\run\statusout" ^| findstr /I /C^:"non-handled"`) DO (
+		SET PROTECTED=2
+		SET "ERRORMSG=encryption type is not supported.. unable to obtain hash."
+	)
 )
 CALL :SETSTATUSANDFLAGS
 EXIT /b
