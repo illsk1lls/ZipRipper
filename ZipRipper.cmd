@@ -641,7 +641,7 @@ IF /I "%FILETYPE%"==".7z" (
 	)
 )
 IF /I "%FILETYPE%"==".pdf" (
-REM OpenCL support for PDFs temporarily disabled until issue #5625 with JtR is resolved
+REM OpenCL support for PDFs temporarily disabled following issue #5625 until new JtR Windows binaries are published
 REM SETLOCAL ENABLEDELAYEDEXPANSION
 REM	IF !GPU! GEQ 1 (
 REM		ENDLOCAL
