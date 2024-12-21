@@ -566,19 +566,24 @@ IF /I "%FILETYPE%"==".zip" (
 	FOR /F "tokens=2 delims=$" %%# IN (pwhash) DO (
 		IF /I "%%#"=="zip2" (
 			SETLOCAL ENABLEDELAYEDEXPANSION
-			IF !GPU! GEQ 1 (
-				ENDLOCAL
-				SET "FLAG=--format=ZIP-opencl"
-				SET ZIP2=1
-				CALL :OPENCLENABLED
+			IF NOT "!ZIPCHECKED!"=="1" (
+				IF !GPU! GEQ 1 (
+					ENDLOCAL
+					SET "FLAG=--format=ZIP-opencl"
+					SET ZIP2=1
+					CALL :OPENCLENABLED
+				) ELSE (
+					ENDLOCAL
+					CALL :NOOPENCL
+					IF NOT "%RESUME%"=="1" (			
+						CALL :CPUMODESPLIT
+					)
+					SET ZIP2=1
+				)
 			) ELSE (
 				ENDLOCAL
-				CALL :NOOPENCL
-				IF NOT "%RESUME%"=="1" (			
-					CALL :CPUMODESPLIT
-				)
-				SET ZIP2=1
 			)
+			SET ZIPCHECKED=1
 		)
 		IF /I "%%#"=="pkzip" (
 			CALL :NOOPENCL pkzip
@@ -636,18 +641,19 @@ IF /I "%FILETYPE%"==".7z" (
 	)
 )
 IF /I "%FILETYPE%"==".pdf" (
-	SETLOCAL ENABLEDELAYEDEXPANSION
-	IF !GPU! GEQ 1 (
-		ENDLOCAL
-		SET "FLAG=--format=pdf-opencl"
-		CALL :OPENCLENABLED
-	) ELSE (
-		ENDLOCAL
+REM OpenCL support for PDFs temporarily disabled until issue #5625 with JtR is resolved
+REM SETLOCAL ENABLEDELAYEDEXPANSION
+REM	IF !GPU! GEQ 1 (
+REM		ENDLOCAL
+REM		SET "FLAG=--format=pdf-opencl"
+REM		CALL :OPENCLENABLED
+REM	) ELSE (
+REM		ENDLOCAL
 		CALL :NOOPENCL
 		IF NOT "%RESUME%"=="1" (
 			CALL :CPUMODESPLIT
 		)
-	)
+REM	)
 )
 EXIT /b
 
@@ -659,7 +665,7 @@ EXIT /b
 
 :NOOPENCL
 SET "TitleName=%TitleName:Initializing=CPU Mode%"
-IF %1==[] (
+IF "%1"=="" (
 	SET "TitleName=%TitleName:AVAILABLE=UNAVAILABLE%"
 ) ELSE (
 	SET "TitleName=%TitleName:AVAILABLE=UNSUPPORTED Filetype%"
