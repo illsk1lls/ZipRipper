@@ -998,7 +998,7 @@ FOR /F "usebackq skip=1 tokens=2,3" %%# IN (`WMIC path Win32_VideoController get
 		)
 	)
 	SETLOCAL ENABLEDELAYEDEXPANSION
-	IF NOT !GPU!==1 (
+	IF NOT "!GPU!"=="1" (
 		ENDLOCAL
 		IF /I NOT EXIST "%ProgramData%\ignore.Radeon" (
 			IF /I "%%#"=="Radeon" (
