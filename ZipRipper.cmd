@@ -241,11 +241,6 @@ PUSHD "%ProgramData%\JtR\run"
 REN john.conf john.defaultconf
 POWERSHELL -nop -c "$^=gc john.defaultconf|%%{$_.Replace('SingleMaxBufferAvailMem = N','SingleMaxBufferAvailMem = Y').Replace('MaxKPCWarnings = 10','MaxKPCWarnings = 0')}|sc john.conf">nul 2>&1
 SET "FLAG="
-IF %~z1 GEQ 200000000 (
-	<NUL set /p=Creating password hash - This can take a few minutes on large files...
-) ELSE (
-	<NUL set /p=Creating password hash...
-)
 SET RESUME=0
 CALL :GETMD5 %1 MD5
 IF EXIST "%AppData%\ZR-InProgress\%MD5%" (
@@ -262,12 +257,16 @@ IF EXIST "%AppData%\ZR-InProgress\%MD5%" (
 		>nul 2>&1 RD "%AppData%\ZR-InProgress\%MD5%" /S /Q
 	)
 )
+IF %~z1 GEQ 200000000 (
+	<NUL set /p=Creating password hash - This can take a few minutes on large files...
+) ELSE (
+	<NUL set /p=Creating password hash...
+)
 SET ZIP2=0
 SET PROTECTED=1
 SET HSIZE=0
+SET "FORKS="
 CALL :HASH%FILETYPE% %1
-ECHO Done
-ECHO/
 SETLOCAL ENABLEDELAYEDEXPANSION
 IF NOT "!PROTECTED!"=="1" (
 	ENDLOCAL
@@ -275,31 +274,38 @@ IF NOT "!PROTECTED!"=="1" (
 	CALL :CLEANUP
 	GOTO :EOF
 )
-IF DEFINED LISTNAME (
-	IF !WORDLIST! EQU 2 (
-		IF "!LISTNAME!"=="BRUTE" (
-			<NUL set /p=Enabling BruteForce Mode...
-			ECHO Ready
-		) ELSE (
-			<NUL set /p=Preparing Custom wordlist...
-			>nul 2>&1 COPY /Y !LISTNAME! "%ProgramData%\JtR\run\password.lst"
-			ECHO Loaded			
-		)
-	) ELSE (
-		<NUL set /p=Preparing %WORDLISTNAME:"=% wordlist...
-		>nul 2>&1 MOVE /Y !LISTNAME! "%ProgramData%\JtR\run\password.lst"
-		ECHO Loaded
-	)
-	ENDLOCAL
+IF "!COMMON!"=="1" (
+	<NUL set /p=Enabling FAST PDF Mode ^[Length=8^]...
+	CALL :WAIT 1
+	ECHO Ready
 	CALL :WAIT 2
 ) ELSE (
-	ENDLOCAL
-	<NUL set /p=Using Default wordlist...
-	CALL :WAIT 1
-	ECHO Loaded
-	CALL :WAIT 2
+	IF DEFINED LISTNAME (
+		IF !WORDLIST! EQU 2 (
+			IF "!LISTNAME!"=="BRUTE" (
+				<NUL set /p=Enabling BruteForce Mode...
+				CALL :WAIT 1
+				ECHO Ready
+			) ELSE (
+				<NUL set /p=Preparing Custom wordlist!FORKS!...
+				>nul 2>&1 COPY /Y !LISTNAME! "%ProgramData%\JtR\run\password.lst"
+				ECHO Loaded			
+			)
+		) ELSE (
+			<NUL set /p=Preparing %WORDLISTNAME:"=% wordlist!FORKS!...
+			>nul 2>&1 MOVE /Y !LISTNAME! "%ProgramData%\JtR\run\password.lst"
+			ECHO Loaded
+		)
+		ENDLOCAL
+		CALL :WAIT 2
+	) ELSE (
+		<NUL set /p=Using Default wordlist!FORKS!...
+		ENDLOCAL
+		CALL :WAIT 1
+		ECHO Loaded
+		CALL :WAIT 2
+	)
 )
-
 :STARTJTR
 CLS
 ECHO Running JohnTheRipper...
@@ -311,10 +317,14 @@ IF "%RESUME%"=="1" (
 	john --restore
 ) ELSE (
 	SETLOCAL ENABLEDELAYEDEXPANSION
-	IF "!LISTNAME!"=="BRUTE" (
-		john "%ProgramData%\JtR\run\pwhash" --incremental=ASCII.chr !FLAG!	
+	IF "!COMMON!"=="1" (
+		john "%ProgramData%\JtR\run\pwhash" !FLAG!
 	) ELSE (
-		john --wordlist="%ProgramData%\JtR\run\password.lst" --rules=single,all "%ProgramData%\JtR\run\pwhash" !FLAG!
+		IF "!LISTNAME!"=="BRUTE" (
+			john "%ProgramData%\JtR\run\pwhash" --incremental=ASCII.chr !FLAG!	
+		) ELSE (
+			john --wordlist="%ProgramData%\JtR\run\password.lst" --rules=single,all "%ProgramData%\JtR\run\pwhash" !FLAG!
+		)
 	)
 	ENDLOCAL
 )
@@ -402,7 +412,7 @@ SET PT=11
 IF "%ISPERL%"=="1" (
 	SET P=4
 	SET PT=8
-	SET "PERL2=$info.Text=' Downloading Portable Perl';Update-Gui;downloadFile 'https://github.com/StrawberryPerl/Perl-Dist-Strawberry/releases/download/SP_5380_5361/strawberry-perl-5.38.0.1-64bit-portable.zip' '%ProgramData%\perlportable.zip';"
+	SET "PERL2=$info.Text=' Downloading Portable Perl';Update-Gui;downloadFile 'https://strawberryperl.com/download/5.16.3.1/strawberry-perl-5.16.3.1-64bit-portable.zip' '%ProgramData%\perlportable.zip';"
 )
 POWERSHELL -nop -c "Add-Type -AssemblyName PresentationFramework, System.Drawing, System.Windows.Forms, WindowsFormsIntegration;[xml]$xaml='<Window xmlns="^""http://schemas.microsoft.com/winfx/2006/xaml/presentation"^"" xmlns:x="^""http://schemas.microsoft.com/winfx/2006/xaml"^"" Title="^"" Initializing..."^"" Height="^""75"^"" Width="^""210"^"" WindowStartupLocation="^""CenterScreen"^"" WindowStyle="^""None"^"" Topmost="^""True"^"" Background="^""#333333"^"" AllowsTransparency="^""True"^""><Canvas><TextBlock Name="^""Info"^"" Canvas.Top="^""3"^"" Text="^"" Initializing..."^"" Foreground="^""#eeeeee"^"" FontWeight="^""Bold"^""/><ProgressBar Canvas.Left="^""5"^"" Canvas.Top="^""28"^"" Width="^""200"^"" Height="^""3"^"" Name="^""Progress"^"" Foreground="^""#FF0000"^""/><TextBlock Name="^""Info2"^"" Canvas.Top="^""38"^"" Text="^"" Getting Resources (Online Mode)"^"" Foreground="^""#eeeeee"^"" FontWeight="^""Bold"^""/><ProgressBar Canvas.Left="^""5"^"" Canvas.Top="^""63"^"" Width="^""200"^"" Height="^""3"^"" Name="^""Progress2"^"" Foreground="^""#FF0000"^""/></Canvas><Window.TaskbarItemInfo><TaskbarItemInfo/></Window.TaskbarItemInfo></Window>';$reader=(New-Object System.Xml.XmlNodeReader $xaml);$form=[Windows.Markup.XamlReader]::Load($reader);$bitmap=New-Object System.Windows.Media.Imaging.BitmapImage;$bitmap='%LOGO:'=''%';$form.Icon=$bitmap;$form.TaskbarItemInfo.Overlay=$bitmap;$form.TaskbarItemInfo.Description=$form.Title;$form.Add_Closing({[System.Windows.Forms.Application]::Exit();Stop-Process $pid});$progressBar=$form.FindName("^""Progress"^"");$progressTotal=$form.FindName("^""Progress2"^"");$info=$form.FindName("^""Info"^"");$info2=$form.FindName("^""Info2"^"");function Update-Gui(){$form.Dispatcher.Invoke([Windows.Threading.DispatcherPriority]::Background, [action]{})};function GetResources(){$info.Text=' Initializing...';$progressTotal.Value=%PT%;Update-Gui;$info.Text=' Downloading 7zr Standalone';Update-Gui;downloadFile 'https://www.7-zip.org/a/7zr.exe' '%ProgramData%\7zr.exe';$info.Text=' Downloading 7za Console';Update-Gui;downloadFile 'https://www.7-zip.org/a/7z2300-extra.7z' '%ProgramData%\7zExtra.7z';$info.Text=' Downloading JohnTheRipper';Update-Gui;downloadFile 'https://github.com/openwall/john-packages/releases/download/bleeding/winX64_1_JtR.7z' '%ProgramData%\winX64_1_JtR.7z';%PERL2%$progressTotal.Value=100;$info.Text="^"" Ready..."^"";Update-Gui};function DownloadFile($url,$targetFile){$uri=New-Object "^""System.Uri"^"" "^""$url"^"";$request=[System.Net.HttpWebRequest]::Create($uri);$request.set_Timeout(15000);$response=$request.GetResponse();$totalLength=[System.Math]::Floor($response.get_ContentLength()/1024);$responseStream=$response.GetResponseStream();$targetStream=New-Object -TypeName System.IO.FileStream -ArgumentList $targetFile, Create;$buffer=new-object byte[] 10KB;$count=$responseStream.Read($buffer,0,$buffer.length);$downloadedBytes=$count;while ($count -gt 0){$targetStream.Write($buffer, 0, $count);$count=$responseStream.Read($buffer,0,$buffer.length);$downloadedBytes=$downloadedBytes + $count;$roundedPercent=[int]((([System.Math]::Floor($downloadedBytes/1024)) / $totalLength) * 100);$progressBar.Value=$roundedPercent;if($totalP -ge %P%){$progressTotal.Value++;$totalP=0};if($progressBar.Value -ne $lastpercent){$lastpercent=$progressBar.Value;$totalP++;Update-Gui}};$targetStream.Flush();$targetStream.Close();$targetStream.Dispose();$responseStream.Dispose()};$form.Add_ContentRendered({GetResources;$form.Close()});$form.Show();$appContext=New-Object System.Windows.Forms.ApplicationContext;[void][System.Windows.Forms.Application]::Run($appContext)">nul
 EXIT /b
@@ -429,11 +439,7 @@ ECHO/
 EXIT /b
 
 :GETJTRREADY
-IF "%ISPERL%"=="1" (
-	<NUL set /p=Extracting required dependencies, this will take a moment...
-) ELSE (
-	<NUL set /p=Extracting required dependencies...
-)
+<NUL set /p=Extracting required dependencies...
 >nul 2>&1 "%ProgramData%\7zr.exe" x -y "%ProgramData%\winX64_1_JtR.7z" -o"%ProgramData%\"
 >nul 2>&1 "%ProgramData%\7zr.exe" x -y "%ProgramData%\7zExtra.7z" -o"%ProgramData%\JtR\"
 IF EXIST !wListOuter! (
@@ -532,7 +538,7 @@ CALL :SETSTATUSANDFLAGS
 EXIT /b
 
 :HASH.7z
-CALL portableshell.bat 7z2john.pl "%~1">"%ProgramData%\JtR\run\pwhash" 2>"%ProgramData%\JtR\run\statusout"
+CALL "%ProgramData%\JtR\run\portableshell.bat" "%ProgramData%\JtR\run\7z2john.pl" "%~1">"%ProgramData%\JtR\run\pwhash" 2>"%ProgramData%\JtR\run\statusout"
 FOR /F %%# IN ("%ProgramData%\JtR\run\pwhash") DO (
 	SET HSIZE=%%~z#
 )
@@ -549,7 +555,7 @@ CALL :SETSTATUSANDFLAGS
 EXIT /b
 
 :HASH.PDF
-CALL portableshell.bat pdf2john.pl "%~1">"%ProgramData%\JtR\run\pwhash" 2>nul
+CALL "%ProgramData%\JtR\run\portableshell.bat" "%ProgramData%\JtR\run\pdf2john.pl" "%~1">"%ProgramData%\JtR\run\pwhash" 2>nul
 POWERSHELL -nop -c "$^=[regex]::Match((gc pwhash),'^(.+\/)(?i)(.*\.pdf)(.+$)');$^.Groups[2].value+$^.Groups[3].value|sc pwhash">nul 2>&1
 FOR /F %%# IN ("%ProgramData%\JtR\run\pwhash") DO (
 	SET HSIZE=%%~z#
@@ -562,6 +568,8 @@ CALL :SETSTATUSANDFLAGS
 EXIT /b
 
 :SETSTATUSANDFLAGS
+ECHO Done
+ECHO/
 IF /I "%FILETYPE%"==".zip" (
 	FOR /F "tokens=2 delims=$" %%# IN (pwhash) DO (
 		IF /I "%%#"=="zip2" (
@@ -641,19 +649,29 @@ IF /I "%FILETYPE%"==".7z" (
 	)
 )
 IF /I "%FILETYPE%"==".pdf" (
-REM OpenCL support for PDFs temporarily disabled following issue #5625 until new JtR Windows binaries are published
-REM SETLOCAL ENABLEDELAYEDEXPANSION
-REM	IF !GPU! GEQ 1 (
-REM		ENDLOCAL
-REM		SET "FLAG=--format=pdf-opencl"
-REM		CALL :OPENCLENABLED
-REM	) ELSE (
-REM		ENDLOCAL
-		CALL :NOOPENCL
-		IF NOT "%RESUME%"=="1" (
-			CALL :CPUMODESPLIT
+	CALL :COMMONPDF COMMON
+	SETLOCAL ENABLEDELAYEDEXPANSION
+	IF !GPU! GEQ 1 (
+		IF "!COMMON!"=="1" (
+			ENDLOCAL
+			SET "FLAG=--format=pdf-opencl --mask=?8?l?l?l?d -8=?l?u --mask-internal-target=0 --min-length=8 --max-length=8"
+		) ELSE (
+			ENDLOCAL
+			SET "FLAG=--format=pdf-opencl"
 		)
-REM	)
+		CALL :OPENCLENABLED
+	) ELSE (
+		IF "!COMMON!"=="1" (
+			ENDLOCAL
+			SET "FLAG=--mask=?8?l?l?l?d -8=?l?u --min-length=8 --max-length=8"
+		) ELSE (
+			ENDLOCAL
+			IF NOT "%RESUME%"=="1" (
+				CALL :CPUMODESPLIT
+			)
+		)
+		CALL :NOOPENCL
+	)
 )
 EXIT /b
 
@@ -930,11 +948,19 @@ PUSHD "%ProgramData%\ztmp"
 	ECHO 103 "winX64_1_JtR.7z"
 	ECHO 104 "zipripper.png"
 )>"%ProgramData%\ztmp\offline.config"
-POWERSHELL -nop -c "Add-Type -AssemblyName PresentationFramework, System.Drawing, System.Windows.Forms, WindowsFormsIntegration;[xml]$xaml='<Window xmlns="^""http://schemas.microsoft.com/winfx/2006/xaml/presentation"^"" xmlns:x="^""http://schemas.microsoft.com/winfx/2006/xaml"^"" Title="^""Building [zr-offline.txt]"^"" Height="^""75"^"" Width="^""210"^"" WindowStartupLocation="^""CenterScreen"^"" WindowStyle="^""None"^"" Topmost="^""True"^"" Background="^""#333333"^"" AllowsTransparency="^""True"^""><Canvas><TextBlock Name="^""Info"^"" Canvas.Top="^""3"^"" Text="^"" Initializing..."^"" Foreground="^""#eeeeee"^"" FontWeight="^""Bold"^""/><ProgressBar Canvas.Left="^""5"^"" Canvas.Top="^""28"^"" Width="^""200"^"" Height="^""3"^"" Name="^""Progress"^"" Foreground="^""#FF0000"^""/><TextBlock Name="^""Info2"^"" Canvas.Top="^""38"^"" Text="^"" Getting Resources (Stage 1/2)"^"" Foreground="^""#eeeeee"^"" FontWeight="^""Bold"^""/><ProgressBar Canvas.Left="^""5"^"" Canvas.Top="^""63"^"" Width="^""200"^"" Height="^""3"^"" Name="^""Progress2"^"" Foreground="^""#FF0000"^""/></Canvas><Window.TaskbarItemInfo><TaskbarItemInfo/></Window.TaskbarItemInfo></Window>';$reader=(New-Object System.Xml.XmlNodeReader $xaml);$form=[Windows.Markup.XamlReader]::Load($reader);$bitmap=New-Object System.Windows.Media.Imaging.BitmapImage;$bitmap='%ProgramData%\zipripper.png';$form.Icon=$bitmap;$form.TaskbarItemInfo.Overlay=$bitmap;$form.TaskbarItemInfo.Description=$form.Title;$form.Add_Closing({[System.Windows.Forms.Application]::Exit();Stop-Process $pid});$progressBar=$form.FindName("^""Progress"^"");$progressTotal=$form.FindName("^""Progress2"^"");$info=$form.FindName("^""Info"^"");$info2=$form.FindName("^""Info2"^"");function Update-Gui (){$form.Dispatcher.Invoke([Windows.Threading.DispatcherPriority]::Background, [action]{})};function Build () {$info.Text=' Downloading 7zr Standalone';Update-Gui;downloadFile 'https://www.7-zip.org/a/7zr.exe' '%ProgramData%\ztmp\101';$info.Text=' Downloading 7za Console';Update-Gui;downloadFile 'https://www.7-zip.org/a/7z2300-extra.7z' '%ProgramData%\ztmp\100';$info.Text=' Downloading JohnTheRipper';Update-Gui;downloadFile 'https://github.com/openwall/john-packages/releases/download/bleeding/winX64_1_JtR.7z' '%ProgramData%\ztmp\103';$info.Text=' Downloading Portable Perl';Update-Gui;downloadFile 'https://github.com/StrawberryPerl/Perl-Dist-Strawberry/releases/download/SP_5380_5361/strawberry-perl-5.38.0.1-64bit-portable.zip' '%ProgramData%\ztmp\102';$progressBar.Value=0;$info.Text=' Merging resources'; $info2.Text=' Building zr-offline.txt (Stage 2/2)';$pass=1;Update-Gui;makecab.exe /F '%ProgramData%\ztmp\offline.config' /D Compress='OFF' /D CabinetNameTemplate='%ProgramData%\ztmp\zr-offline.txt'| out-string -stream | Select-String -Pattern "^""(\d{1,3})(?=[.]\d{1,2}%%)"^"" -AllMatches | ForEach-Object { $_.Matches.Value } | foreach {$progressBar.Value=$_;if($totalP2 -ge 6){$progressTotal.Value=$progressTotal.Value + 1;$totalP2=0};if($progressBar.Value -ne $lastpercent){$lastpercent=$progressBar.Value;$totalP2++};if($progressBar.Value -ge 100){$pass++};if($pass -eq 2){$info.Text="^"" Building data file"^"";if($progressBar.Value -eq 99){$pass++}};if($pass -eq 3){$info.Text="^"" Purging Cache"^""};if($progressBar.Value -ne $lastpercent2){$lastpercent2=$progressBar.Value;Update-Gui}};$progressBar.Value=100;$m=([IO.File]::ReadAllLines('%ProgramData%\launcher.ZipRipper')).Replace('"^""','');Move-Item -Path '%ProgramData%\ztmp\zr-offline.txt' -Destination "^""$m"^"" -Force;$progressTotal.Value=100;$info.Text="^"" Build Completed!"^"";Update-Gui;Sleep 3};function DownloadFile($url,$targetFile){$uri=New-Object "^""System.Uri"^"" "^""$url"^"";$request=[System.Net.HttpWebRequest]::Create($uri);$request.set_Timeout(15000);$response=$request.GetResponse();$totalLength=[System.Math]::Floor($response.get_ContentLength()/1024);$responseStream=$response.GetResponseStream();$targetStream=New-Object -TypeName System.IO.FileStream -ArgumentList $targetFile, Create;$buffer=new-object byte[] 10KB;$count=$responseStream.Read($buffer,0,$buffer.length);$downloadedBytes=$count;while ($count -gt 0){$targetStream.Write($buffer, 0, $count);$count=$responseStream.Read($buffer,0,$buffer.length);$downloadedBytes=$downloadedBytes + $count;$roundedPercent=[int]((([System.Math]::Floor($downloadedBytes/1024))/$totalLength)*100);$progressBar.Value=$roundedPercent;if($totalP -ge 7){$progressTotal.Value++;$totalP=0};if($progressBar.Value -ne $lastpercent){$lastpercent=$progressBar.Value;$totalP++;Update-Gui}};$targetStream.Flush();$targetStream.Close();$targetStream.Dispose();$responseStream.Dispose()};$form.Add_ContentRendered({Build;$form.Close()});$form.Show();$appContext=New-Object System.Windows.Forms.ApplicationContext;[void][System.Windows.Forms.Application]::Run($appContext)">nul
+POWERSHELL -nop -c "Add-Type -AssemblyName PresentationFramework, System.Drawing, System.Windows.Forms, WindowsFormsIntegration;[xml]$xaml='<Window xmlns="^""http://schemas.microsoft.com/winfx/2006/xaml/presentation"^"" xmlns:x="^""http://schemas.microsoft.com/winfx/2006/xaml"^"" Title="^""Building [zr-offline.txt]"^"" Height="^""75"^"" Width="^""210"^"" WindowStartupLocation="^""CenterScreen"^"" WindowStyle="^""None"^"" Topmost="^""True"^"" Background="^""#333333"^"" AllowsTransparency="^""True"^""><Canvas><TextBlock Name="^""Info"^"" Canvas.Top="^""3"^"" Text="^"" Initializing..."^"" Foreground="^""#eeeeee"^"" FontWeight="^""Bold"^""/><ProgressBar Canvas.Left="^""5"^"" Canvas.Top="^""28"^"" Width="^""200"^"" Height="^""3"^"" Name="^""Progress"^"" Foreground="^""#FF0000"^""/><TextBlock Name="^""Info2"^"" Canvas.Top="^""38"^"" Text="^"" Getting Resources (Stage 1/2)"^"" Foreground="^""#eeeeee"^"" FontWeight="^""Bold"^""/><ProgressBar Canvas.Left="^""5"^"" Canvas.Top="^""63"^"" Width="^""200"^"" Height="^""3"^"" Name="^""Progress2"^"" Foreground="^""#FF0000"^""/></Canvas><Window.TaskbarItemInfo><TaskbarItemInfo/></Window.TaskbarItemInfo></Window>';$reader=(New-Object System.Xml.XmlNodeReader $xaml);$form=[Windows.Markup.XamlReader]::Load($reader);$bitmap=New-Object System.Windows.Media.Imaging.BitmapImage;$bitmap='%ProgramData%\zipripper.png';$form.Icon=$bitmap;$form.TaskbarItemInfo.Overlay=$bitmap;$form.TaskbarItemInfo.Description=$form.Title;$form.Add_Closing({[System.Windows.Forms.Application]::Exit();Stop-Process $pid});$progressBar=$form.FindName("^""Progress"^"");$progressTotal=$form.FindName("^""Progress2"^"");$info=$form.FindName("^""Info"^"");$info2=$form.FindName("^""Info2"^"");function Update-Gui (){$form.Dispatcher.Invoke([Windows.Threading.DispatcherPriority]::Background, [action]{})};function Build () {$info.Text=' Downloading 7zr Standalone';Update-Gui;downloadFile 'https://www.7-zip.org/a/7zr.exe' '%ProgramData%\ztmp\101';$info.Text=' Downloading 7za Console';Update-Gui;downloadFile 'https://www.7-zip.org/a/7z2300-extra.7z' '%ProgramData%\ztmp\100';$info.Text=' Downloading JohnTheRipper';Update-Gui;downloadFile 'https://github.com/openwall/john-packages/releases/download/bleeding/winX64_1_JtR.7z' '%ProgramData%\ztmp\103';$info.Text=' Downloading Portable Perl';Update-Gui;downloadFile 'https://strawberryperl.com/download/5.16.3.1/strawberry-perl-5.16.3.1-64bit-portable.zip' '%ProgramData%\ztmp\102';$progressBar.Value=0;$info.Text=' Merging resources'; $info2.Text=' Building zr-offline.txt (Stage 2/2)';$pass=1;Update-Gui;makecab.exe /F '%ProgramData%\ztmp\offline.config' /D Compress='OFF' /D CabinetNameTemplate='%ProgramData%\ztmp\zr-offline.txt'| out-string -stream | Select-String -Pattern "^""(\d{1,3})(?=[.]\d{1,2}%%)"^"" -AllMatches | ForEach-Object { $_.Matches.Value } | foreach {$progressBar.Value=$_;if($totalP2 -ge 6){$progressTotal.Value=$progressTotal.Value + 1;$totalP2=0};if($progressBar.Value -ne $lastpercent){$lastpercent=$progressBar.Value;$totalP2++};if($progressBar.Value -ge 100){$pass++};if($pass -eq 2){$info.Text="^"" Building data file"^"";if($progressBar.Value -eq 99){$pass++}};if($pass -eq 3){$info.Text="^"" Purging Cache"^""};if($progressBar.Value -ne $lastpercent2){$lastpercent2=$progressBar.Value;Update-Gui}};$progressBar.Value=100;$m=([IO.File]::ReadAllLines('%ProgramData%\launcher.ZipRipper')).Replace('"^""','');Move-Item -Path '%ProgramData%\ztmp\zr-offline.txt' -Destination "^""$m"^"" -Force;$progressTotal.Value=100;$info.Text="^"" Build Completed!"^"";Update-Gui;Sleep 3};function DownloadFile($url,$targetFile){$uri=New-Object "^""System.Uri"^"" "^""$url"^"";$request=[System.Net.HttpWebRequest]::Create($uri);$request.set_Timeout(15000);$response=$request.GetResponse();$totalLength=[System.Math]::Floor($response.get_ContentLength()/1024);$responseStream=$response.GetResponseStream();$targetStream=New-Object -TypeName System.IO.FileStream -ArgumentList $targetFile, Create;$buffer=new-object byte[] 10KB;$count=$responseStream.Read($buffer,0,$buffer.length);$downloadedBytes=$count;while ($count -gt 0){$targetStream.Write($buffer, 0, $count);$count=$responseStream.Read($buffer,0,$buffer.length);$downloadedBytes=$downloadedBytes + $count;$roundedPercent=[int]((([System.Math]::Floor($downloadedBytes/1024))/$totalLength)*100);$progressBar.Value=$roundedPercent;if($totalP -ge 7){$progressTotal.Value++;$totalP=0};if($progressBar.Value -ne $lastpercent){$lastpercent=$progressBar.Value;$totalP++;Update-Gui}};$targetStream.Flush();$targetStream.Close();$targetStream.Dispose();$responseStream.Dispose()};$form.Add_ContentRendered({Build;$form.Close()});$form.Show();$appContext=New-Object System.Windows.Forms.ApplicationContext;[void][System.Windows.Forms.Application]::Run($appContext)">nul
 POPD
 >nul 2>&1 RD "%ProgramData%\ztmp" /S /Q
 FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "Add-Type -AssemblyName System.Windows.Forms;$^={$Notify=[PowerShell]::Create().AddScript({$Audio=New-Object System.Media.SoundPlayer;$Audio.SoundLocation=$env:WinDir + '\Media\Windows Notify System Generic.wav';$Audio.playsync()});$rs=[RunspaceFactory]::CreateRunspace();$rs.ApartmentState="^""STA"^"";$rs.ThreadOptions="^""ReuseThread"^"";$rs.Open();$Notify.Runspace=$rs;$Notify.BeginInvoke()};&$^;[System.Windows.Forms.MessageBox]::Show('Re-launch ZipRipper in Offline Mode?', 'Build Complete.',4,32,0,131072)"`) DO (
 	SET %1=%%#
+)
+EXIT /b
+
+:COMMONPDF
+FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "Add-Type -AssemblyName System.Windows.Forms;$Msg+='Would you like ZipRipper to attempt the most commonly used';$Msg+="^""`n"^"";$Msg+='PDF ecryption key masking? [Length=8]';$Msg+="^""`n"^"";$Msg+="^""`n"^"";$Msg+='To run ZipRipper with user selected/default options click NO';$Msg+="^""`n"^"";$Msg+="^""`n"^"";$Msg+='(This only takes a few minutes for GPU users, but CPU can take ~4+hrs)';$^={$Notify=[PowerShell]::Create().AddScript({$Audio=New-Object System.Media.SoundPlayer;$Audio.SoundLocation=$env:WinDir + '\Media\Windows Notify System Generic.wav';$Audio.playsync()});$rs=[RunspaceFactory]::CreateRunspace();$rs.ApartmentState="^""STA"^"";$rs.ThreadOptions="^""ReuseThread"^"";$rs.Open();$Notify.Runspace=$rs;$Notify.BeginInvoke()};&$^;[System.Windows.Forms.MessageBox]::Show($Msg, 'Enable FAST PDF Mode?',4,32,0,131072)"`) DO (
+	IF /I "%%#"=="Yes" (
+		SET %1=1
+	)
 )
 EXIT /b
 
@@ -943,6 +969,7 @@ FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "Add-Type -Assemb
 	IF /I "%%#"=="Yes" (
 		FOR /F "tokens=*" %%# in ('wmic cpu get NumberOfCores /value ^| find "="') DO (
 			FOR /F "tokens=2 delims==" %%# in ("%%#") DO (
+				SET "FORKS= [Split: Forks=%%#]"
 				SET "FLAG=--fork=%%#"
 			)
 		)
