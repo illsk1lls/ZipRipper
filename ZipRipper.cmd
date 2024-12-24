@@ -572,7 +572,47 @@ ECHO Done
 ECHO/
 IF /I "%FILETYPE%"==".zip" (
 	FOR /F "tokens=2 delims=$" %%# IN (pwhash) DO (
+		IF /I "%%#"=="zip" (
+			SETLOCAL ENABLEDELAYEDEXPANSION
+			IF NOT "!ZIPCHECKED!"=="1" (
+				IF !GPU! GEQ 1 (
+					ENDLOCAL
+					SET "FLAG=--format=ZIP-opencl"
+					CALL :OPENCLENABLED
+				) ELSE (
+					ENDLOCAL
+					CALL :NOOPENCL
+					IF NOT "%RESUME%"=="1" (			
+						CALL :CPUMODESPLIT
+					)
+				)
+			) ELSE (
+				ENDLOCAL
+			)
+			SET ZIPCHECKED=1
+		)		
 		IF /I "%%#"=="zip2" (
+			SETLOCAL ENABLEDELAYEDEXPANSION
+			IF NOT "!ZIPCHECKED!"=="1" (
+				IF !GPU! GEQ 1 (
+					ENDLOCAL
+					SET "FLAG=--format=ZIP-opencl"
+					SET ZIP2=1
+					CALL :OPENCLENABLED
+				) ELSE (
+					ENDLOCAL
+					CALL :NOOPENCL
+					IF NOT "%RESUME%"=="1" (			
+						CALL :CPUMODESPLIT
+					)
+					SET ZIP2=1
+				)
+			) ELSE (
+				ENDLOCAL
+			)
+			SET ZIPCHECKED=1
+		)
+		IF /I "%%#"=="zip3" (
 			SETLOCAL ENABLEDELAYEDEXPANSION
 			IF NOT "!ZIPCHECKED!"=="1" (
 				IF !GPU! GEQ 1 (
