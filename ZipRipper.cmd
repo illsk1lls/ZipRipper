@@ -262,7 +262,6 @@ IF %~z1 GEQ 200000000 (
 ) ELSE (
 	<NUL set /p=Creating password hash...
 )
-SET ZIP2=0
 SET PROTECTED=1
 SET HSIZE=0
 SET "FORKS="
@@ -478,7 +477,7 @@ FOR /F "usebackq skip=2 tokens=3,4" %%# IN (`REG QUERY "HKLM\SOFTWARE\Microsoft\
 EXIT /b
 
 :CHECKRESUMENAME
-FOR /F "tokens=1 delims=:/" %%# IN (pwhash) DO (
+FOR /F "tokens=1 delims=:/" %%# IN ("%pwhash%") DO (
 	IF NOT "%~nx1"=="%%#" (
 		SET ALT=1
 		SET "OLDNAME=%%#"
@@ -494,6 +493,7 @@ EXIT /b
 
 :HASH.ZIP
 zip2john "%~1">"%ProgramData%\JtR\run\pwhash" 2>"%ProgramData%\JtR\run\statusout"
+SET /p pwhash=< pwhash
 FOR /F %%# IN ("%ProgramData%\JtR\run\pwhash") DO (
 	SET HSIZE=%%~z#
 )
@@ -514,6 +514,7 @@ EXIT /b
 
 :HASH.RAR
 rar2john "%~1">"%ProgramData%\JtR\run\pwhash" 2>"%ProgramData%\JtR\run\statusout"
+SET /p pwhash=< pwhash
 FOR /F %%# IN ("%ProgramData%\JtR\run\pwhash") DO (
 	SET HSIZE=%%~z#
 )
@@ -539,6 +540,7 @@ EXIT /b
 
 :HASH.7z
 CALL "%ProgramData%\JtR\run\portableshell.bat" "%ProgramData%\JtR\run\7z2john.pl" "%~1">"%ProgramData%\JtR\run\pwhash" 2>"%ProgramData%\JtR\run\statusout"
+SET /p pwhash=< pwhash
 FOR /F %%# IN ("%ProgramData%\JtR\run\pwhash") DO (
 	SET HSIZE=%%~z#
 )
@@ -557,6 +559,7 @@ EXIT /b
 :HASH.PDF
 CALL "%ProgramData%\JtR\run\portableshell.bat" "%ProgramData%\JtR\run\pdf2john.pl" "%~1">"%ProgramData%\JtR\run\pwhash" 2>nul
 POWERSHELL -nop -c "$^=[regex]::Match((gc pwhash),'^(.+\/)(?i)(.*\.pdf)(.+$)');$^.Groups[2].value+$^.Groups[3].value|sc pwhash">nul 2>&1
+SET /p pwhash=< pwhash
 FOR /F %%# IN ("%ProgramData%\JtR\run\pwhash") DO (
 	SET HSIZE=%%~z#
 )
@@ -571,7 +574,7 @@ EXIT /b
 ECHO Done
 ECHO/
 IF /I "%FILETYPE%"==".zip" (
-	FOR /F "tokens=2 delims=$" %%# IN (pwhash) DO (
+	FOR /F "tokens=2 delims=$" %%# IN ("%pwhash%") DO (
 		IF /I "%%#"=="zip" (
 			SETLOCAL ENABLEDELAYEDEXPANSION
 			IF NOT "!ZIPCHECKED!"=="1" (
@@ -597,7 +600,6 @@ IF /I "%FILETYPE%"==".zip" (
 				IF !GPU! GEQ 1 (
 					ENDLOCAL
 					SET "FLAG=--format=ZIP-opencl"
-					SET ZIP2=1
 					CALL :OPENCLENABLED
 				) ELSE (
 					ENDLOCAL
@@ -605,7 +607,6 @@ IF /I "%FILETYPE%"==".zip" (
 					IF NOT "%RESUME%"=="1" (			
 						CALL :CPUMODESPLIT
 					)
-					SET ZIP2=1
 				)
 			) ELSE (
 				ENDLOCAL
@@ -618,7 +619,6 @@ IF /I "%FILETYPE%"==".zip" (
 				IF !GPU! GEQ 1 (
 					ENDLOCAL
 					SET "FLAG=--format=ZIP-opencl"
-					SET ZIP2=1
 					CALL :OPENCLENABLED
 				) ELSE (
 					ENDLOCAL
@@ -626,7 +626,6 @@ IF /I "%FILETYPE%"==".zip" (
 					IF NOT "%RESUME%"=="1" (			
 						CALL :CPUMODESPLIT
 					)
-					SET ZIP2=1
 				)
 			) ELSE (
 				ENDLOCAL
@@ -651,7 +650,7 @@ IF /I "%FILETYPE%"==".rar" (
 	SETLOCAL ENABLEDELAYEDEXPANSION
 	IF !GPU! GEQ 1 (
 		ENDLOCAL
-		FOR /F "tokens=2 delims=$" %%# IN (pwhash) DO (
+		FOR /F "tokens=2 delims=$" %%# IN ("%pwhash%") DO (
 			IF /I "%%#"=="rar" (
 				SET "FLAG=--format=rar-opencl"
 				CALL :OPENCLENABLED
@@ -747,41 +746,10 @@ FOR /f "tokens=1*" %%# in ("!TRIM!") DO (
 )
 EXIT /b
 
-:SINGLE
+:WRITEPASSWORD
 FOR /F "tokens=2 delims=:" %%# IN (john.pot) DO (
 	ECHO|(SET /p="%%# - [%~nx1]"&ECHO/)>>"%UserDesktop%\ZipRipper-Passwords.txt"
 	EXIT /b
-)
-EXIT /b
-
-:MULTI
-FOR /F "tokens=1,5 delims=*" %%# IN (pwhash) DO (
-	FOR /F "tokens=1,3 delims=$" %%# IN ("%%#%%$") DO (
-		IF NOT DEFINED # (
-			FOR /F "tokens=2 delims=:" %%# IN ("%%#%%$") DO (
-				CALL :TRIMWHITESPACE %%#
-				CALL :CHECKLENGTH %%# #
-			)
-		)
-		FOR /F "tokens=1,2 delims=:" %%# IN ("%%#%%$") DO (
-			SETLOCAL ENABLEDELAYEDEXPANSION
-			FOR /F "usebackq tokens=*" %%_ IN (`POWERSHELL -nop -c "$^^=gc john.pot|%%{$_ -Replace '^^.+?\*.\*([a-z\d]{!#!})\*.+:(.*)$',"^""`$1:`$2"^"";Write-Host $_}"`) DO (
-				ENDLOCAL
-				FOR /F "tokens=5 delims=*" %%` IN ("%%_") DO (
-					CALL :TRIMWHITESPACE $ %%$
-					SETLOCAL ENABLEDELAYEDEXPANSION
-					FOR /F "tokens=1* delims=:" %%Y IN ("%%_") DO (
-						IF "!$!"=="%%`" (
-							ENDLOCAL
-							ECHO|(SET /p="%%Z - [%%#]"&ECHO/)>>"%UserDesktop%\ZipRipper-Passwords.txt"
-						) ELSE (
-							ENDLOCAL
-						)
-					)
-				)
-			)		
-		)
-	)
 )
 EXIT /b
 
@@ -1164,14 +1132,7 @@ IF EXIST "%UserDesktop%\ZipRipper-Passwords.txt" (
 	ECHO ==============================
 	ECHO/
 )>"%UserDesktop%\ZipRipper-Passwords.txt"
-SETLOCAL ENABLEDELAYEDEXPANSION
-IF "!ZIP2!"=="1" (
-	ENDLOCAL
-	CALL :MULTI
-) ELSE (
-	ENDLOCAL
-	CALL :SINGLE %1
-)
+	CALL :WRITEPASSWORD %1
 (
 	ECHO/
 	ECHO ==============================
