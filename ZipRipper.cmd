@@ -310,8 +310,7 @@ CLS
 ECHO Running JohnTheRipper...
 ECHO/
 IF "%RESUME%"=="1" (
-	ECHO Resuming Session...
-	ECHO/
+	<NUL set /p=Resuming Session...
 	CALL :SETSTATUSANDFLAGS
 	john --restore
 ) ELSE (
