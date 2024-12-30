@@ -399,7 +399,13 @@ EXIT /b
 
 :NOTSUPPORTED
 CLS
-ECHO "%~1" %~2
+IF "%PROTECTED%"=="2" (
+	ECHO UNHANDLED ERROR!
+	ECHO/
+	ECHO|(SET /p="%~2"&ECHO/)
+) ELSE (
+ECHO|(SET /p="%~1 %~2"&ECHO/)
+)
 ECHO/
 PAUSE
 EXIT /b 
@@ -498,14 +504,18 @@ FOR /F %%# IN ("%ProgramData%\JtR\run\pwhash") DO (
 )
 IF %HSIZE% EQU 0 (
 	SET PROTECTED=0
-	SET "ERRORMSG=is not password protected.."
 	FOR /F "usebackq tokens=*" %%# IN (`TYPE "%ProgramData%\JtR\run\statusout" ^| findstr /I /C^:"Did not find"`) DO (
-		SET PROTECTED=2
 		SET "ERRORMSG=encryption type is not supported.. (not a ZIPfile)"
 	)
 	FOR /F "usebackq tokens=*" %%# IN (`TYPE "%ProgramData%\JtR\run\statusout" ^| findstr /I /C^:"non-handled"`) DO (
-		SET PROTECTED=2
 		SET "ERRORMSG=encryption type is not supported.. unable to obtain hash."
+	)
+	FOR /F "usebackq tokens=*" %%# IN (`TYPE "%ProgramData%\JtR\run\statusout" ^| findstr /I /C^:"is not encrypted"`) DO (
+		SET "ERRORMSG=is not password protected.."
+	)
+	IF NOT DEFINED ERRORMSG (
+		SET PROTECTED=2
+		SET /p ERRORMSG=< "%ProgramData%\JtR\run\statusout"
 	)
 )
 CALL :SETSTATUSANDFLAGS
@@ -518,18 +528,21 @@ FOR /F %%# IN ("%ProgramData%\JtR\run\pwhash") DO (
 	SET HSIZE=%%~z#
 )
 IF %HSIZE% EQU 0 (
+	SET PROTECTED=0
 	FOR /F "usebackq tokens=*" %%# IN (`TYPE "%ProgramData%\JtR\run\statusout" ^| findstr /I /C^:"Did not find"`) DO (
-		SET PROTECTED=0
 		SET "ERRORMSG=is not password protected.."
 	)
 	FOR /F "usebackq tokens=*" %%# IN (`TYPE "%ProgramData%\JtR\run\statusout" ^| findstr /I /C^:"not supported"`) DO (
-		SET PROTECTED=2
 		SET "ERRORMSG=encryption type is not supported.. (old filetype)"
+	)
+	IF NOT DEFINED ERRORMSG (
+		SET PROTECTED=2
+		SET /p ERRORMSG=< "%ProgramData%\JtR\run\statusout"
 	)
 ) ELSE (
 	FOR /F "tokens=4 delims=*" %%# IN (pwhash) DO (
 		IF "%%#"=="00000000" (
-			SET PROTECTED=2
+			SET PROTECTED=0
 			SET "ERRORMSG=encryption type is not supported.."
 		)
 	)
@@ -544,11 +557,17 @@ FOR /F %%# IN ("%ProgramData%\JtR\run\pwhash") DO (
 	SET HSIZE=%%~z#
 )
 IF %HSIZE% EQU 0 (
-	SET PROTECTED=0
-	SET "ERRORMSG=is not password protected.."
+	FOR /F "usebackq tokens=*" %%# IN (`TYPE statusout ^| findstr /I /C^:"no AES"`) DO (
+		SET PROTECTED=0
+		SET "ERRORMSG=is not password protected.."
+	)
+	IF NOT DEFINED ERRORMSG (
+		SET PROTECTED=2
+		SET /p ERRORMSG=< "%ProgramData%\JtR\run\statusout"
+	)
 ) ELSE (
 	FOR /F "usebackq tokens=*" %%# IN (`TYPE statusout ^| findstr /I /C^:"not supported"`) DO (
-		SET PROTECTED=2
+		SET PROTECTED=0
 		SET "ERRORMSG=encryption type is not supported.."
 	)
 )
@@ -562,9 +581,11 @@ SET /p pwhash=< pwhash
 FOR /F %%# IN ("%ProgramData%\JtR\run\pwhash") DO (
 	SET HSIZE=%%~z#
 )
-IF %HSIZE% LSS 8000 FOR /F "usebackq tokens=*" %%# IN (`TYPE pwhash ^| findstr /I /C^:"not encrypted!"`) DO (
-	SET PROTECTED=0
-	SET "ERRORMSG=is not password protected.."
+IF %HSIZE% LSS 8000 (
+	FOR /F "usebackq tokens=*" %%# IN (`TYPE pwhash ^| findstr /I /C^:"not encrypted!"`) DO (
+		SET PROTECTED=0
+		SET "ERRORMSG=is not password protected.."
+	)
 )
 CALL :SETSTATUSANDFLAGS
 EXIT /b
