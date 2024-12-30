@@ -1141,7 +1141,7 @@ EXIT /b
 :OFFERCPUMODE
 FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "Add-Type -AssemblyName System.Windows.Forms;$^={$Notify=[PowerShell]::Create().AddScript({$Audio=New-Object System.Media.SoundPlayer;$Audio.SoundLocation=$env:WinDir + '\Media\Windows Notify System Generic.wav';$Audio.playsync()});$rs=[RunspaceFactory]::CreateRunspace();$rs.ApartmentState="^""STA"^"";$rs.ThreadOptions="^""ReuseThread"^"";$rs.Open();$Notify.Runspace=$rs;$Notify.BeginInvoke()};&$^;[System.Windows.Forms.MessageBox]::Show('Radeon support is EXPERIMENTAL.. Click YES to bypass the GPU and start in CPU mode instead. Click NO if this is your first attempt.','Bypass GPU?',4,32,0,131072)"`) DO (
 	IF /I "%%#"=="Yes" (
-		SET SKIPRADEON=0
+		SET SKIPRADEON=1
 	)
 )
 EXIT /b
