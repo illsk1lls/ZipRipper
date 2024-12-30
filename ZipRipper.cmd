@@ -340,15 +340,7 @@ IF !POTSIZE! GEQ 1 (
 	ECHO Done
 	ECHO/
 	ECHO Passwords saved to: "%UserDesktop%\ZipRipper-Passwords.txt"
-	SETLOCAL ENABLEDELAYEDEXPANSION
-	CALL :GETSIZE "!UserDesktop!\ZipRipper-Passwords.txt" PWSIZE
-	IF !PWSIZE! LEQ 1600 (
-		ENDLOCAL
-		CALL :DISPLAYINFOA
-	) ELSE (
-		ENDLOCAL
-		CALL :DISPLAYINFOB
-	)
+	CALL :DISPLAYFOUNDPW
 ) ELSE (
 	ENDLOCAL	
 	ECHO/
@@ -808,15 +800,9 @@ IF EXIST "%UserDesktop%\ZipRipper-Passwords.%R%.txt" (
 )
 EXIT /b
 
-:DISPLAYINFOA
+:DISPLAYFOUNDPW
 CALL :SETTERMINAL
 START /min "Loading Results..." POWERSHELL -nop -c "Add-Type -AssemblyName System.Windows.Forms;$^={$Notify=[PowerShell]::Create().AddScript({$Audio=New-Object System.Media.SoundPlayer;$Audio.SoundLocation=$env:WinDir + '\Media\Windows Notify System Generic.wav';$Audio.playsync()});$rs=[RunspaceFactory]::CreateRunspace();$rs.ApartmentState="^""STA"^"";$rs.ThreadOptions="^""ReuseThread"^"";$rs.Open();$Notify.Runspace=$rs;$Notify.BeginInvoke()};&$^;$Msg=@();foreach($line in Get-Content '%UserDesktop%\ZipRipper-Passwords.txt'){if($null -eq $Msg){$Msg+=$line}else{$Msg+=$line + "^""`n"^""}};$Msg+="^""Save Location:`n"^"";$Msg+="^"""^"""^""%UserDesktop%\ZipRipper-Passwords.txt"^"""^"""^"";[System.Windows.Forms.MessageBox]::Show($Msg, 'Message from ZIP-Ripper',0,0,0,131072)">nul
-CALL :RESTORETERMINAL
-EXIT /b
-
-:DISPLAYINFOB
-CALL :SETTERMINAL
-START /min "Loading Results..." POWERSHELL -nop -c "Add-Type -AssemblyName System.Windows.Forms;$^={$Notify=[PowerShell]::Create().AddScript({$Audio=New-Object System.Media.SoundPlayer;$Audio.SoundLocation=$env:WinDir + '\Media\Windows Notify System Generic.wav';$Audio.playsync()});$rs=[RunspaceFactory]::CreateRunspace();$rs.ApartmentState="^""STA"^"";$rs.ThreadOptions="^""ReuseThread"^"";$rs.Open();$Notify.Runspace=$rs;$Notify.BeginInvoke()};&$^;$Msg=@();$Msg+="^""[ZIP-Ripper] - FOUND PASSWORDS`n"^"";$Msg+="^"" %DATE% + %TIME%`n"^"";$Msg+="^""==============================`n"^"";$Msg+="^""`n"^"";$Msg+="^""TOO MANY TO LIST`n"^"";$Msg+="^""`n"^"";$Msg+="^""==============================`n"^"";$Msg+="^""Save Location:`n"^"";$Msg+="^"""^"""^""%UserDesktop%\ZipRipper-Passwords.txt"^"""^"""^"";[System.Windows.Forms.MessageBox]::Show($Msg, 'Message from ZIP-Ripper',0,0,0,131072)">nul
 CALL :RESTORETERMINAL
 EXIT /b
 
@@ -1012,31 +998,23 @@ FOR /F "usebackq skip=1 tokens=2,3" %%# IN (`WMIC path Win32_VideoController get
 			IF /I EXIST "%WinDir%\System32\DriverStore\FileRepository\nvamig.inf_amd64_72a8482547fd21bc\OpenCL64.dll" (
 				>nul 2>&1 COPY /Y "%WinDir%\System32\DriverStore\FileRepository\nvamig.inf_amd64_72a8482547fd21bc\OpenCL64.dll" "%WinDir%\System32\OpenCL.dll"
 				SET GPU=1
-			) ELSE (
-				SET GPU=0
 			)
 		) ELSE (
 			SET GPU=1
 		)
 	)
 	IF /I "%%#"=="RTX" (
-		IF /I NOT EXIST "%WinDir%\System32\OpenCL.dll" (
-			SET GPU=0
-		) ELSE (
+		IF /I EXIST "%WinDir%\System32\OpenCL.dll" (
 			SET GPU=1
 		)
 	)
 	IF /I "%%#"=="A800" (
-		IF /I NOT EXIST "%WinDir%\System32\OpenCL.dll" (
-			SET GPU=0
-		) ELSE (
+		IF /I EXIST "%WinDir%\System32\OpenCL.dll" (
 			SET GPU=1
 		)
 	)
 	IF /I "%%#"=="T1000" (
-		IF /I NOT EXIST "%WinDir%\System32\OpenCL.dll" (
-			SET GPU=0
-		) ELSE (
+		IF /I EXIST "%WinDir%\System32\OpenCL.dll" (
 			SET GPU=1
 		)
 	)
@@ -1045,8 +1023,6 @@ FOR /F "usebackq skip=1 tokens=2,3" %%# IN (`WMIC path Win32_VideoController get
 			IF /I EXIST "%WinDir%\System32\DriverStore\FileRepository\nvamig.inf_amd64_72a8482547fd21bc\OpenCL64.dll" (
 				>nul 2>&1 COPY /Y "%WinDir%\System32\DriverStore\FileRepository\nvamig.inf_amd64_72a8482547fd21bc\OpenCL64.dll" "%WinDir%\System32\OpenCL.dll"
 				SET GPU=1
-			) ELSE (
-				SET GPU=0
 			)
 		) ELSE (
 			SET GPU=1
@@ -1057,26 +1033,29 @@ FOR /F "usebackq skip=1 tokens=2,3" %%# IN (`WMIC path Win32_VideoController get
 		ENDLOCAL
 		IF /I NOT EXIST "%ProgramData%\ignore.Radeon" (
 			IF /I "%%#"=="Radeon" (
-				IF /I NOT EXIST "%WinDir%\System32\amdocl64.dll" (
-					CALL :FIXRADEON
+				CALL :OFFERCPUMODE
+				SETLOCAL ENABLEDELAYEDEXPANSION
+				IF "!SKIPRADEON!"=="1" (
+					ENDLOCAL
 				) ELSE (
-					REG QUERY "HKEY_LOCAL_MACHINE\SOFTWARE\Khronos\OpenCL\Vendors" /v "%WinDir%\System32\amdocl64.dll" >nul 2>&1
-					IF %ERRORLEVEL% NEQ 0 (
+					ENDLOCAL
+					IF /I NOT EXIST "%WinDir%\System32\amdocl64.dll" (
 						CALL :FIXRADEON
-					)
-				)
-				IF /I "%%# %%$"=="Radeon RX" (
-					IF /I NOT EXIST "%WinDir%\System32\amdocl64.dll" (
-						SET GPU=0
 					) ELSE (
-						SET GPU=2
+						REG QUERY "HKEY_LOCAL_MACHINE\SOFTWARE\Khronos\OpenCL\Vendors" /v "%WinDir%\System32\amdocl64.dll" >nul 2>&1
+						IF %ERRORLEVEL% NEQ 0 (
+							CALL :FIXRADEON
+						)
 					)
-				)
-				IF /I "%%# %%$"=="Radeon Pro" (
-					IF /I NOT EXIST "%WinDir%\System32\amdocl64.dll" (
-						SET GPU=0
-					) ELSE (
-						SET GPU=2
+					IF /I "%%# %%$"=="Radeon RX" (
+						IF /I EXIST "%WinDir%\System32\amdocl64.dll" (
+							SET GPU=2
+						)
+					)
+					IF /I "%%# %%$"=="Radeon Pro" (
+						IF /I EXIST "%WinDir%\System32\amdocl64.dll" (
+							SET GPU=2
+						)
 					)
 				)
 			)
@@ -1147,7 +1126,7 @@ IF EXIST "%UserDesktop%\ZipRipper-Passwords.txt" (
 	CALL :RENAMEOLD
 )
 (
-	ECHO ^[ZIP-Ripper^] - FOUND PASSWORDS
+	ECHO ^[ZIP-Ripper^] - PASSWORD FOUND!
 	ECHO  %DATE% + %TIME%
 	ECHO ==============================
 	ECHO/
@@ -1159,10 +1138,18 @@ IF EXIST "%UserDesktop%\ZipRipper-Passwords.txt" (
 )>>"%UserDesktop%\ZipRipper-Passwords.txt"
 EXIT /b
 
+:OFFERCPUMODE
+FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "Add-Type -AssemblyName System.Windows.Forms;$^={$Notify=[PowerShell]::Create().AddScript({$Audio=New-Object System.Media.SoundPlayer;$Audio.SoundLocation=$env:WinDir + '\Media\Windows Notify System Generic.wav';$Audio.playsync()});$rs=[RunspaceFactory]::CreateRunspace();$rs.ApartmentState="^""STA"^"";$rs.ThreadOptions="^""ReuseThread"^"";$rs.Open();$Notify.Runspace=$rs;$Notify.BeginInvoke()};&$^;[System.Windows.Forms.MessageBox]::Show('Radeon support is EXPERIMENTAL.. Click YES to bypass the GPU and start in CPU mode instead. Click NO if this is your first attempt.','Bypass GPU?',4,32,0,131072)"`) DO (
+	IF /I "%%#"=="Yes" (
+		SET SKIPRADEON=0
+	)
+)
+EXIT /b
+
 :FIXRADEON
 FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "Add-Type -AssemblyName System.Windows.Forms;$^={$Notify=[PowerShell]::Create().AddScript({$Audio=New-Object System.Media.SoundPlayer;$Audio.SoundLocation=$env:WinDir + '\Media\Windows Notify System Generic.wav';$Audio.playsync()});$rs=[RunspaceFactory]::CreateRunspace();$rs.ApartmentState="^""STA"^"";$rs.ThreadOptions="^""ReuseThread"^"";$rs.Open();$Notify.Runspace=$rs;$Notify.BeginInvoke()};&$^;[System.Windows.Forms.MessageBox]::Show('Radeon series GPU detected, but OpenCL dependencies are missing.. Would you like to perform a one-time download from AMD to enable OpenCL support on your system? (~13mb)','Enable AMD OpenCL Support?',4,32,0,131072)"`) DO (
 	IF /I "%%#"=="Yes" (
-		CALL :SINGLEDOWNLOAD "https://download.amd.com/dir/bin/amdocl64.dll/64CB5B3Ed36000/amdocl64.dll" "%WinDir%\System32\amdocl64.dll" "Adding AMD OpenCL support..."
+		CALL :SINGLEDOWNLOAD "https://download.amd.com/dir/bin/amdocl64.dll/64AE0623d36000/amdocl64.dll" "%WinDir%\System32\amdocl64.dll" "Adding AMD OpenCL support..."
 		>nul 2>&1 REG ADD "HKEY_LOCAL_MACHINE\SOFTWARE\Khronos\OpenCL\Vendors" /v "%WinDir%\System32\amdocl64.dll" /t REG_DWORD /d 0 /f
 	) ELSE (
 		CD.>"%ProgramData%\ignore.Radeon"
