@@ -3,6 +3,22 @@ REM Begin dynamic alternate wordlist info - expected format is UTF-8 .txt file i
 SET WORDLISTNAME="Cyclone"
 SET WORDLISTADDR="https://download.weakpass.com/wordlists/1928/cyclone_hk.txt.7z"
 REM End dynamic alternate wordlist info -> Click John's mouth on the GUI to access this option <-
+REM Resource Links - 7zr is used to extract 7za CLI from 7zExtra
+SET "DL_LOGO=https://raw.githubusercontent.com/illsk1lls/ZipRipper/main/.resources/zipripper.png"
+SET "DL_JTR=https://github.com/openwall/john-packages/releases/download/bleeding/winX64_1_JtR.7z"
+SET "DL_7ZR=https://www.7-zip.org/a/7zr.exe"
+SET "DL_7ZEXTRA=https://www.7-zip.org/a/7z2300-extra.7z"
+SET "DL_PERLPORTABLE=https://strawberryperl.com/download/5.16.3.1/strawberry-perl-5.16.3.1-64bit-portable.zip"
+REM Supported GPUs
+SET NVIDIA_CARDS=GeForce,RTX,A800,T1000,Quadro
+SET AMD_CARDS=RadeonRX,RadeonPro
+REM Filenames and Folders - Tempfolders in %ProgramData%
+SET "LOGO=%ProgramData%\zipripper.png"
+SET "RESUMEDATAFOLDER=%AppData%\ZR-InProgress"
+SET RESUMEDATAFILES=pwhash,john.pot,john.rec,john.*.rec,john.log,password.lst
+SET TEMPFILES=zr-offline.txt,7zExtra.7z,7zr.exe,perlportable.zip,winX64_1_JtR.7z,zipripper.png,launcher.ZipRipper
+SET TEMPFOLDERS=JtR,ztmp
+REM Everything except resume data is cleaned up when ZipRipper is closed properly.
 CALL :SINGLEINSTANCE
 IF NOT "%PROCESSOR_ARCHITECTURE%"=="AMD64" (
 	IF NOT "%PROCESSOR_ARCHITEW6432%"=="AMD64" (
@@ -183,9 +199,6 @@ IF NOT "%ALLOWSTART%"=="1" (
 )
 >nul 2>&1 REG DELETE HKCU\Software\classes\.ZipRipper\ /F 
 >nul 2>&1 DEL "%ProgramData%\launcher.ZipRipper" /F /Q
-IF EXIST "%ProgramData%\ignore.Radeon" (
-	>nul 2>&1 DEL "%ProgramData%\ignore.Radeon" /F /Q
-)
 SET "FILETYPE=%~x1"
 SET "TitleName=[ZIP-Ripper]  -  [Initializing]  -  [OpenCL #STATUS]  -  #RUNMODE Mode"
 SETLOCAL ENABLEDELAYEDEXPANSION
@@ -243,18 +256,18 @@ POWERSHELL -nop -c "$^=gc john.defaultconf|%%{$_.Replace('SingleMaxBufferAvailMe
 SET "FLAG="
 SET RESUME=0
 CALL :GETMD5 %1 MD5
-IF EXIST "%AppData%\ZR-InProgress\%MD5%" (
+IF EXIST "%RESUMEDATAFOLDER%\%MD5%" (
 	CALL :RESUMEDECIDE ISRESUME
 	SETLOCAL ENABLEDELAYEDEXPANSION
 	IF /I "!ISRESUME!"=="Yes" (
 		SETLOCAL DISABLEDELAYEDEXPANSION
-		>nul 2>&1 MOVE /Y "%AppData%\ZR-InProgress\%MD5%\*.*" "%ProgramData%\JtR\run\"
+		>nul 2>&1 MOVE /Y "%RESUMEDATAFOLDER%\%MD5%\*.*" "%ProgramData%\JtR\run\"
 		CALL :CHECKRESUMENAME %1
 		SET RESUME=1
 		GOTO :STARTJTR
 	) ELSE (
 		SETLOCAL DISABLEDELAYEDEXPANSION
-		>nul 2>&1 RD "%AppData%\ZR-InProgress\%MD5%" /S /Q
+		>nul 2>&1 RD "%RESUMEDATAFOLDER%\%MD5%" /S /Q
 	)
 )
 IF %~z1 GEQ 200000000 (
@@ -334,8 +347,8 @@ IF !POTSIZE! GEQ 1 (
 	ECHO/
 	<NUL set /p=Generating Password File...
 	CALL :SAVEFILE %1
-	IF EXIST "%AppData%\ZR-InProgress\%MD5%" (
-		>nul 2>&1 RD "%AppData%\ZR-InProgress\%MD5%" /S /Q
+	IF EXIST "%RESUMEDATAFOLDER%\%MD5%" (
+		>nul 2>&1 RD "%RESUMEDATAFOLDER%\%MD5%" /S /Q
 	)
 	ECHO Done
 	ECHO/
@@ -370,17 +383,14 @@ IF NOT EXIST "%ProgramData%\JtR\run\john.rec" (
 	ECHO Resume is UNAVAILABLE for this file ;^(
 ) ELSE (
 	ECHO Resume is available for the next session...
-	IF NOT EXIST "%AppData%\ZR-InProgress\%MD5%" (
-		MD "%AppData%\ZR-InProgress\%MD5%"
+	IF NOT EXIST "%RESUMEDATAFOLDER%\%MD5%" (
+		MD "%RESUMEDATAFOLDER%\%MD5%"
 	)
-	>nul 2>&1 MOVE /Y "%ProgramData%\JtR\run\pwhash" "%AppData%\ZR-InProgress\%MD5%"
-	>nul 2>&1 MOVE /Y "%ProgramData%\JtR\run\john.pot" "%AppData%\ZR-InProgress\%MD5%"
-	>nul 2>&1 MOVE /Y "%ProgramData%\JtR\run\john.rec" "%AppData%\ZR-InProgress\%MD5%"
-	IF /I EXIST "%ProgramData%\JtR\run\john.*.rec" (
-		>nul 2>&1 MOVE /Y "%ProgramData%\JtR\run\john.*.rec" "%AppData%\ZR-InProgress\%MD5%"
+    FOR %%# IN (%RESUMEDATAFILES%) DO (
+		IF /I EXIST "%ProgramData%\JtR\run\%%#" (
+			>nul 2>&1 MOVE /Y "%ProgramData%\JtR\run\%%#" "%RESUMEDATAFOLDER%\%MD5%"
+		)
 	)
-	>nul 2>&1 MOVE /Y "%ProgramData%\JtR\run\john.log" "%AppData%\ZR-InProgress\%MD5%"
-	>nul 2>&1 MOVE /Y "%ProgramData%\JtR\run\password.lst" "%AppData%\ZR-InProgress\%MD5%"
 )
 EXIT /b
 
@@ -408,9 +418,9 @@ SET PT=11
 IF "%ISPERL%"=="1" (
 	SET P=4
 	SET PT=8
-	SET "PERL2=$info.Text=' Downloading Portable Perl';Update-Gui;downloadFile 'https://strawberryperl.com/download/5.16.3.1/strawberry-perl-5.16.3.1-64bit-portable.zip' '%ProgramData%\perlportable.zip';"
+	SET "PERL2=$info.Text=' Downloading Portable Perl';Update-Gui;downloadFile '%DL_PERLPORTABLE%' '%ProgramData%\perlportable.zip';"
 )
-POWERSHELL -nop -c "Add-Type -AssemblyName PresentationFramework, System.Drawing, System.Windows.Forms, WindowsFormsIntegration;[xml]$xaml='<Window xmlns="^""http://schemas.microsoft.com/winfx/2006/xaml/presentation"^"" xmlns:x="^""http://schemas.microsoft.com/winfx/2006/xaml"^"" Title="^"" Initializing..."^"" Height="^""75"^"" Width="^""210"^"" WindowStartupLocation="^""CenterScreen"^"" WindowStyle="^""None"^"" Topmost="^""True"^"" Background="^""#333333"^"" AllowsTransparency="^""True"^""><Canvas><TextBlock Name="^""Info"^"" Canvas.Top="^""3"^"" Text="^"" Initializing..."^"" Foreground="^""#eeeeee"^"" FontWeight="^""Bold"^""/><ProgressBar Canvas.Left="^""5"^"" Canvas.Top="^""28"^"" Width="^""200"^"" Height="^""3"^"" Name="^""Progress"^"" Foreground="^""#FF0000"^""/><TextBlock Name="^""Info2"^"" Canvas.Top="^""38"^"" Text="^"" Getting Resources (Online Mode)"^"" Foreground="^""#eeeeee"^"" FontWeight="^""Bold"^""/><ProgressBar Canvas.Left="^""5"^"" Canvas.Top="^""63"^"" Width="^""200"^"" Height="^""3"^"" Name="^""Progress2"^"" Foreground="^""#FF0000"^""/></Canvas><Window.TaskbarItemInfo><TaskbarItemInfo/></Window.TaskbarItemInfo></Window>';$reader=(New-Object System.Xml.XmlNodeReader $xaml);$form=[Windows.Markup.XamlReader]::Load($reader);$bitmap=New-Object System.Windows.Media.Imaging.BitmapImage;$bitmap='%LOGO:'=''%';$form.Icon=$bitmap;$form.TaskbarItemInfo.Overlay=$bitmap;$form.TaskbarItemInfo.Description=$form.Title;$form.Add_Closing({[System.Windows.Forms.Application]::Exit();Stop-Process $pid});$progressBar=$form.FindName("^""Progress"^"");$progressTotal=$form.FindName("^""Progress2"^"");$info=$form.FindName("^""Info"^"");$info2=$form.FindName("^""Info2"^"");function Update-Gui(){$form.Dispatcher.Invoke([Windows.Threading.DispatcherPriority]::Background, [action]{})};function GetResources(){$info.Text=' Initializing...';$progressTotal.Value=%PT%;Update-Gui;$info.Text=' Downloading 7zr Standalone';Update-Gui;downloadFile 'https://www.7-zip.org/a/7zr.exe' '%ProgramData%\7zr.exe';$info.Text=' Downloading 7za Console';Update-Gui;downloadFile 'https://www.7-zip.org/a/7z2300-extra.7z' '%ProgramData%\7zExtra.7z';$info.Text=' Downloading JohnTheRipper';Update-Gui;downloadFile 'https://github.com/openwall/john-packages/releases/download/bleeding/winX64_1_JtR.7z' '%ProgramData%\winX64_1_JtR.7z';%PERL2%$progressTotal.Value=100;$info.Text="^"" Ready..."^"";Update-Gui};function DownloadFile($url,$targetFile){$uri=New-Object "^""System.Uri"^"" "^""$url"^"";$request=[System.Net.HttpWebRequest]::Create($uri);$request.set_Timeout(15000);$response=$request.GetResponse();$totalLength=[System.Math]::Floor($response.get_ContentLength()/1024);$responseStream=$response.GetResponseStream();$targetStream=New-Object -TypeName System.IO.FileStream -ArgumentList $targetFile, Create;$buffer=new-object byte[] 10KB;$count=$responseStream.Read($buffer,0,$buffer.length);$downloadedBytes=$count;while ($count -gt 0){$targetStream.Write($buffer, 0, $count);$count=$responseStream.Read($buffer,0,$buffer.length);$downloadedBytes=$downloadedBytes + $count;$roundedPercent=[int]((([System.Math]::Floor($downloadedBytes/1024)) / $totalLength) * 100);$progressBar.Value=$roundedPercent;if($totalP -ge %P%){$progressTotal.Value++;$totalP=0};if($progressBar.Value -ne $lastpercent){$lastpercent=$progressBar.Value;$totalP++;Update-Gui}};$targetStream.Flush();$targetStream.Close();$targetStream.Dispose();$responseStream.Dispose()};$form.Add_ContentRendered({GetResources;$form.Close()});$form.Show();$appContext=New-Object System.Windows.Forms.ApplicationContext;[void][System.Windows.Forms.Application]::Run($appContext)">nul
+POWERSHELL -nop -c "Add-Type -AssemblyName PresentationFramework, System.Drawing, System.Windows.Forms, WindowsFormsIntegration;[xml]$xaml='<Window xmlns="^""http://schemas.microsoft.com/winfx/2006/xaml/presentation"^"" xmlns:x="^""http://schemas.microsoft.com/winfx/2006/xaml"^"" Title="^"" Initializing..."^"" Height="^""75"^"" Width="^""210"^"" WindowStartupLocation="^""CenterScreen"^"" WindowStyle="^""None"^"" Topmost="^""True"^"" Background="^""#333333"^"" AllowsTransparency="^""True"^""><Canvas><TextBlock Name="^""Info"^"" Canvas.Top="^""3"^"" Text="^"" Initializing..."^"" Foreground="^""#eeeeee"^"" FontWeight="^""Bold"^""/><ProgressBar Canvas.Left="^""5"^"" Canvas.Top="^""28"^"" Width="^""200"^"" Height="^""3"^"" Name="^""Progress"^"" Foreground="^""#FF0000"^""/><TextBlock Name="^""Info2"^"" Canvas.Top="^""38"^"" Text="^"" Getting Resources (Online Mode)"^"" Foreground="^""#eeeeee"^"" FontWeight="^""Bold"^""/><ProgressBar Canvas.Left="^""5"^"" Canvas.Top="^""63"^"" Width="^""200"^"" Height="^""3"^"" Name="^""Progress2"^"" Foreground="^""#FF0000"^""/></Canvas><Window.TaskbarItemInfo><TaskbarItemInfo/></Window.TaskbarItemInfo></Window>';$reader=(New-Object System.Xml.XmlNodeReader $xaml);$form=[Windows.Markup.XamlReader]::Load($reader);$bitmap=New-Object System.Windows.Media.Imaging.BitmapImage;$bitmap='%LOGO:'=''%';$form.Icon=$bitmap;$form.TaskbarItemInfo.Overlay=$bitmap;$form.TaskbarItemInfo.Description=$form.Title;$form.Add_Closing({[System.Windows.Forms.Application]::Exit();Stop-Process $pid});$progressBar=$form.FindName("^""Progress"^"");$progressTotal=$form.FindName("^""Progress2"^"");$info=$form.FindName("^""Info"^"");$info2=$form.FindName("^""Info2"^"");function Update-Gui(){$form.Dispatcher.Invoke([Windows.Threading.DispatcherPriority]::Background, [action]{})};function GetResources(){$info.Text=' Initializing...';$progressTotal.Value=%PT%;Update-Gui;$info.Text=' Downloading 7zr Standalone';Update-Gui;downloadFile '%DL_7ZR%' '%ProgramData%\7zr.exe';$info.Text=' Downloading 7za Console';Update-Gui;downloadFile '%DL_7ZEXTRA%' '%ProgramData%\7zExtra.7z';$info.Text=' Downloading JohnTheRipper';Update-Gui;downloadFile '%DL_JTR%' '%ProgramData%\winX64_1_JtR.7z';%PERL2%$progressTotal.Value=100;$info.Text="^"" Ready..."^"";Update-Gui};function DownloadFile($url,$targetFile){$uri=New-Object "^""System.Uri"^"" "^""$url"^"";$request=[System.Net.HttpWebRequest]::Create($uri);$request.set_Timeout(15000);$response=$request.GetResponse();$totalLength=[System.Math]::Floor($response.get_ContentLength()/1024);$responseStream=$response.GetResponseStream();$targetStream=New-Object -TypeName System.IO.FileStream -ArgumentList $targetFile, Create;$buffer=new-object byte[] 10KB;$count=$responseStream.Read($buffer,0,$buffer.length);$downloadedBytes=$count;while ($count -gt 0){$targetStream.Write($buffer, 0, $count);$count=$responseStream.Read($buffer,0,$buffer.length);$downloadedBytes=$downloadedBytes + $count;$roundedPercent=[int]((([System.Math]::Floor($downloadedBytes/1024)) / $totalLength) * 100);$progressBar.Value=$roundedPercent;if($totalP -ge %P%){$progressTotal.Value++;$totalP=0};if($progressBar.Value -ne $lastpercent){$lastpercent=$progressBar.Value;$totalP++;Update-Gui}};$targetStream.Flush();$targetStream.Close();$targetStream.Dispose();$responseStream.Dispose()};$form.Add_ContentRendered({GetResources;$form.Close()});$form.Show();$appContext=New-Object System.Windows.Forms.ApplicationContext;[void][System.Windows.Forms.Application]::Run($appContext)">nul
 EXIT /b
 
 :OFFLINEMODE
@@ -448,15 +458,11 @@ IF EXIST !wListOuter! (
 IF "%ISPERL%"=="1" (
 	"%ProgramData%\JtR\7za.exe" x -y "%ProgramData%\perlportable.zip" -o"%ProgramData%\JtR\run">nul
 )
-IF EXIST "%ProgramData%\perlportable.zip" (
-	>nul 2>&1 DEL "%ProgramData%\perlportable.zip" /F /Q
+FOR %%# IN (perlportable.zip,zr-offline.txt,winX64_1_JtR.7z,7zr.exe,7zExtra.7z) DO (
+    IF /I EXIST "%ProgramData%\%%#" (
+        >nul 2>&1 DEL "%ProgramData%\%%#" /F /Q 
+    )
 )
-IF EXIST "%ProgramData%\zr-offline.txt" (
-	>nul 2>&1 DEL "%ProgramData%\zr-offline.txt" /F /Q
-)
->nul 2>&1 DEL "%ProgramData%\winX64_1_JtR.7z" /F /Q
->nul 2>&1 DEL "%ProgramData%\7zr.exe" /F /Q
->nul 2>&1 DEL "%ProgramData%\7zExtra.7z" /F /Q
 EXIT /b
 
 :CHECKWIN
@@ -878,9 +884,8 @@ POWERSHELL -nop -c "Add-Type -AssemblyName PresentationFramework, System.Drawing
 EXIT /b
 
 :MAINMENU
-SET "LOGO=%ProgramData%\zipripper.png"
 IF /I NOT EXIST "%LOGO%" (
-	CALL :SINGLEDOWNLOAD "https://raw.githubusercontent.com/illsk1lls/ZipRipper/main/.resources/zipripper.png" "%LOGO%" "Initializing..."
+	CALL :SINGLEDOWNLOAD "%DL_LOGO%" "%LOGO%" "Initializing..."
 )
 FOR /F "usebackq delims=, tokens=1,2*" %%# IN (`POWERSHELL -nop -c "Add-Type -AssemblyName PresentationFramework, System.Drawing, System.Windows.Forms, WindowsFormsIntegration;function wlist(){Switch($showL){0{$D.Visibility="^""Visible"^"";$R.Visibility="^""Visible"^"";$C.Visibility="^""Visible"^"";$global:showL="^""1"^""}1{$D.Visibility="^""Collapsed"^"";$R.Visibility="^""Collapsed"^"";$C.Visibility="^""Collapsed"^"";$global:showL="^""0"^""}}};[xml]$xaml='<Window xmlns="^""http://schemas.microsoft.com/winfx/2006/xaml/presentation"^"" xmlns:x="^""http://schemas.microsoft.com/winfx/2006/xaml"^"" WindowStartupLocation="^""CenterScreen"^"" WindowStyle="^""None"^"" Background="^""Transparent"^"" AllowsTransparency="^""True"^"" Width="^""285"^"" Height="^""324"^""><Window.Resources><ControlTemplate x:Key="^""nM"^"" TargetType="^""Button"^""><Border Background="^""{TemplateBinding Background}"^"" BorderBrush="^""{TemplateBinding BorderBrush}"^"" BorderThickness="^""{TemplateBinding BorderThickness}"^""><ContentPresenter HorizontalAlignment="^""{TemplateBinding HorizontalContentAlignment}"^"" VerticalAlignment="^""{TemplateBinding VerticalContentAlignment}"^""/></Border><ControlTemplate.Triggers><Trigger Property="^""IsEnabled"^"" Value="^""False"^""><Setter Property="^""Background"^"" Value="^""{x:Static SystemColors.ControlLightBrush}"^""/><Setter Property="^""Foreground"^"" Value="^""{x:Static SystemColors.GrayTextBrush}"^""/></Trigger></ControlTemplate.Triggers></ControlTemplate></Window.Resources><Grid><Grid.RowDefinitions><RowDefinition Height="^""298"^""/><RowDefinition Height="^""*"^""/></Grid.RowDefinitions><Grid.Background><ImageBrush ImageSource="^""%LOGO%"^""/></Grid.Background><Grid.Triggers><EventTrigger RoutedEvent="^""Loaded"^""><BeginStoryboard><Storyboard><DoubleAnimation Storyboard.TargetProperty="^""Background.Opacity"^"" From="^""0"^"" To="^""1"^"" Duration="^""0:0:1"^""/></Storyboard></BeginStoryboard></EventTrigger></Grid.Triggers><Canvas Grid.Row="^""0"^""><Button x:Name="^""Offline"^"" Canvas.Left="^""141"^"" Canvas.Top="^""56"^"" Height="^""16"^"" Width="^""26"^"" ToolTip="^""Create [zr-offline.txt]"^"" Template="^""{StaticResource nM}"^""/><Button x:Name="^""Cleanup"^"" Canvas.Left="^""138"^"" Canvas.Top="^""154"^"" Height="^""20"^"" Width="^""20"^"" ToolTip="^""Clear Resume Cache"^"" Template="^""{StaticResource nM}"^""/><Button Name="^""List"^"" Canvas.Left="^""143"^"" Canvas.Top="^""116"^"" Height="^""10"^"" Width="^""15"^"" ToolTip="^""Select Wordlist"^"" Template="^""{StaticResource nM}"^"" Opacity="^""0"^""></Button><Button Name="^""Default"^"" Canvas.Left="^""123"^"" Canvas.Top="^""130"^"" FontSize="^""11"^"" Foreground="^""#eeeeee"^"" Background="^""#333333"^"" Height="^""18"^"" Width="^""55"^"" Visibility="^""Collapsed"^"" HorizontalContentAlignment="^""Left"^"" Template="^""{StaticResource nM}"^"" Opacity="^""0.9"^"">Default</Button><Button Name="^""WL"^"" Canvas.Left="^""123"^"" Canvas.Top="^""147"^"" FontSize="^""11"^"" Foreground="^""#eeeeee"^"" Background="^""#333333"^"" Height="^""18"^"" Width="^""55"^"" Visibility="^""Collapsed"^"" HorizontalContentAlignment="^""Left"^"" Template="^""{StaticResource nM}"^"" Opacity="^""0.9"^"">%WORDLISTNAME:"=%</Button><Button Name="^""Custom"^"" Canvas.Left="^""123"^"" Canvas.Top="^""164"^"" FontSize="^""11"^"" Foreground="^""#eeeeee"^"" Background="^""#333333"^"" Height="^""18"^"" Width="^""55"^"" Visibility="^""Collapsed"^"" HorizontalContentAlignment="^""Left"^"" Template="^""{StaticResource nM}"^"" Opacity="^""0.9"^"">Custom</Button></Canvas><Canvas Grid.Row="^""1"^""><Button x:Name="^""Start"^"" Height="^""22"^"" Width="^""65"^"" Content="^""Start"^"" ToolTip="^""Click to Begin..."^"" Template="^""{StaticResource nM}"^""><Button.Triggers><EventTrigger RoutedEvent="^""Loaded"^""><BeginStoryboard><Storyboard><DoubleAnimation From="^""40"^"" To="^""65"^"" Duration="^""0:0:1"^"" Storyboard.TargetProperty="^""(Canvas.Left)"^"" AutoReverse="^""False"^""/><DoubleAnimation Storyboard.TargetProperty="^""Opacity"^"" From="^""0"^"" To="^""1"^"" Duration="^""0:0:2"^""/></Storyboard></BeginStoryboard></EventTrigger></Button.Triggers></Button></Canvas><Canvas Grid.Row="^""1"^""><Button x:Name="^""Quit"^"" Height="^""22"^"" Width="^""65"^"" Content="^""Quit"^"" ToolTip="^""Click to Exit"^"" Template="^""{StaticResource nM}"^""><Button.Triggers><EventTrigger RoutedEvent="^""Loaded"^""><BeginStoryboard><Storyboard><DoubleAnimation From="^""40"^"" To="^""65"^"" Duration="^""0:0:1"^"" Storyboard.TargetProperty="^""(Canvas.Right)"^"" AutoReverse="^""False"^""/><DoubleAnimation Storyboard.TargetProperty="^""Opacity"^"" From="^""0"^"" To="^""1"^"" Duration="^""0:0:2"^""/></Storyboard></BeginStoryboard></EventTrigger></Button.Triggers></Button></Canvas></Grid><Window.TaskbarItemInfo><TaskbarItemInfo/></Window.TaskbarItemInfo></Window>';$reader=(New-Object System.Xml.XmlNodeReader $xaml);$window=[Windows.Markup.XamlReader]::Load($reader);$window.Title='ZipRipper';$bitmap=New-Object System.Windows.Media.Imaging.BitmapImage;$bitmap='%LOGO:'=''%';$window.Icon=$bitmap;$window.TaskbarItemInfo.Overlay=$bitmap;$window.TaskbarItemInfo.Description=$window.Title;$window.Add_Closing({[System.Windows.Forms.Application]::Exit();Stop-Process $pid});$L=$Window.FindName("^""List"^"");$D=$Window.FindName("^""Default"^"");$R=$Window.FindName("^""WL"^"");$C=$Window.FindName("^""Custom"^"");$L.Add_Click({wlist});$D.Add_MouseEnter({$D.Background="^""#eeeeee"^"";$D.Foreground="^""#333333"^""});$D.Add_MouseLeave({$D.Background="^""#333333"^"";$D.Foreground="^""#eeeeee"^""});$D.Add_Click({$global:list='0';wlist});$R.Add_MouseEnter({$R.Background="^""#eeeeee"^"";$R.Foreground="^""#333333"^""});$R.Add_MouseLeave({$R.Background="^""#333333"^"";$R.Foreground="^""#eeeeee"^""});$R.Add_Click({$global:list='1';wlist});$C.Add_MouseEnter({$C.Background="^""#eeeeee"^"";$C.Foreground="^""#333333"^""});$C.Add_MouseLeave({$C.Background="^""#333333"^"";$C.Foreground="^""#eeeeee"^""});$C.Add_Click({$global:list='2';wlist});$b=$Window.FindName("^""Start"^"");$b.Background = "^""#333333"^"";$b.Foreground="^""#eeeeee"^"";$b.FontSize="^""12"^"";$b.FontWeight="^""Bold"^"";$b.Add_MouseEnter({$b.Background="^""#eeeeee"^"";$b.Foreground="^""#333333"^""});$b.Add_MouseLeave({$b.Background="^""#333333"^"";$b.Foreground="^""#eeeeee"^""});$b.Add_Click({write-host "^""Start,$list"^"";Exit});$b2=$Window.FindName("^""Quit"^"");$b2.Background="^""#333333"^"";$b2.Foreground="^""#eeeeee"^"";$b2.FontSize="^""12"^"";$b2.FontWeight="^""Bold"^"";$b2.Add_MouseEnter({$b2.Background="^""#eeeeee"^"";$b2.Foreground="^""#333333"^""});$b2.Add_MouseLeave({$b2.Background="^""#333333"^"";$b2.Foreground="^""#eeeeee"^""});$b2.Add_Click({write-host 'Quit';Exit});$b3=$Window.FindName("^""Offline"^"");$b3.Opacity="^""0"^"";$b3.Add_Click({$b3m=New-Object -ComObject Wscript.Shell;$b3a=$b3m.Popup('Create [zr-offline.txt] for Offline Mode?',0,'Offline Mode Builder',0x1);if($b3a -eq 1){write-host 'Offline';Exit}});$b4=$Window.FindName("^""Cleanup"^"");$b4.Opacity="^""0"^"";$b4.Add_Click({$b4m=New-Object -ComObject Wscript.Shell;$b4a=$b4m.Popup('Cleanup ALL resume data?',0,'Clear InProgress Jobs',0x1);if($b4a -eq 1){if(Test-Path -Path '%AppData:'=''%\ZR-InProgress'){Remove-Item '%AppData:'=''%\ZR-InProgress' -Recurse -force -ErrorAction SilentlyContinue;$b4m2=New-Object -ComObject Wscript.Shell;$b4m2.Popup('ALL Jobs Cleared',0,'Clear InProgress Jobs',0x0)} else {$b4m3=New-Object -ComObject Wscript.Shell;$b4m3.Popup('There are no jobs to clear',0,'Clear InProgress Jobs',0x0)}}});$list='0';$showL='0';$window.add_MouseLeftButtonDown({if($showL -eq 1){wlist};$window.DragMove()});$window.Show();$appContext=New-Object System.Windows.Forms.ApplicationContext;[void][System.Windows.Forms.Application]::Run($appContext)"`) DO (
 	SET "%1=%%#"
@@ -891,32 +896,15 @@ FOR /F "usebackq delims=, tokens=1,2*" %%# IN (`POWERSHELL -nop -c "Add-Type -As
 EXIT /b
 
 :CLEANUP
-IF /I EXIST "%ProgramData%\JtR" (
-	>nul 2>&1 RD "%ProgramData%\JtR" /S /Q
+FOR %%# IN (%TEMPFILES%) DO (
+    IF /I EXIST "%ProgramData%\%%#" (
+        >nul 2>&1 DEL "%ProgramData%\%%#" /F /Q 
+    )
 )
-IF /I EXIST "%ProgramData%\zr-offline.txt" (
-	>nul 2>&1 DEL "%ProgramData%\zr-offline.txt" /F /Q
-)
-IF /I EXIST "%ProgramData%\7zExtra.7z" (
-	>nul 2>&1 DEL "%ProgramData%\7zExtra.7z" /F /Q
-)
-IF /I EXIST "%ProgramData%\7zr.exe" (
-	>nul 2>&1 DEL "%ProgramData%\7zr.exe" /F /Q
-)
-IF /I EXIST "%ProgramData%\perlportable.zip" (
-	>nul 2>&1 DEL "%ProgramData%\perlportable.zip" /F /Q
-)
-IF /I EXIST "%ProgramData%\winX64_1_JtR.7z" (
-	>nul 2>&1 DEL "%ProgramData%\winX64_1_JtR.7z" /F /Q
-)
-IF /I EXIST "%ProgramData%\zipripper.png" (
-	>nul 2>&1 DEL "%ProgramData%\zipripper.png" /F /Q
-)
-IF /I EXIST "%ProgramData%\launcher.ZipRipper" (
-	>nul 2>&1 DEL "%ProgramData%\launcher.ZipRipper" /F /Q
-)
-IF /I EXIST "%ProgramData%\ztmp\*" (
-	>nul 2>&1 RD "%ProgramData%\ztmp" /S /Q
+FOR %%# IN (%TEMPFOLDERS%) DO (
+    IF /I EXIST "%ProgramData%\%%#\*" (
+		>nul 2>&1 RD "%ProgramData%\%%#" /S /Q 
+    )
 )
 IF "%1"=="" (
 	>nul 2>&1 REG DELETE HKCU\Software\classes\.ZipRipper\ /F
@@ -962,7 +950,7 @@ PUSHD "%ProgramData%\ztmp"
 	ECHO 103 "winX64_1_JtR.7z"
 	ECHO 104 "zipripper.png"
 )>"%ProgramData%\ztmp\offline.config"
-POWERSHELL -nop -c "Add-Type -AssemblyName PresentationFramework, System.Drawing, System.Windows.Forms, WindowsFormsIntegration;[xml]$xaml='<Window xmlns="^""http://schemas.microsoft.com/winfx/2006/xaml/presentation"^"" xmlns:x="^""http://schemas.microsoft.com/winfx/2006/xaml"^"" Title="^""Building [zr-offline.txt]"^"" Height="^""75"^"" Width="^""210"^"" WindowStartupLocation="^""CenterScreen"^"" WindowStyle="^""None"^"" Topmost="^""True"^"" Background="^""#333333"^"" AllowsTransparency="^""True"^""><Canvas><TextBlock Name="^""Info"^"" Canvas.Top="^""3"^"" Text="^"" Initializing..."^"" Foreground="^""#eeeeee"^"" FontWeight="^""Bold"^""/><ProgressBar Canvas.Left="^""5"^"" Canvas.Top="^""28"^"" Width="^""200"^"" Height="^""3"^"" Name="^""Progress"^"" Foreground="^""#FF0000"^""/><TextBlock Name="^""Info2"^"" Canvas.Top="^""38"^"" Text="^"" Getting Resources (Stage 1/2)"^"" Foreground="^""#eeeeee"^"" FontWeight="^""Bold"^""/><ProgressBar Canvas.Left="^""5"^"" Canvas.Top="^""63"^"" Width="^""200"^"" Height="^""3"^"" Name="^""Progress2"^"" Foreground="^""#FF0000"^""/></Canvas><Window.TaskbarItemInfo><TaskbarItemInfo/></Window.TaskbarItemInfo></Window>';$reader=(New-Object System.Xml.XmlNodeReader $xaml);$form=[Windows.Markup.XamlReader]::Load($reader);$bitmap=New-Object System.Windows.Media.Imaging.BitmapImage;$bitmap='%ProgramData%\zipripper.png';$form.Icon=$bitmap;$form.TaskbarItemInfo.Overlay=$bitmap;$form.TaskbarItemInfo.Description=$form.Title;$form.Add_Closing({[System.Windows.Forms.Application]::Exit();Stop-Process $pid});$progressBar=$form.FindName("^""Progress"^"");$progressTotal=$form.FindName("^""Progress2"^"");$info=$form.FindName("^""Info"^"");$info2=$form.FindName("^""Info2"^"");function Update-Gui (){$form.Dispatcher.Invoke([Windows.Threading.DispatcherPriority]::Background, [action]{})};function Build () {$info.Text=' Downloading 7zr Standalone';Update-Gui;downloadFile 'https://www.7-zip.org/a/7zr.exe' '%ProgramData%\ztmp\101';$info.Text=' Downloading 7za Console';Update-Gui;downloadFile 'https://www.7-zip.org/a/7z2300-extra.7z' '%ProgramData%\ztmp\100';$info.Text=' Downloading JohnTheRipper';Update-Gui;downloadFile 'https://github.com/openwall/john-packages/releases/download/bleeding/winX64_1_JtR.7z' '%ProgramData%\ztmp\103';$info.Text=' Downloading Portable Perl';Update-Gui;downloadFile 'https://strawberryperl.com/download/5.16.3.1/strawberry-perl-5.16.3.1-64bit-portable.zip' '%ProgramData%\ztmp\102';$progressBar.Value=0;$info.Text=' Merging resources'; $info2.Text=' Building zr-offline.txt (Stage 2/2)';$pass=1;Update-Gui;makecab.exe /F '%ProgramData%\ztmp\offline.config' /D Compress='OFF' /D CabinetNameTemplate='%ProgramData%\ztmp\zr-offline.txt'| out-string -stream | Select-String -Pattern "^""(\d{1,3})(?=[.]\d{1,2}%%)"^"" -AllMatches | ForEach-Object { $_.Matches.Value } | foreach {$progressBar.Value=$_;if($totalP2 -ge 6){$progressTotal.Value=$progressTotal.Value + 1;$totalP2=0};if($progressBar.Value -ne $lastpercent){$lastpercent=$progressBar.Value;$totalP2++};if($progressBar.Value -ge 100){$pass++};if($pass -eq 2){$info.Text="^"" Building data file"^"";if($progressBar.Value -eq 99){$pass++}};if($pass -eq 3){$info.Text="^"" Purging Cache"^""};if($progressBar.Value -ne $lastpercent2){$lastpercent2=$progressBar.Value;Update-Gui}};$progressBar.Value=100;$m=([IO.File]::ReadAllLines('%ProgramData%\launcher.ZipRipper')).Replace('"^""','');Move-Item -Path '%ProgramData%\ztmp\zr-offline.txt' -Destination "^""$m"^"" -Force;$progressTotal.Value=100;$info.Text="^"" Build Completed!"^"";Update-Gui;Sleep 3};function DownloadFile($url,$targetFile){$uri=New-Object "^""System.Uri"^"" "^""$url"^"";$request=[System.Net.HttpWebRequest]::Create($uri);$request.set_Timeout(15000);$response=$request.GetResponse();$totalLength=[System.Math]::Floor($response.get_ContentLength()/1024);$responseStream=$response.GetResponseStream();$targetStream=New-Object -TypeName System.IO.FileStream -ArgumentList $targetFile, Create;$buffer=new-object byte[] 10KB;$count=$responseStream.Read($buffer,0,$buffer.length);$downloadedBytes=$count;while ($count -gt 0){$targetStream.Write($buffer, 0, $count);$count=$responseStream.Read($buffer,0,$buffer.length);$downloadedBytes=$downloadedBytes + $count;$roundedPercent=[int]((([System.Math]::Floor($downloadedBytes/1024))/$totalLength)*100);$progressBar.Value=$roundedPercent;if($totalP -ge 7){$progressTotal.Value++;$totalP=0};if($progressBar.Value -ne $lastpercent){$lastpercent=$progressBar.Value;$totalP++;Update-Gui}};$targetStream.Flush();$targetStream.Close();$targetStream.Dispose();$responseStream.Dispose()};$form.Add_ContentRendered({Build;$form.Close()});$form.Show();$appContext=New-Object System.Windows.Forms.ApplicationContext;[void][System.Windows.Forms.Application]::Run($appContext)">nul
+POWERSHELL -nop -c "Add-Type -AssemblyName PresentationFramework, System.Drawing, System.Windows.Forms, WindowsFormsIntegration;[xml]$xaml='<Window xmlns="^""http://schemas.microsoft.com/winfx/2006/xaml/presentation"^"" xmlns:x="^""http://schemas.microsoft.com/winfx/2006/xaml"^"" Title="^""Building [zr-offline.txt]"^"" Height="^""75"^"" Width="^""210"^"" WindowStartupLocation="^""CenterScreen"^"" WindowStyle="^""None"^"" Topmost="^""True"^"" Background="^""#333333"^"" AllowsTransparency="^""True"^""><Canvas><TextBlock Name="^""Info"^"" Canvas.Top="^""3"^"" Text="^"" Initializing..."^"" Foreground="^""#eeeeee"^"" FontWeight="^""Bold"^""/><ProgressBar Canvas.Left="^""5"^"" Canvas.Top="^""28"^"" Width="^""200"^"" Height="^""3"^"" Name="^""Progress"^"" Foreground="^""#FF0000"^""/><TextBlock Name="^""Info2"^"" Canvas.Top="^""38"^"" Text="^"" Getting Resources (Stage 1/2)"^"" Foreground="^""#eeeeee"^"" FontWeight="^""Bold"^""/><ProgressBar Canvas.Left="^""5"^"" Canvas.Top="^""63"^"" Width="^""200"^"" Height="^""3"^"" Name="^""Progress2"^"" Foreground="^""#FF0000"^""/></Canvas><Window.TaskbarItemInfo><TaskbarItemInfo/></Window.TaskbarItemInfo></Window>';$reader=(New-Object System.Xml.XmlNodeReader $xaml);$form=[Windows.Markup.XamlReader]::Load($reader);$bitmap=New-Object System.Windows.Media.Imaging.BitmapImage;$bitmap='%ProgramData%\zipripper.png';$form.Icon=$bitmap;$form.TaskbarItemInfo.Overlay=$bitmap;$form.TaskbarItemInfo.Description=$form.Title;$form.Add_Closing({[System.Windows.Forms.Application]::Exit();Stop-Process $pid});$progressBar=$form.FindName("^""Progress"^"");$progressTotal=$form.FindName("^""Progress2"^"");$info=$form.FindName("^""Info"^"");$info2=$form.FindName("^""Info2"^"");function Update-Gui (){$form.Dispatcher.Invoke([Windows.Threading.DispatcherPriority]::Background, [action]{})};function Build () {$info.Text=' Downloading 7zr Standalone';Update-Gui;downloadFile '%DL_7ZR%' '%ProgramData%\ztmp\101';$info.Text=' Downloading 7za Console';Update-Gui;downloadFile '%DL_7ZEXTRA%' '%ProgramData%\ztmp\100';$info.Text=' Downloading JohnTheRipper';Update-Gui;downloadFile '%DL_JTR%' '%ProgramData%\ztmp\103';$info.Text=' Downloading Portable Perl';Update-Gui;downloadFile '%DL_PERLPORTABLE%' '%ProgramData%\ztmp\102';$progressBar.Value=0;$info.Text=' Merging resources'; $info2.Text=' Building zr-offline.txt (Stage 2/2)';$pass=1;Update-Gui;makecab.exe /F '%ProgramData%\ztmp\offline.config' /D Compress='OFF' /D CabinetNameTemplate='%ProgramData%\ztmp\zr-offline.txt'| out-string -stream | Select-String -Pattern "^""(\d{1,3})(?=[.]\d{1,2}%%)"^"" -AllMatches | ForEach-Object { $_.Matches.Value } | foreach {$progressBar.Value=$_;if($totalP2 -ge 6){$progressTotal.Value=$progressTotal.Value + 1;$totalP2=0};if($progressBar.Value -ne $lastpercent){$lastpercent=$progressBar.Value;$totalP2++};if($progressBar.Value -ge 100){$pass++};if($pass -eq 2){$info.Text="^"" Building data file"^"";if($progressBar.Value -eq 99){$pass++}};if($pass -eq 3){$info.Text="^"" Purging Cache"^""};if($progressBar.Value -ne $lastpercent2){$lastpercent2=$progressBar.Value;Update-Gui}};$progressBar.Value=100;$m=([IO.File]::ReadAllLines('%ProgramData%\launcher.ZipRipper')).Replace('"^""','');Move-Item -Path '%ProgramData%\ztmp\zr-offline.txt' -Destination "^""$m"^"" -Force;$progressTotal.Value=100;$info.Text="^"" Build Completed!"^"";Update-Gui;Sleep 3};function DownloadFile($url,$targetFile){$uri=New-Object "^""System.Uri"^"" "^""$url"^"";$request=[System.Net.HttpWebRequest]::Create($uri);$request.set_Timeout(15000);$response=$request.GetResponse();$totalLength=[System.Math]::Floor($response.get_ContentLength()/1024);$responseStream=$response.GetResponseStream();$targetStream=New-Object -TypeName System.IO.FileStream -ArgumentList $targetFile, Create;$buffer=new-object byte[] 10KB;$count=$responseStream.Read($buffer,0,$buffer.length);$downloadedBytes=$count;while ($count -gt 0){$targetStream.Write($buffer, 0, $count);$count=$responseStream.Read($buffer,0,$buffer.length);$downloadedBytes=$downloadedBytes + $count;$roundedPercent=[int]((([System.Math]::Floor($downloadedBytes/1024))/$totalLength)*100);$progressBar.Value=$roundedPercent;if($totalP -ge 7){$progressTotal.Value++;$totalP=0};if($progressBar.Value -ne $lastpercent){$lastpercent=$progressBar.Value;$totalP++;Update-Gui}};$targetStream.Flush();$targetStream.Close();$targetStream.Dispose();$responseStream.Dispose()};$form.Add_ContentRendered({Build;$form.Close()});$form.Show();$appContext=New-Object System.Windows.Forms.ApplicationContext;[void][System.Windows.Forms.Application]::Run($appContext)">nul
 POPD
 >nul 2>&1 RD "%ProgramData%\ztmp" /S /Q
 FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "Add-Type -AssemblyName System.Windows.Forms;$^={$Notify=[PowerShell]::Create().AddScript({$Audio=New-Object System.Media.SoundPlayer;$Audio.SoundLocation=$env:WinDir + '\Media\Windows Notify System Generic.wav';$Audio.playsync()});$rs=[RunspaceFactory]::CreateRunspace();$rs.ApartmentState="^""STA"^"";$rs.ThreadOptions="^""ReuseThread"^"";$rs.Open();$Notify.Runspace=$rs;$Notify.BeginInvoke()};&$^;[System.Windows.Forms.MessageBox]::Show('Re-launch ZipRipper in Offline Mode?', 'Build Complete.',4,32,0,131072)"`) DO (
@@ -993,72 +981,32 @@ EXIT /b
 
 :CHECKGPU
 FOR /F "usebackq skip=1 tokens=2,3" %%# IN (`WMIC path Win32_VideoController get Name`) DO (
-	IF /I "%%#"=="GeForce" (
-		IF /I NOT EXIST "%WinDir%\System32\OpenCL.dll" (
-			IF /I EXIST "%WinDir%\System32\DriverStore\FileRepository\nvamig.inf_amd64_72a8482547fd21bc\OpenCL64.dll" (
-				>nul 2>&1 COPY /Y "%WinDir%\System32\DriverStore\FileRepository\nvamig.inf_amd64_72a8482547fd21bc\OpenCL64.dll" "%WinDir%\System32\OpenCL.dll"
+    FOR %%$ IN (%NVIDIA_CARDS%) DO (
+        IF /I "%%#"=="%%$" (
+			IF EXIST "%WinDir%\System32\OpenCL.dll" (
 				SET GPU=1
 			)
-		) ELSE (
-			SET GPU=1
 		)
-	)
-	IF /I "%%#"=="RTX" (
-		IF /I EXIST "%WinDir%\System32\OpenCL.dll" (
-			SET GPU=1
-		)
-	)
-	IF /I "%%#"=="A800" (
-		IF /I EXIST "%WinDir%\System32\OpenCL.dll" (
-			SET GPU=1
-		)
-	)
-	IF /I "%%#"=="T1000" (
-		IF /I EXIST "%WinDir%\System32\OpenCL.dll" (
-			SET GPU=1
-		)
-	)
-	IF /I "%%#"=="Quadro" (
-		IF /I NOT EXIST "%WinDir%\System32\OpenCL.dll" (
-			IF /I EXIST "%WinDir%\System32\DriverStore\FileRepository\nvamig.inf_amd64_72a8482547fd21bc\OpenCL64.dll" (
-				>nul 2>&1 COPY /Y "%WinDir%\System32\DriverStore\FileRepository\nvamig.inf_amd64_72a8482547fd21bc\OpenCL64.dll" "%WinDir%\System32\OpenCL.dll"
-				SET GPU=1
-			)
-		) ELSE (
-			SET GPU=1
-		)
-	)
+    )
 	SETLOCAL ENABLEDELAYEDEXPANSION
 	IF NOT "!GPU!"=="1" (
 		ENDLOCAL
-		IF /I NOT EXIST "%ProgramData%\ignore.Radeon" (
-			IF /I "%%#"=="Radeon" (
-				CALL :OFFERCPUMODE
-				SETLOCAL ENABLEDELAYEDEXPANSION
-				IF "!SKIPRADEON!"=="1" (
-					ENDLOCAL
-				) ELSE (
-					ENDLOCAL
-					IF /I NOT EXIST "%WinDir%\System32\amdocl64.dll" (
-						CALL :FIXRADEON
-					) ELSE (
-						REG QUERY "HKEY_LOCAL_MACHINE\SOFTWARE\Khronos\OpenCL\Vendors" /v "%WinDir%\System32\amdocl64.dll" >nul 2>&1
-						IF %ERRORLEVEL% NEQ 0 (
-							CALL :FIXRADEON
-						)
-					)
-					IF /I "%%# %%$"=="Radeon RX" (
-						IF /I EXIST "%WinDir%\System32\amdocl64.dll" (
-							SET GPU=2
-						)
-					)
-					IF /I "%%# %%$"=="Radeon Pro" (
-						IF /I EXIST "%WinDir%\System32\amdocl64.dll" (
+		IF /I "%%#"=="Radeon" (
+			CALL :OFFERCPUMODE
+			SETLOCAL ENABLEDELAYEDEXPANSION
+			IF NOT "!SKIPRADEON!"=="1" (
+				ENDLOCAL
+				FOR %%_ IN (%AMD_CARDS%) DO (
+					IF /I "%%#%%$"=="%%_" (
+						IF /I EXIST "%WinDir%\System32\amd_opencl64.dll" (
+							ECHO|(SET /p="c:\Windows\System32\amd_opencl64.dll")>"%ProgramData%\JtR\etc\OpenCL\vendors\amd.icd"
 							SET GPU=2
 						)
 					)
 				)
-			)
+			) ELSE (
+				ENDLOCAL
+			) 
 		)
 	) ELSE (
 		ENDLOCAL
@@ -1142,17 +1090,6 @@ EXIT /b
 FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "Add-Type -AssemblyName System.Windows.Forms;$^={$Notify=[PowerShell]::Create().AddScript({$Audio=New-Object System.Media.SoundPlayer;$Audio.SoundLocation=$env:WinDir + '\Media\Windows Notify System Generic.wav';$Audio.playsync()});$rs=[RunspaceFactory]::CreateRunspace();$rs.ApartmentState="^""STA"^"";$rs.ThreadOptions="^""ReuseThread"^"";$rs.Open();$Notify.Runspace=$rs;$Notify.BeginInvoke()};&$^;[System.Windows.Forms.MessageBox]::Show('Radeon support is EXPERIMENTAL.. Click YES to bypass the GPU and start in CPU mode instead. Click NO if this is your first attempt.','Bypass GPU?',4,32,0,131072)"`) DO (
 	IF /I "%%#"=="Yes" (
 		SET SKIPRADEON=1
-	)
-)
-EXIT /b
-
-:FIXRADEON
-FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "Add-Type -AssemblyName System.Windows.Forms;$^={$Notify=[PowerShell]::Create().AddScript({$Audio=New-Object System.Media.SoundPlayer;$Audio.SoundLocation=$env:WinDir + '\Media\Windows Notify System Generic.wav';$Audio.playsync()});$rs=[RunspaceFactory]::CreateRunspace();$rs.ApartmentState="^""STA"^"";$rs.ThreadOptions="^""ReuseThread"^"";$rs.Open();$Notify.Runspace=$rs;$Notify.BeginInvoke()};&$^;[System.Windows.Forms.MessageBox]::Show('Radeon series GPU detected, but OpenCL dependencies are missing.. Would you like to perform a one-time download from AMD to enable OpenCL support on your system? (~13mb)','Enable AMD OpenCL Support?',4,32,0,131072)"`) DO (
-	IF /I "%%#"=="Yes" (
-		CALL :SINGLEDOWNLOAD "https://download.amd.com/dir/bin/amdocl64.dll/64AE0623d36000/amdocl64.dll" "%WinDir%\System32\amdocl64.dll" "Adding AMD OpenCL support..."
-		>nul 2>&1 REG ADD "HKEY_LOCAL_MACHINE\SOFTWARE\Khronos\OpenCL\Vendors" /v "%WinDir%\System32\amdocl64.dll" /t REG_DWORD /d 0 /f
-	) ELSE (
-		CD.>"%ProgramData%\ignore.Radeon"
 	)
 )
 EXIT /b
