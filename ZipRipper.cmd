@@ -897,14 +897,14 @@ EXIT /b
 
 :CLEANUP
 FOR %%# IN (%TEMPFILES%) DO (
-    IF /I EXIST "%ProgramData%\%%#" (
-        >nul 2>&1 DEL "%ProgramData%\%%#" /F /Q 
-    )
+	IF /I EXIST "%ProgramData%\%%#" (
+		>nul 2>&1 DEL "%ProgramData%\%%#" /F /Q 
+	)
 )
 FOR %%# IN (%TEMPFOLDERS%) DO (
-    IF /I EXIST "%ProgramData%\%%#\*" (
+	IF /I EXIST "%ProgramData%\%%#\*" (
 		>nul 2>&1 RD "%ProgramData%\%%#" /S /Q 
-    )
+	)
 )
 IF "%1"=="" (
 	>nul 2>&1 REG DELETE HKCU\Software\classes\.ZipRipper\ /F
