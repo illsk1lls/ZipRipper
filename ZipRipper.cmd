@@ -386,7 +386,7 @@ IF NOT EXIST "%ProgramData%\JtR\run\john.rec" (
 	IF NOT EXIST "%RESUMEDATAFOLDER%\%MD5%" (
 		MD "%RESUMEDATAFOLDER%\%MD5%"
 	)
-    FOR %%# IN (%RESUMEDATAFILES%) DO (
+	FOR %%# IN (%RESUMEDATAFILES%) DO (
 		IF /I EXIST "%ProgramData%\JtR\run\%%#" (
 			>nul 2>&1 MOVE /Y "%ProgramData%\JtR\run\%%#" "%RESUMEDATAFOLDER%\%MD5%"
 		)
