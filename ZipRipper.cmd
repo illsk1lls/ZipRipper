@@ -459,9 +459,9 @@ IF "%ISPERL%"=="1" (
 	"%ProgramData%\JtR\7za.exe" x -y "%ProgramData%\perlportable.zip" -o"%ProgramData%\JtR\run">nul
 )
 FOR %%# IN (perlportable.zip,zr-offline.txt,winX64_1_JtR.7z,7zr.exe,7zExtra.7z) DO (
-    IF /I EXIST "%ProgramData%\%%#" (
-        >nul 2>&1 DEL "%ProgramData%\%%#" /F /Q 
-    )
+	IF /I EXIST "%ProgramData%\%%#" (
+		>nul 2>&1 DEL "%ProgramData%\%%#" /F /Q 
+	)
 )
 EXIT /b
 
@@ -981,13 +981,13 @@ EXIT /b
 
 :CHECKGPU
 FOR /F "usebackq skip=1 tokens=2,3" %%# IN (`WMIC path Win32_VideoController get Name`) DO (
-    FOR %%$ IN (%NVIDIA_CARDS%) DO (
-        IF /I "%%#"=="%%$" (
+	FOR %%$ IN (%NVIDIA_CARDS%) DO (
+		IF /I "%%#"=="%%$" (
 			IF EXIST "%WinDir%\System32\OpenCL.dll" (
 				SET GPU=1
 			)
 		)
-    )
+	)
 	SETLOCAL ENABLEDELAYEDEXPANSION
 	IF NOT "!GPU!"=="1" (
 		ENDLOCAL
