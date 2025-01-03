@@ -1002,6 +1002,9 @@ FOR /F "usebackq skip=1 tokens=2,3" %%# IN (`WMIC path Win32_VideoController get
 							ECHO|(SET /p="c:\Windows\System32\amd_opencl64.dll")>"%ProgramData%\JtR\etc\OpenCL\vendors\amd.icd"
 							SET GPU=2
 						)
+						IF /I EXIST "%WinDir%\System32\amdocl64.dll" (
+							SET GPU=2
+						)
 					)
 				)
 			) ELSE (
