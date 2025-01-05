@@ -255,14 +255,14 @@ REN john.conf john.defaultconf
 POWERSHELL -nop -c "$^=gc john.defaultconf|%%{$_.Replace('SingleMaxBufferAvailMem = N','SingleMaxBufferAvailMem = Y').Replace('MaxKPCWarnings = 10','MaxKPCWarnings = 0')}|sc john.conf">nul 2>&1
 SET "FLAG="
 SET RESUME=0
-CALL :GETMD5 %1 MD5
+CALL :GETMD5 "%~1" MD5
 IF EXIST "%RESUMEDATAFOLDER%\%MD5%" (
 	CALL :RESUMEDECIDE ISRESUME
 	SETLOCAL ENABLEDELAYEDEXPANSION
 	IF /I "!ISRESUME!"=="Yes" (
 		SETLOCAL DISABLEDELAYEDEXPANSION
 		>nul 2>&1 MOVE /Y "%RESUMEDATAFOLDER%\%MD5%\*.*" "%ProgramData%\JtR\run\"
-		CALL :CHECKRESUMENAME %1
+		CALL :CHECKRESUMENAME "%~1"
 		SET RESUME=1
 		GOTO :STARTJTR
 	) ELSE (
@@ -282,7 +282,7 @@ CALL :HASH%FILETYPE% "%~1"
 SETLOCAL ENABLEDELAYEDEXPANSION
 IF NOT "!PROTECTED!"=="1" (
 	ENDLOCAL
-	CALL :NOTSUPPORTED %1 "%ERRORMSG%"
+	CALL :NOTSUPPORTED "%~1" "%ERRORMSG%"
 	CALL :CLEANUP
 	GOTO :EOF
 )
@@ -346,7 +346,7 @@ IF !POTSIZE! GEQ 1 (
 	ENDLOCAL
 	ECHO/
 	<NUL set /p=Generating Password File...
-	CALL :SAVEFILE %1
+	CALL :SAVEFILE "%~1"
 	IF EXIST "%RESUMEDATAFOLDER%\%MD5%" (
 		>nul 2>&1 RD "%RESUMEDATAFOLDER%\%MD5%" /S /Q
 	)
@@ -357,7 +357,7 @@ IF !POTSIZE! GEQ 1 (
 ) ELSE (
 	ENDLOCAL	
 	ECHO/
-	CALL :SETRESUME %1
+	CALL :SETRESUME "%~1"
 )
 ECHO/
 PAUSE
@@ -592,7 +592,7 @@ EXIT /b
 ECHO Done
 ECHO/
 IF /I "%FILETYPE%"==".zip" (
-	FOR /F "tokens=2 delims=$" %%# IN ("%pwhash%") DO (
+	FOR /F "tokens=2 delims=$" %%# IN ("%pwhash:"=%") DO (
 		IF /I "%%#"=="zip" (
 			SETLOCAL ENABLEDELAYEDEXPANSION
 			IF NOT "!ZIPCHECKED!"=="1" (
@@ -668,7 +668,7 @@ IF /I "%FILETYPE%"==".rar" (
 	SETLOCAL ENABLEDELAYEDEXPANSION
 	IF !GPU! GEQ 1 (
 		ENDLOCAL
-		FOR /F "tokens=2 delims=$" %%# IN ("%pwhash%") DO (
+		FOR /F "tokens=2 delims=$" %%# IN ("%pwhash:"=%") DO (
 			IF /I "%%#"=="rar" (
 				SET "FLAG=--format=rar-opencl"
 				CALL :OPENCLENABLED
@@ -740,7 +740,7 @@ EXIT /b
 
 :NOOPENCL
 SET "TitleName=%TitleName:Initializing=CPU Mode%"
-IF "%1"=="" (
+IF "%~1"=="" (
 	SET "TitleName=%TitleName:AVAILABLE=UNAVAILABLE%"
 ) ELSE (
 	SET "TitleName=%TitleName:AVAILABLE=UNSUPPORTED Filetype%"
@@ -906,7 +906,7 @@ FOR %%# IN (%TEMPFOLDERS%) DO (
 		>nul 2>&1 RD "%ProgramData%\%%#" /S /Q 
 	)
 )
-IF "%1"=="" (
+IF "%~1"=="" (
 	>nul 2>&1 REG DELETE HKCU\Software\classes\.ZipRipper\ /F
 	(GOTO) 2>nul&DEL "%~f0"/F /Q>nul&EXIT
 )
