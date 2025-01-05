@@ -480,7 +480,9 @@ FOR /F "usebackq skip=2 tokens=3,4" %%# IN (`REG QUERY "HKLM\SOFTWARE\Microsoft\
 EXIT /b
 
 :CHECKRESUMENAME
-FOR /F "tokens=1 delims=:/" %%# IN ("%pwhash%") DO (
+SETLOCAL ENABLEDELAYEDEXPANSION
+FOR /F "tokens=1 delims=:/" %%# IN ("!pwhash!") DO (
+	ENDLOCAL
 	IF NOT "%~nx1"=="%%#" (
 		SET ALT=1
 		SET "OLDNAME=%%#"
