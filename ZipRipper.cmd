@@ -592,7 +592,9 @@ EXIT /b
 ECHO Done
 ECHO/
 IF /I "%FILETYPE%"==".zip" (
-	FOR /F "tokens=2 delims=$" %%# IN ("%pwhash:"=%") DO (
+	SETLOCAL ENABLEDELAYEDEXPANSION
+	FOR /F "tokens=2 delims=$" %%# IN ("!pwhash!") DO (
+		ENDLOCAL
 		IF /I "%%#"=="zip" (
 			SETLOCAL ENABLEDELAYEDEXPANSION
 			IF NOT "!ZIPCHECKED!"=="1" (
@@ -668,7 +670,9 @@ IF /I "%FILETYPE%"==".rar" (
 	SETLOCAL ENABLEDELAYEDEXPANSION
 	IF !GPU! GEQ 1 (
 		ENDLOCAL
-		FOR /F "tokens=2 delims=$" %%# IN ("%pwhash:"=%") DO (
+		SETLOCAL ENABLEDELAYEDEXPANSION
+		FOR /F "tokens=2 delims=$" %%# IN ("!pwhash!") DO (
+			ENDLOCAL
 			IF /I "%%#"=="rar" (
 				SET "FLAG=--format=rar-opencl"
 				CALL :OPENCLENABLED
