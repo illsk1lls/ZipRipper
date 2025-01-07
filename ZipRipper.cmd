@@ -975,18 +975,16 @@ EXIT /b
 :CPUMODESPLIT
 FOR /F "usebackq tokens=* delims=" %%# IN (`POWERSHELL -nop -c "Add-Type -AssemblyName System.Windows.Forms;$Msg+='Would you like to split the wordlist?';$Msg+="^""`n"^"";$Msg+="^""`n"^"";$Msg+='WARNING - There may be up to a 60 second delay from when a password is found, before the remaining lists are halted.';$Msg+="^""`n"^"";$Msg+="^""`n"^"";$Msg+='To split the wordlist click YES';$Msg+="^""`n"^"";$Msg+="^""`n"^"";$Msg+='To run ZipRipper in default mode click NO (If this is your first attempt you should click NO)';$^={$Notify=[PowerShell]::Create().AddScript({$Audio=New-Object System.Media.SoundPlayer;$Audio.SoundLocation=$env:WinDir + '\Media\Windows Notify System Generic.wav';$Audio.playsync()});$rs=[RunspaceFactory]::CreateRunspace();$rs.ApartmentState="^""STA"^"";$rs.ThreadOptions="^""ReuseThread"^"";$rs.Open();$Notify.Runspace=$rs;$Notify.BeginInvoke()};&$^;[System.Windows.Forms.MessageBox]::Show($Msg, 'CPU Mode Detected',4,32,0,131072)"`) DO (
 	IF /I "%%#"=="Yes" (
-		FOR /F "tokens=*" %%# in ('wmic cpu get NumberOfCores /value ^| find "="') DO (
-			FOR /F "tokens=2 delims==" %%# in ("%%#") DO (
+		FOR /F "usebackq skip=3 tokens=*" %%# in (`POWERSHELL -nop -c "Get-CIMInstance -ClassName 'Win32_Processor' | ft 'NumberOfCores'"`) DO (
 				SET "FORKS= [Split: Forks=%%#]"
 				SET "FLAG=--fork=%%#"
-			)
 		)
 	)
 )
 EXIT /b
 
 :CHECKGPU
-FOR /F "usebackq skip=1 tokens=2,3" %%# IN (`WMIC path Win32_VideoController get Name`) DO (
+FOR /F "usebackq skip=3 tokens=2,3" %%# IN (`POWERSHELL -nop -c "Get-CIMInstance -query 'select * from Win32_VideoController' | ft Name"`) DO (
 	FOR %%$ IN (%NVIDIA_CARDS%) DO (
 		IF /I "%%#"=="%%$" (
 			IF EXIST "%WinDir%\System32\OpenCL.dll" (
