@@ -5,7 +5,7 @@ SET WORDLISTADDR="https://download.weakpass.com/wordlists/1928/cyclone_hk.txt.7z
 REM End dynamic alternate wordlist info -> Click John's mouth on the GUI to access this option <-
 REM Resource Links - 7zr is used to extract 7za CLI from 7zExtra
 SET "DL_LOGO=https://raw.githubusercontent.com/illsk1lls/ZipRipper/main/.resources/zipripper.png"
-SET "DL_JTR=https://github.com/openwall/john-packages/releases/download/bleeding/winX64_1_JtR.7z"
+SET "DL_JTR=https://github.com/openwall/john-packages/releases/download/v1.9.1-ce/winX64_1_JtR.7z"
 SET "DL_7ZR=https://www.7-zip.org/a/7zr.exe"
 SET "DL_7ZEXTRA=https://www.7-zip.org/a/7z2300-extra.7z"
 SET "DL_PERLPORTABLE=https://strawberryperl.com/download/5.16.3.1/strawberry-perl-5.16.3.1-64bit-portable.zip"
