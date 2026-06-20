@@ -12,6 +12,7 @@ SET "DL_PERLPORTABLE=https://strawberryperl.com/download/5.16.3.1/strawberry-per
 REM Supported GPUs
 SET NVIDIA_CARDS=GeForce,RTX,A800,T1000,Quadro
 SET AMD_CARDS=RadeonRX,RadeonPro
+SET INTEL_CARDS=ARC
 REM Filenames and Folders - Tempfolders in %ProgramData%
 SET "LOGO=%ProgramData%\zipripper.png"
 SET "RESUMEDATAFOLDER=%AppData%\ZR-InProgress"
@@ -1017,6 +1018,13 @@ FOR /F "usebackq skip=3 tokens=2,3" %%# IN (`POWERSHELL -nop -c "Get-CIMInstance
 		)
 	) ELSE (
 		ENDLOCAL
+	)
+	FOR %%$ IN (%INTEL_CARDS%) DO (
+		IF /I "%%#"=="%%$" (
+			IF EXIST "%WinDir%\System32\OpenCL.dll" (
+				SET GPU=3
+			)
+		)
 	)
 )
 EXIT /b
